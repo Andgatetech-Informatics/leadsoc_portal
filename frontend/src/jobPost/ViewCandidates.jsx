@@ -15,7 +15,7 @@ const ViewCandidates = () => {
   const [candidateData, setCandidateData] = useState([]);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
-  const { jobId } = location.state || {}; // get jobId from navigation state
+  const { jobId } = location.state || {};
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   useEffect(() => {
@@ -32,11 +32,13 @@ const ViewCandidates = () => {
 
     const fetchCandidates = async () => {
       try {
-        const res = await axios.get(`${baseUrl}/api/shortlisted_candidates_activeJobs/${jobId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCandidateData(res.data.data)
-
+        const res = await axios.get(
+          `${baseUrl}/api/shortlisted_candidates_activeJobs/${jobId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setCandidateData(res.data.data);
       } catch (err) {
         console.error("❌ Error fetching candidates:", err);
         setCandidateData([]);
@@ -77,7 +79,7 @@ const ViewCandidates = () => {
               <tr
                 key={index}
                 className="hover:bg-gray-50 transition cursor-pointer"
-                onClick={() => navigate(`/application-tracker_dm/${c._id}`)}
+                onClick={() => navigate(`/application-tracker_sales/${c._id}`)}
               >
                 {/* Applicant Name */}
                 <td className="px-6 py-4">
@@ -96,14 +98,15 @@ const ViewCandidates = () => {
                   <span
                     className={`
               px-3 py-1 rounded-full text-xs font-medium
-              ${c.status === "shortlisted"
-                        ? "bg-green-100 text-green-700"
-                        : c.status === "rejected"
-                          ? "bg-red-100 text-red-700"
-                          : c.status === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-gray-100 text-gray-700"
-                      }
+              ${
+                c.status === "shortlisted"
+                  ? "bg-green-100 text-green-700"
+                  : c.status === "rejected"
+                  ? "bg-red-100 text-red-700"
+                  : c.status === "pending"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : "bg-gray-100 text-gray-700"
+              }
             `}
                   >
                     {c.status}
@@ -114,7 +117,7 @@ const ViewCandidates = () => {
                 <td className="px-4 py-4">
                   <a
                     href={`mailto:${c.email}`}
-                    className="font-medium text-blue-600 hover:underline"
+                    className="text-gray-600 hover:underline"
                   >
                     {c.email}
                   </a>
@@ -165,8 +168,8 @@ const ViewCandidates = () => {
 
                       const viewUrl = isDoc
                         ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                          resumeUrl
-                        )}`
+                            resumeUrl
+                          )}`
                         : resumeUrl;
 
                       return (

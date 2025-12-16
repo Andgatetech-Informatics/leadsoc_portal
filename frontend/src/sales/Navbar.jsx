@@ -5,6 +5,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaRegUser } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import SearchResult from "../components/SearchResult";
+import AndGatePopup from "../andgateExtension/AndGatePopup";
+import { companyLogoText } from "../api";
 
 const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const navigate = useNavigate();
@@ -13,7 +15,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
   const location = useLocation();
-  const showPopup = location.pathname === "/dashboard/hr";
+  const path = location.pathname;
+  const showPopup = path === "/dashboard/delivery";
 
   const capitalize = (str) =>
     str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
@@ -62,14 +65,16 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
 
         <div>
           <h1 className="text-xl font-bold text-blue-600 leading-tight">
-            AndGate
+            {companyLogoText}
           </h1>
-          <p className="text-xs font-semibold text-gray-500  -mt-1">Accounts Manager Panel</p>
+          <p className="text-xs font-semibold text-gray-500  -mt-1">
+            Sales Management Panel
+          </p>
         </div>
       </div>
 
       {/* Center: Search Bar */}
-      {/* <div className="hidden md:flex relative w-full max-w-md mx-4">
+      <div className="hidden md:flex relative w-full max-w-md mx-4">
         <span className="absolute left-3 top-2.5 text-gray-400">
           <Search size={16} />
         </span>
@@ -80,14 +85,8 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
           onChange={(e) => setSearchTerm(e.target.value.trim())}
           className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        {searchTerm && (
-          <SearchResult
-            searchTerm={searchTerm}
-            navigateUrl="application-tracker_dm"
-            setSearchTerm={setSearchTerm}
-          />
-        )}
-      </div> */}
+        {searchTerm && <SearchResult searchTerm={searchTerm} navigateUrl="application-tracker_sales" setSearchTerm={setSearchTerm} />}
+      </div>
 
       {/* Right: User Options */}
       {user && (
@@ -128,7 +127,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
 
               <div className="flex flex-col py-2">
                 <Link
-                  to="/profile/accounts"
+                  to="/profile/sales"
                   onClick={() => setIsDropdownOpen(false)}
                   className="px-5 py-3 hover:bg-gray-50 text-gray-700 transition-all duration-200 font-medium flex items-center gap-2"
                 >
@@ -166,6 +165,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
               </div>
             </div>
           )}
+          <div className="">{showPopup && <AndGatePopup path={path} />}</div>
         </div>
       )}
     </header>

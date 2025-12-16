@@ -1,19 +1,33 @@
-import { Bell, PanelLeftClose, PanelRightOpen, Search } from "lucide-react";
+import {
+  Bell,
+  PanelRightCloseIcon,
+  PanelRightOpenIcon,
+  Search,
+} from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
+import { baseUrl } from "../api";
 
 import { FaRegUser } from "react-icons/fa6";
 import { useSelector } from "react-redux";
+import AndGatePopup from "../andgateExtension/AndGatePopup";
+import Notifications from "../components/Notifications";
 import SearchResult from "../components/SearchResult";
+import { companyLogoText } from "../api"
 
 const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   const location = useLocation();
-  const showPopup = location.pathname === "/dashboard/hr";
+  const path = location.pathname;
+  const showPopup = path === "/dashboard/ta";
 
   const capitalize = (str) =>
     str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
@@ -32,6 +46,26 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     window.location.reload();
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const { data } = await axios.get(`${baseUrl}/api/notification/assigned_notifications`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          contentType: "application/json",
+        },
+      });
+      setNotifications(data.data || []);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -46,7 +80,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   }, []);
 
   return (
-    <header className="w-full flex items-center justify-between bg-white px-4 sm:px-6 py-3 shadow-sm border-b">
+    <header className="w-full flex items-center justify-between bg-white px-4 sm:px-6 py-3 shadow-sm border-b ">
       {/* Left: Logo + Toggle (for mobile) */}
       <div className="flex items-center gap-4">
         <button
@@ -54,22 +88,24 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
           className="text-gray-500 hover:text-blue-600 transition"
         >
           {isSidebarOpen ? (
-            <PanelLeftClose size={25} />
+            <PanelRightCloseIcon size={25} />
           ) : (
-            <PanelRightOpen size={25} />
+            <PanelRightOpenIcon size={25} />
           )}
         </button>
 
         <div>
           <h1 className="text-xl font-bold text-blue-600 leading-tight">
-            AndGate
+            {companyLogoText}
           </h1>
-          <p className="text-xs font-semibold text-gray-500  -mt-1">Accounts Manager Panel</p>
+          <p className="text-xs font-semibold text-gray-500  -mt-1">
+            TA Management Panel
+          </p>
         </div>
       </div>
 
       {/* Center: Search Bar */}
-      {/* <div className="hidden md:flex relative w-full max-w-md mx-4">
+      <div className="hidden md:flex relative w-full max-w-md mx-4">
         <span className="absolute left-3 top-2.5 text-gray-400">
           <Search size={16} />
         </span>
@@ -80,23 +116,31 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
           onChange={(e) => setSearchTerm(e.target.value.trim())}
           className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        {searchTerm && (
-          <SearchResult
-            searchTerm={searchTerm}
-            navigateUrl="application-tracker_dm"
-            setSearchTerm={setSearchTerm}
-          />
-        )}
-      </div> */}
+        {searchTerm && <SearchResult searchTerm={searchTerm} navigateUrl="application-tracker_hr" setSearchTerm={setSearchTerm} />}
+      </div>
 
       {/* Right: User Options */}
       {user && (
         <div className="flex items-center gap-4 relative">
+
           {/* Notification Bell */}
-          <button className="relative text-black hover:text-blue-600 transition">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setIsNotificationOpen((prev) => !prev)}
+              className="relative text-black hover:text-blue-600 transition mt-1"
+            >
+              <Bell className="w-5 h-5" />
+              {
+                notifications && notifications.length > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                )
+              }
+            </button>
+
+            {isNotificationOpen && (
+              <Notifications onClose={() => setIsNotificationOpen(false)} loading={loading} notifications={notifications} setNotifications={setNotifications} />
+            )}
+          </div>
 
           {/* User Button */}
           <button
@@ -128,7 +172,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
 
               <div className="flex flex-col py-2">
                 <Link
-                  to="/profile/accounts"
+                  to="/profile/ta"
                   onClick={() => setIsDropdownOpen(false)}
                   className="px-5 py-3 hover:bg-gray-50 text-gray-700 transition-all duration-200 font-medium flex items-center gap-2"
                 >
@@ -166,6 +210,9 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
               </div>
             </div>
           )}
+
+          {/* Andgate All Products */}
+          <div className="">{showPopup && <AndGatePopup path={path} />}</div>
         </div>
       )}
     </header>

@@ -6,7 +6,7 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { motion, useAnimation } from "framer-motion";
 import "react-toastify/dist/ReactToastify.css";
-import { baseUrl } from "../../api";
+import { baseUrl, companyLogoText } from "../../api";
 import { getUserDetails } from "../../utils/auth";
 import { setUser } from "../../store/slice/userSclice";
 
@@ -76,7 +76,7 @@ const LoginScreen = () => {
           transition={{ duration: 0.7, delay: 0.3 }}
         >
           <h1 className="text-4xl font-extrabold text-white mb-4 leading-tight">
-            Welcome to <span className="text-blue-500">AndGate Portal</span>
+            Welcome to <span className="text-blue-500">{companyLogoText} Portal</span>
           </h1>
           <p className="text-sm text-neutral-300 max-w-lg">
             Your all-in-one system for HR, Candidate Management & Smart
@@ -163,7 +163,7 @@ const LoginScreen = () => {
           </form>
 
           <p className="text-xs text-center text-neutral-500 mt-6">
-            © {new Date().getFullYear()} ANDGATE IT Solutions. All rights
+            © {new Date().getFullYear()} {companyLogoText} IT Solutions. All rights
             reserved.
           </p>
         </div>

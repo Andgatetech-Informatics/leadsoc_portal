@@ -100,7 +100,7 @@ const ApplicationTracker = () => {
   ];
 
   const eventOptions =
-    userRole === "hr" ? hrEventOptions : deliveryEventOptions;
+    userRole === "ta" ? hrEventOptions : deliveryEventOptions;
 
   const headers = {
     authorization: `Bearer ${token}`,

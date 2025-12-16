@@ -12,7 +12,7 @@ exports.getCandidateStats = async (req, res) => {
   const query = {};
 
   if (startDate && endDate) {
-    query.createdAt = {
+    query.updatedAt = {
       $gte: new Date(startDate),
       $lte: new Date(endDate),
     };
@@ -123,20 +123,37 @@ exports.getTeamLoad = async (req, res) => {
 };
 
 exports.getDomainStats = async (req, res) => {
-  const range = req.query;
+  const params = req.query;
 
-  const startDate = range["range[startDate]"];
-  const endDate = range["range[endDate]"];
+  const startDate = params["range[startDate]"];
+  const endDate = params["range[endDate]"];
+  const role = params.role;
+
+    const query = {};
+
+  if (startDate && endDate) {
+    query.updatedAt = {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate),
+    };
+  }
+
+  if (role && role === "freelancer") {
+    query.isFreelancer = true;
+  }
+  
   try {
     const domainCounts = await Candidate.aggregate([
-      {
-        $match: {
-          createdAt: {
-            $gte: new Date(startDate),
-            $lte: new Date(endDate),
-          },
-        },
-      },
+      // {
+      //   $match: {
+      //     createdAt: {
+      //       $gte: new Date(startDate),
+      //       $lte: new Date(endDate),
+      //     },
+      //   },
+      // },
+
+        { $match: query },
       { $unwind: "$domain" },
       {
         $group: {

@@ -1,5 +1,5 @@
-export const baseUrl = "http://192.168.1.39:4000";
-// export const baseUrl = "http://localhost:4000";
+// export const baseUrl = "http://192.168.1.39:4000";
+export const baseUrl = "http://localhost:4000";
 // export const baseUrl = "http://122.160.167.200:4000";
 export const frontendUrl = "https://myportal.andgatetech.com";
 export const candidateRegistrationUrl =
@@ -7,4 +7,4 @@ export const candidateRegistrationUrl =
 
 // export const baseUrl = "https://myportal.andgatetech.com/backend";
 
-export const companyLogoText = "Andgate";
+export const companyLogoText = "LeadSoc";

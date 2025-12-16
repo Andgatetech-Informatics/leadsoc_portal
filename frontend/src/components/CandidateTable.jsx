@@ -39,7 +39,7 @@ const CandidateTable = ({
   redirect,
   selectedCandidate,
   isFreelancerTable = false,
-  page
+  page,
 }) => {
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 1180);
   const [candidateData, setCandidateData] = useState([]);
@@ -86,8 +86,8 @@ const CandidateTable = ({
     const label =
       isEventPending && latestEvent
         ? `${capitalize(latestEvent.eventName || "")} ${capitalize(
-          latestEvent.status || ""
-        )}`.trim()
+            latestEvent.status || ""
+          )}`.trim()
         : capitalize(normalizedStatus);
 
     const handleClick = () => {
@@ -109,7 +109,6 @@ const CandidateTable = ({
       </span>
     );
   };
-
 
   const renderSkeletonLoader = () => {
     return (
@@ -224,197 +223,204 @@ const CandidateTable = ({
               {loading
                 ? renderSkeletonLoader()
                 : candidateData.map((c) => {
-                  return showShortlistedColumnsOnly ? (
-                    <tr key={c._id}>
-                      <td className="px-4 py-3 truncate max-w-[130px]">
-                        <p title={c.name}>{c.name}</p>
-                        <div className="flex items-center mt-2">
-                          <FaBriefcase className="mr-2 text-start text-gray-500" />
-                          <p>{c.experienceYears ? `${c.experienceYears} yrs` : "Fresher"}</p>
+                    return showShortlistedColumnsOnly ? (
+                      <tr key={c._id}>
+                        <td className="px-4 py-3 truncate max-w-[130px]">
+                          <p title={c.name}>{c.name}</p>
+                          <div className="flex items-center mt-2">
+                            <FaBriefcase className="mr-2 text-start text-gray-500" />
+                            <p>
+                              {c.experienceYears
+                                ? `${c.experienceYears} yrs`
+                                : "Fresher"}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {/* {renderStatusBadge(capitalize(c.status), c)} */}
+                          <button
+                            onClick={() => onView(c)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm"
+                          >
+                            <FaEye />
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 relative group">
+                          <ProgressBar status={c.status} candidate={c} />
+                        </td>
 
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {/* {renderStatusBadge(capitalize(c.status), c)} */}
-                        <button
-                          onClick={() => onView(c)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-sm"
-                        >
-                          <FaEye />
-                        </button>
-                      </td>
-                      <td className="px-4 py-3 relative group">
-                        <ProgressBar status={c.status} candidate={c} />
-                      </td>
+                        <td className="px-4 py-3">
+                          {c.user
+                            ? `${c.user.firstName} ${c.user.lastName}`
+                            : c.hrName}
+                        </td>
 
-                      <td className="px-4 py-3">
-                        {c.user
-                          ? `${c.user.firstName} ${c.user.lastName}`
-                          : c.hrName}
-                      </td>
-
-                      <td className="px-4 py-3 truncate max-w-[200px]">
-                        <p title={c.email}>
-                          <a
-                            href={`mailto:${c.email}`}
-                            className="hover:text-blue-500 hover:text-sm"
-                          >
-                            {c.email}
-                          </a>
-                        </p>
-                        <div className="flex items-center mt-2">
-                          <a
-                            href={`tel:${c.mobile}`}
-                            className="flex items-center text-gray-500 hover:text-blue-500"
-                          >
-                            <FaPhoneSquareAlt className="mr-2" />
-                            {c.mobile}
-                          </a>
-                          <a
-                            href={`https://wa.me/${c.mobile}`}
-                            className="ml-2 text-gray-500 hover:text-green-500"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <FaWhatsapp
-                              className="text-lg"
-                              title="Chat on WhatsApp"
-                            />
-                          </a>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {moment(c.updatedAt).format("ll")}
-                      </td>
-                    </tr>
-                  ) : (
-                    <tr key={c._id} className="hover:bg-gray-100 transition">
-                      <td className="px-4 py-3 truncate max-w-[120px]">
-                        <div className="flex flex-col items-start space-y-1">
-                          <span
-                            title={c.name}
-                            className="text-sm text-gray-800 mb-1"
-                          >
-                            {c.name}
-                          </span>
-                          <div
-                            className="flex items-center gap-1 text-gray-700 text-xs"
-                            title={c._id}
-                          >
-                            <FaUserAlt className="mr-2 text-gray-500" />
-                            <span>{c._id.slice(-5)}</span>{" "}
-                            <span
-                              title={moment(c.createdAt).format("ll")}
-                              className="text-gray-500 text-[10px]"
+                        <td className="px-4 py-3 truncate max-w-[200px]">
+                          <p title={c.email}>
+                            <a
+                              href={`mailto:${c.email}`}
+                              className="hover:text-blue-500 hover:text-sm"
                             >
-                              {" "}
-                              {moment(c.createdAt).format("ll")}
+                              {c.email}
+                            </a>
+                          </p>
+                          <div className="flex items-center mt-2">
+                            <a
+                              href={`tel:${c.mobile}`}
+                              className="flex items-center text-gray-500 hover:text-blue-500"
+                            >
+                              <FaPhoneSquareAlt className="mr-2" />
+                              {c.mobile}
+                            </a>
+                            <a
+                              href={`https://wa.me/${c.mobile}`}
+                              className="ml-2 text-gray-500 hover:text-green-500"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <FaWhatsapp
+                                className="text-lg"
+                                title="Chat on WhatsApp"
+                              />
+                            </a>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {moment(c.updatedAt).format("ll")}
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={c._id} className="hover:bg-gray-100 transition">
+                        <td className="px-4 py-3 truncate max-w-[120px]">
+                          <div className="flex flex-col items-start space-y-1">
+                            <span
+                              title={c.name}
+                              className="text-sm text-gray-800 mb-1"
+                            >
+                              {c.name}
+                            </span>
+                            <div
+                              className="flex items-center gap-1 text-gray-700 text-xs"
+                              title={c._id}
+                            >
+                              <FaUserAlt className="mr-2 text-gray-500" />
+                              <span>{c._id.slice(-5)}</span>{" "}
+                              <span
+                                title={moment(c.createdAt).format("ll")}
+                                className="text-gray-500 text-[10px]"
+                              >
+                                {" "}
+                                {moment(c.createdAt).format("ll")}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3 text-center space-x-2">
+                          <button
+                            onClick={() => onView(c)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-full text-xs"
+                          >
+                            <FaEye />
+                          </button>
+                          {showAssignButton && (
+                            <button
+                              onClick={() => onAssign(c._id)}
+                              className="bg-green-600 hover:bg-green-700 text-white px-2 py-1.5 rounded-full text-xs"
+                            >
+                              <FaUserPlus />
+                            </button>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 truncate max-w-[100px]">
+                          <p title={c.domain}>
+                            {c.domain && Array.isArray(c.domain)
+                              ? c.domain.join(", ")
+                              : c.domain}
+                          </p>
+                          <div className="flex mt-1 items-center">
+                            <FaBriefcase className="mr-2 text-start text-gray-500" />
+                            <p>
+                              {c.experienceYears
+                                ? `${c.experienceYears} yrs`
+                                : "Fresher"}
+                            </p>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {renderStatusBadge(capitalize(c.status), c)}
+                        </td>
+                        {!isFreelancerTable && (
+                          <td
+                            className="px-4 py-3 truncate max-w-[130px]"
+                            title={c.degree}
+                          >
+                            <p>{c.degree}</p>
+                            <div className="flex items-center mt-1">
+                              <FaGraduationCap className="mr-2 text-gray-500" />
+                              <p>{c.graduationYear?.split("-")[0]}</p>
+                            </div>
+                          </td>
+                        )}
+                        <td className="px-4 py-3 truncate max-w-[200px]">
+                          <p>
+                            <a
+                              href={`mailto:${c.email}`}
+                              className="hover:text-blue-500 "
+                              title={c.email}
+                            >
+                              {c.email}
+                            </a>
+                          </p>
+                          <div className="flex items-center mt-2">
+                            <a
+                              href={`tel:${c.mobile}`}
+                              className="flex items-center text-gray-500 hover:text-blue-500"
+                            >
+                              <FaPhoneSquareAlt className="mr-2" />
+                              {c.mobile}
+                            </a>
+                            <a
+                              href={`https://wa.me/${c.mobile}`}
+                              className="ml-2 text-gray-500 hover:text-green-500"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <FaWhatsapp
+                                className="text-lg"
+                                title="Chat on WhatsApp"
+                              />
+                            </a>
+                          </div>
+                        </td>
+
+                        <td
+                          className="px-4 py-3 truncate max-w-[100px]"
+                          title={c.currentLocation}
+                        >
+                          <p className="capitalize mb-1">{c.currentLocation}</p>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <FaCalendarCheck className="mr-2 text-gray-500" />
+                            <span title={c.availability} className="capitalize">
+                              {c.availability}
                             </span>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-4 py-3 text-center space-x-2">
-                        <button
-                          onClick={() => onView(c)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-full text-xs"
-                        >
-                          <FaEye />
-                        </button>
-                        {showAssignButton && (
-                          <button
-                            onClick={() => onAssign(c._id)}
-                            className="bg-green-600 hover:bg-green-700 text-white px-2 py-1.5 rounded-full text-xs"
-                          >
-                            <FaUserPlus />
-                          </button>
+                        {isAssignedTable && (
+                          <td className="px-2 py-2">
+                            <button
+                              key={c._id}
+                              className="text-center"
+                              onClick={() => onEdit(c)}
+                            >
+                              <FaEdit className="text-center text-gray-500" />
+                            </button>
+                          </td>
                         )}
-                      </td>
-                      <td className="px-4 py-3 truncate max-w-[100px]">
-                        <p title={c.domain}>
-                          {c.domain && Array.isArray(c.domain)
-                            ? c.domain.join(", ")
-                            : c.domain}
-                        </p>
-                        <div className="flex mt-1 items-center">
-                          <FaBriefcase className="mr-2 text-start text-gray-500" />
-                          <p>{c.experienceYears ? `${c.experienceYears} yrs` : "Fresher"}</p>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        {renderStatusBadge(capitalize(c.status), c)}
-                      </td>
-                      {!isFreelancerTable && (
-                        <td
-                          className="px-4 py-3 truncate max-w-[130px]"
-                          title={c.degree}
-                        >
-                          <p>{c.degree}</p>
-                          <div className="flex items-center mt-1">
-                            <FaGraduationCap className="mr-2 text-gray-500" />
-                            <p>{c.graduationYear?.split("-")[0]}</p>
-                          </div>
-                        </td>
-                      )}
-                      <td className="px-4 py-3 truncate max-w-[200px]">
-                        <p>
-                          <a
-                            href={`mailto:${c.email}`}
-                            className="hover:text-blue-500 "
-                            title={c.email}
-                          >
-                            {c.email}
-                          </a>
-                        </p>
-                        <div className="flex items-center mt-2">
-                          <a
-                            href={`tel:${c.mobile}`}
-                            className="flex items-center text-gray-500 hover:text-blue-500"
-                          >
-                            <FaPhoneSquareAlt className="mr-2" />
-                            {c.mobile}
-                          </a>
-                          <a
-                            href={`https://wa.me/${c.mobile}`}
-                            className="ml-2 text-gray-500 hover:text-green-500"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <FaWhatsapp
-                              className="text-lg"
-                              title="Chat on WhatsApp"
-                            />
-                          </a>
-                        </div>
-                      </td>
-
-                      <td
-                        className="px-4 py-3 truncate max-w-[100px]"
-                        title={c.currentLocation}
-                      >
-                        <p className="capitalize mb-1">{c.currentLocation}</p>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <FaCalendarCheck className="mr-2 text-gray-500" />
-                          <span title={c.availability} className="capitalize">
-                            {c.availability}
-                          </span>
-                        </div>
-                      </td>
-
-                      {isAssignedTable && (
-                        <td className="px-2 py-2">
-                          <button
-                            key={c._id}
-                            className="text-center"
-                            onClick={() => onEdit(c)}
-                          >
-                            <FaEdit className="text-center text-gray-500" />
-                          </button>
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
+                      </tr>
+                    );
+                  })}
             </tbody>
           </table>
         </div>
@@ -423,187 +429,185 @@ const CandidateTable = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-2 py-2">
           {loading
             ? [...Array(4)].map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm animate-pulse"
-              >
-                <div className="h-5 w-32 bg-gray-200 rounded mb-3"></div>
-                <div className="space-y-2">
-                  <div className="h-3 w-full bg-gray-200 rounded"></div>
-                  <div className="h-3 w-3/4 bg-gray-200 rounded"></div>
-                  <div className="h-3 w-1/2 bg-gray-200 rounded"></div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                  <div className="h-8 w-full bg-gray-300 rounded"></div>
-                  <div className="h-8 w-full bg-gray-300 rounded"></div>
-                </div>
-              </div>
-            ))
-            : candidateData.map((c) => {
-              let sortedRemark = "";
-              if (Array.isArray(c?.remark) && c?.remark?.length > 0) {
-                sortedRemark =
-                  [...c?.remark].sort(
-                    (a, b) => new Date(b.date) - new Date(a.date)
-                  )[0]?.title || "";
-              }
-
-              return (
                 <div
-                  key={c._id}
-                  className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm 
-             hover:shadow-lg transition-all duration-200"
+                  key={i}
+                  className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm animate-pulse"
                 >
-                  {/* Header */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-xl font-semibold text-gray-800 leading-snug">
-                        {c?.name}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-0.5">
-                        {c?.domain && Array.isArray(c.domain)
-                          ? c.domain.join(", ")
-                          : c?.domain}
-                      </p>
-                    </div>
-                    <div className="ml-2">
-                      {renderStatusBadge(capitalize(c?.status), c)}
-                    </div>
+                  <div className="h-5 w-32 bg-gray-200 rounded mb-3"></div>
+                  <div className="space-y-2">
+                    <div className="h-3 w-full bg-gray-200 rounded"></div>
+                    <div className="h-3 w-3/4 bg-gray-200 rounded"></div>
+                    <div className="h-3 w-1/2 bg-gray-200 rounded"></div>
                   </div>
+                  <div className="flex gap-2 mt-4">
+                    <div className="h-8 w-full bg-gray-300 rounded"></div>
+                    <div className="h-8 w-full bg-gray-300 rounded"></div>
+                  </div>
+                </div>
+              ))
+            : candidateData.map((c) => {
+                let sortedRemark = "";
+                if (Array.isArray(c?.remark) && c?.remark?.length > 0) {
+                  sortedRemark =
+                    [...c?.remark].sort(
+                      (a, b) => new Date(b.date) - new Date(a.date)
+                    )[0]?.title || "";
+                }
 
-                  {/* Details */}
-                  <div className="text-[15px]  text-gray-700 space-y-3">
-                    {/* ROW 1 */}
-                    <div className="grid grid-cols-2 gap-3 mt-2">
-                      <div className="flex items-center gap-2">
-                        <FaUserAlt className="text-gray-500 text-sm" />
-                        <span className="text-sm">
-                          {c?._id.slice(-5)}
-                        </span>
+                return (
+                  <div
+                    key={c._id}
+                    className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm 
+             hover:shadow-lg transition-all duration-200"
+                  >
+                    {/* Header */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-xl font-semibold text-gray-800 leading-snug">
+                          {c?.name}
+                        </h3>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          {c?.domain && Array.isArray(c.domain)
+                            ? c.domain.join(", ")
+                            : c?.domain}
+                        </p>
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <FaBriefcase className="text-gray-500 text-sm" />
-                        <span className="text-sm">
-                          {c?.experienceYears || "Fresher"}
-                        </span>
+                      <div className="ml-2">
+                        {renderStatusBadge(capitalize(c?.status), c)}
                       </div>
+                    </div>
 
-                      {!isFreelancerTable && (
+                    {/* Details */}
+                    <div className="text-[15px]  text-gray-700 space-y-3">
+                      {/* ROW 1 */}
+                      <div className="grid grid-cols-2 gap-3 mt-2">
                         <div className="flex items-center gap-2">
-                          <FaGraduationCap className="text-gray-500 text-sm" />
+                          <FaUserAlt className="text-gray-500 text-sm" />
+                          <span className="text-sm">{c?._id.slice(-5)}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <FaBriefcase className="text-gray-500 text-sm" />
                           <span className="text-sm">
-                            {c?.graduationYear?.split("-")[0]}
+                            {c?.experienceYears || "Fresher"}
                           </span>
                         </div>
-                      )}
 
-                      <div className="flex items-center gap-2">
-                        <FaCalendarCheck className="text-gray-500 text-sm" />
-                        <span className="capitalize text-sm">
-                          {c?.availability}
-                        </span>
-                      </div>
-                    </div>
+                        {!isFreelancerTable && (
+                          <div className="flex items-center gap-2">
+                            <FaGraduationCap className="text-gray-500 text-sm" />
+                            <span className="text-sm">
+                              {c?.graduationYear?.split("-")[0]}
+                            </span>
+                          </div>
+                        )}
 
-                    {/* Inline rows */}
-                    <div className="space-y-1">
-                      <p>
-                        <span className="font-medium">Location:</span>{" "}
-                        <span className="capitalize">
-                          {c?.currentLocation}
-                        </span>
-                      </p>
-
-                      <p>
-                        <span className="font-medium">Email:</span>{" "}
-                        <a
-                          href={`mailto:${c.email}`}
-                          className="text-blue-500 hover:underline break-all"
-                        >
-                          {c?.email}
-                        </a>
-                      </p>
-
-                      <p>
-                        <span className="font-medium">Phone:</span>{" "}
-                        <a
-                          href={`tel:${c.mobile}`}
-                          className="text-blue-500 hover:underline"
-                        >
-                          {c?.mobile}
-                        </a>
-                      </p>
-
-                      <p>
-                        <span className="font-medium">WhatsApp:</span>{" "}
-                        <a
-                          href={`https://wa.me/${c.mobile}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-green-600 font-medium hover:underline"
-                        >
-                          Chat on WhatsApp
-                        </a>
-                      </p>
-
-                      {isAssignedTable && (
-                        <p>
-                          <span className="font-medium">HR Name:</span>{" "}
-                          {c?.user
-                            ? `${c?.user?.firstName} ${c?.user?.lastName}`
-                            : c.hrName}
-                        </p>
-                      )}
-
-                      <p>
-                        <span className="font-medium">Updated:</span>{" "}
-                        {moment(c?.updatedAt).format("ll")}
-                      </p>
-                    </div>
-
-                    {/* Remarks */}
-                    {isAssignedTable && (
-                      <div className="mt-3">
-                        <label className="text-sm font-semibold text-gray-700 mb-1 block">
-                          Latest Remark
-                        </label>
-                        <div className="relative w-full">
-                          <p className="w-full border bg-gray-50 rounded-md px-3 py-3 pr-12 text-sm">
-                            {sortedRemark || "No remarks yet"}
-                          </p>
-                          <button
-                            onClick={() => onEdit(c)}
-                            className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-gray-500 hover:text-blue-600"
-                          >
-                            <FaEdit />
-                          </button>
+                        <div className="flex items-center gap-2">
+                          <FaCalendarCheck className="text-gray-500 text-sm" />
+                          <span className="capitalize text-sm">
+                            {c?.availability}
+                          </span>
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Actions */}
-                  <div className="flex gap-2 mt-5">
-                    <button
-                      onClick={() => onView(c)}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 rounded-md text-sm font-medium"
-                    >
-                      <FaEye className="inline mr-1" /> View
-                    </button>
+                      {/* Inline rows */}
+                      <div className="space-y-1">
+                        <p>
+                          <span className="font-medium">Location:</span>{" "}
+                          <span className="capitalize">
+                            {c?.currentLocation}
+                          </span>
+                        </p>
 
-                    {showAssignButton && (
+                        <p>
+                          <span className="font-medium">Email:</span>{" "}
+                          <a
+                            href={`mailto:${c.email}`}
+                            className="text-blue-500 hover:underline break-all"
+                          >
+                            {c?.email}
+                          </a>
+                        </p>
+
+                        <p>
+                          <span className="font-medium">Phone:</span>{" "}
+                          <a
+                            href={`tel:${c.mobile}`}
+                            className="text-blue-500 hover:underline"
+                          >
+                            {c?.mobile}
+                          </a>
+                        </p>
+
+                        <p>
+                          <span className="font-medium">WhatsApp:</span>{" "}
+                          <a
+                            href={`https://wa.me/${c.mobile}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-green-600 font-medium hover:underline"
+                          >
+                            Chat on WhatsApp
+                          </a>
+                        </p>
+
+                        {isAssignedTable && (
+                          <p>
+                            <span className="font-medium">HR Name:</span>{" "}
+                            {c?.user
+                              ? `${c?.user?.firstName} ${c?.user?.lastName}`
+                              : c.hrName}
+                          </p>
+                        )}
+
+                        <p>
+                          <span className="font-medium">Updated:</span>{" "}
+                          {moment(c?.updatedAt).format("ll")}
+                        </p>
+                      </div>
+
+                      {/* Remarks */}
+                      {isAssignedTable && (
+                        <div className="mt-3">
+                          <label className="text-sm font-semibold text-gray-700 mb-1 block">
+                            Latest Remark
+                          </label>
+                          <div className="relative w-full">
+                            <p className="w-full border bg-gray-50 rounded-md px-3 py-3 pr-12 text-sm">
+                              {sortedRemark || "No remarks yet"}
+                            </p>
+                            <button
+                              onClick={() => onEdit(c)}
+                              className="absolute inset-y-0 right-0 flex items-center justify-center px-3 text-gray-500 hover:text-blue-600"
+                            >
+                              <FaEdit />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 mt-5">
                       <button
-                        onClick={() => onAssign(c._id)}
-                        className="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 rounded-md text-sm font-medium"
+                        onClick={() => onView(c)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 rounded-md text-sm font-medium"
                       >
-                        <FaUserPlus className="inline mr-1" /> Assign
+                        <FaEye className="inline mr-1" /> View
                       </button>
-                    )}
+
+                      {showAssignButton && (
+                        <button
+                          onClick={() => onAssign(c._id)}
+                          className="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 rounded-md text-sm font-medium"
+                        >
+                          <FaUserPlus className="inline mr-1" /> Assign
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
         </div>
       )}
     </>

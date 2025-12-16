@@ -3,17 +3,18 @@ import { Route, Routes, Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 // Layouts
-import HrLayout from "../layout/HrLayout";
-import DMPLayout from "../layout/DMPLayout";
+import TaLayout from "../layout/TaLayout";
+import BULayout from "../layout/BULayout";
 
-// HR Components
-import CandidateList from "../hr/CandidateList";
-import HrSettings from "../hr/HrSetting";
-import HrDashboard from "../hr/HrDashboard";
-import AssignedCandidatePage from "../hr/AssignedPage";
-import TeamsPage from "../hr/Teams";
-import ActiveJobs from "../hr/ActiveJobs";
-import ShortlistedHistory from "../hr/ShortlistedHistory";
+// TA Components
+import CandidateList from "../ta/CandidateList";
+import HiredCandidates from "../ta/HiredCandidates";
+import CandidateStatus from "../ta/CandidateStatus";
+
+import AssignedCandidatePage from "../ta/AssignedPage";
+
+import ActiveJobs from "../ta/ActiveJobs";
+import ShortlistedHistory from "../ta/ShortlistedHistory";
 
 // General Pages
 import Unauthorized from "../pages/Unauthorized";
@@ -27,20 +28,20 @@ import UserPage from "../pages/user/User";
 import Profile from "../pages/profile/Profile";
 import FresherOnboardingForm from "../pages/onboardingForm/FresherOnboardingForm";
 import ExperienceOnboardingForm from "../pages/onboardingForm/ExperienceOnboardingForm";
-import OnboardingCandidates from "../hr/OnboardingCandidates";
+import OnboardingCandidates from "../ta/OnboardingCandidates";
 
-// Delivery Manager Components
-import DMPDashboard from "../dmp/DMPDashboard";
-import ShortlistedCandidates from "../dmp/ShortlistedCandidates";
+// BU Components
+import BUDashboard from "../bu/BUDashboard";
+import ShortlistedCandidates from "../bu/ShortlistedCandidates";
 import ForgotPassword from "../components/ForgotPassword";
 import JobPostingForm from "../jobPost/JobPostingForm";
-import Feeds from "../dmp/Feeds";
+// import Feeds from "../bu/Feeds";
 import CandidateRegistrationDummy from "../pages/registration/Registration-dummy";
 import JobDetailPage from "../components/JobDetailPage";
 import OpeningJobCard from "../jobPost/OpeningJobCard";
 import ViewCandidates from "../jobPost/ViewCandidates";
-import CreatePostJob from "../dmp/CreatePostJob";
-import CreateCompany from "../dmp/CreateCompany";
+// import CreatePostJob from "../bu/CreatePostJob";
+// import CreateCompany from "../bu/CreateCompany";
 
 // Account Manager Components
 import AccountDashboard from "../accounts/AccountDashboard";
@@ -50,19 +51,25 @@ import InvoiceList from "../accounts/InvoiceList";
 import Companies from "../accounts/Companies";
 import CompanyInvoiceList from "../accounts/CompanyInvoiceList";
 import FeedbackForm from "../feedback/FeedbackForm";
-import HiredCandidates from "../hr/HiredCandidates";
 
 // Freelancer Components
-import FreelancerLayout from "../layout/FreelancerLayout";
-import ApplicantsList from "../freelancers/ApplicantsList";
-import FreelancerDashboard from "../freelancers/FreelancerDashboard";
-import ActiveJobsFreelancer from "../freelancers/ActiveJobsFreelancer";
-import ProfileSubmissionForm from "../freelancers/ProfileSubmissionForm";
-import FreelancerCandidates from "../hr/FreelancerCandidates";
-import AssignedFreelancerCandidates from "../freelancers/AssignedFreelancerCandidates";
-import CandidateStatus from "../hr/CandidateStatus";
-// import ShortlistedCandidateAllHR from "../hr/ShortlistedCandidateAllHR";
+import FreelancerLayout from "../layout/VendorLayout";
+import ApplicantsList from "../vendor/ApplicantsList";
+import FreelancerDashboard from "../vendor/FreelancerDashboard";
+import ActiveJobsFreelancer from "../vendor/ActiveJobsFreelancer";
+import ProfileSubmissionForm from "../vendor/ProfileSubmissionForm";
 
+// Sales Components
+import SalesLayout from "../layout/SalesLayout";
+import SalesDashboard from "../sales/SalesDashboard";
+import CreatePostJob from "../sales/CreatePostJob";
+import CreateCompany from "../sales/CreateCompany";
+import Feeds from "../sales/Feeds";
+import TaDashboard from "../ta/TaDashboard";
+import ApplicantStatus from "../ta/ApplicantStatus";
+import VendorCandidates from "../ta/VendorCandidates";
+import AssignedVendorCandidates from "../ta/AssignedVendorCandidates";
+// import ShortlistedCandidateAllHR from "../hr/ShortlistedCandidateAllHR";
 
 // Route Wrappers
 const PrivateRoute = ({ isAuth }) =>
@@ -70,17 +77,16 @@ const PrivateRoute = ({ isAuth }) =>
 const PublicRoute = ({ isAuth }) =>
   !isAuth ? <Outlet /> : <Navigate to="/dashboard" replace />;
 const AdminRoute = ({ user }) =>
-  user?.role === "admin" || user?.role === "hr" ? (
+  user?.role === "admin" || user?.role === "ta" ? (
     <Outlet />
   ) : (
     <Navigate to="/unauthorized" replace />
   );
-const DeliveryManagerRoute = ({ user }) =>
-  user?.role === "delivery" ? (
-    <Outlet />
-  ) : (
-    <Navigate to="/unauthorized" replace />
-  );
+const BURoute = ({ user }) =>
+  user?.role === "bu" ? <Outlet /> : <Navigate to="/unauthorized" replace />;
+
+const SalesRoute = ({ user }) =>
+  user?.role === "sales" ? <Outlet /> : <Navigate to="/unauthorized" replace />;
 
 const AccountManagerRoute = ({ user }) =>
   user?.role === "accounts" ? (
@@ -89,8 +95,8 @@ const AccountManagerRoute = ({ user }) =>
     <Navigate to="/unauthorized" replace />
   );
 
-const FreelancerRoute = ({ user }) =>
-  user?.role === "freelancer" ? (
+const VendorRoute = ({ user }) =>
+  user?.role === "vendor" ? (
     <Outlet />
   ) : (
     <Navigate to="/unauthorized" replace />
@@ -140,15 +146,15 @@ const AppRouter = ({ isAuth }) => {
       <Route element={<PrivateRoute isAuth={isAuth} />}>
         {/* HR/Admin Routes */}
         <Route element={<AdminRoute user={user} />}>
-          <Route element={<HrLayout />}>
-            <Route path="/dashboard/hr" element={<HrDashboard />} />
-            <Route path="/teams" element={<TeamsPage />} />
+          <Route element={<TaLayout />}>
+            <Route path="/dashboard/ta" element={<TaDashboard />} />
+            <Route path="/applicants-Status" element={<ApplicantStatus />} />
             <Route path="/active-jobs" element={<ActiveJobs />} />
-            <Route path="/settings" element={<HrSettings />} />
+
             <Route path="/candidates-list" element={<CandidateList />} />
-            <Route path="/profile/hr" element={<Profile />} />
+            <Route path="/profile/ta" element={<Profile />} />
             <Route
-              path="/application-tracker_hr/:candidateId"
+              path="/application-tracker_ta/:candidateId"
               element={<ApplicationTracker />}
             />
             <Route
@@ -170,32 +176,30 @@ const AppRouter = ({ isAuth }) => {
               element={<OnboardingCandidates />}
             />
             <Route path="/hired-candidates" element={<HiredCandidates />} />
-            <Route path="/candidates-status-hr" element={<CandidateStatus />} />
+            <Route path="/candidates-status-ta" element={<CandidateStatus />} />
             <Route path="/user" element={<UserPage />} />
+            <Route path="/vendor-candidates" element={<VendorCandidates />} />
             <Route
-              path="/freelancer-candidates"
-              element={<FreelancerCandidates />}
-            />
-            <Route
-              path="/assigned-freelancer-candidates"
-              element={<AssignedFreelancerCandidates />}
+              path="/assigned-vendor-candidates"
+              element={<AssignedVendorCandidates />}
             />
           </Route>
         </Route>
 
-        {/* Delivery Manager Routes */}
-        <Route element={<DeliveryManagerRoute user={user} />}>
-          <Route element={<DMPLayout />}>
-            <Route path="/dashboard/delivery" element={<DMPDashboard />} />
+        {/* BU Routes */}
+        <Route element={<BURoute user={user} />}>
+          <Route element={<BULayout />}>
+            <Route path="/dashboard/bu" element={<BUDashboard />} />
             <Route
               path="/shortlisted-all-candidates"
               element={<ShortlistedCandidates />}
             />
             <Route
-              path="/application-tracker_dm/:candidateId"
+              path="/application-tracker_bu/:candidateId"
               element={<ApplicationTracker />}
             />
-            <Route path="/post-new-job" element={<CreatePostJob />} />
+            <Route path="/active-jobs-bu" element={<ActiveJobs />} />
+            {/* <Route path="/post-new-job" element={<CreatePostJob />} />
             <Route path="/create-company" element={<CreateCompany />} />
             <Route path="/all-job-feeds" element={<Feeds />} />
             <Route path="/job-detail" element={<JobDetailPage />} />
@@ -206,9 +210,43 @@ const AppRouter = ({ isAuth }) => {
             <Route
               path="/view-candidates/:jobId"
               element={<ViewCandidates />}
+            /> */}
+            <Route path="/candidates-status-bu" element={<CandidateStatus />} />
+            <Route path="/profile/bu" element={<Profile />} />
+          </Route>
+        </Route>
+
+        {/* Sales Routes */}
+        <Route element={<SalesRoute user={user} />}>
+          <Route element={<SalesLayout />}>
+            <Route path="/dashboard/sales" element={<SalesDashboard />} />
+            {/* <Route
+              path="/shortlisted-all-candidates"
+              element={<ShortlistedCandidates />}
+            />*/}
+            <Route
+              path="/application-tracker_sales/:candidateId"
+              element={<ApplicationTracker />}
             />
-            <Route path="/candidates-status-delivery" element={<CandidateStatus />} />
-            <Route path="/profile/delivery" element={<Profile />} />
+            <Route path="/post-new-job" element={<CreatePostJob />} />
+            <Route path="/create-company" element={<CreateCompany />} />
+            <Route path="/all-job-feeds" element={<Feeds />} />
+            <Route path="/job-detail" element={<JobDetailPage />} />
+            <Route
+              path="/candidates-status-sales"
+              element={<CandidateStatus />}
+            />
+            <Route
+              path="/all-job-feeds/company/openings"
+              element={<OpeningJobCard />}
+            />
+            <Route
+              path="/view-candidates/:jobId"
+              element={<ViewCandidates />}
+            />
+
+            {/* <Route path="/candidates-status-bu" element={<CandidateStatus />} /> */}
+            <Route path="/profile/sales" element={<Profile />} />
           </Route>
         </Route>
 
@@ -227,14 +265,11 @@ const AppRouter = ({ isAuth }) => {
           </Route>
         </Route>
 
-        {/* Freelancer Routes */}
-        <Route element={<FreelancerRoute user={user} />}>
+        {/* Vendor Routes */}
+        <Route element={<VendorRoute user={user} />}>
           <Route element={<FreelancerLayout />}>
-            <Route
-              path="/dashboard/freelancer"
-              element={<FreelancerDashboard />}
-            />
-            <Route path="/profile/freelancer" element={<Profile />} />
+            <Route path="/dashboard/vendor" element={<FreelancerDashboard />} />
+            <Route path="/profile/vendor" element={<Profile />} />
             <Route path="/applicants-list" element={<ApplicantsList />} />
             <Route
               path="/current-active-jobs"
@@ -245,7 +280,7 @@ const AppRouter = ({ isAuth }) => {
               element={<ProfileSubmissionForm />}
             />
             <Route
-              path="/application-tracker_freelancer/:candidateId"
+              path="/application-tracker_vendor/:candidateId"
               element={<ApplicationTracker />}
             />
           </Route>
@@ -260,14 +295,16 @@ const AppRouter = ({ isAuth }) => {
         path="*"
         element={
           isAuth ? (
-            user?.role === "hr" || user?.role === "admin" ? (
-              <Navigate to="/dashboard/hr" replace />
-            ) : user?.role === "delivery" ? (
-              <Navigate to="/dashboard/delivery" replace />
+            user?.role === "ta" || user?.role === "admin" ? (
+              <Navigate to="/dashboard/ta" replace />
+            ) : user?.role === "bu" ? (
+              <Navigate to="/dashboard/bu" replace />
             ) : user?.role === "accounts" ? (
               <Navigate to="/dashboard/accounts" replace />
-            ) : user?.role === "freelancer" ? (
-              <Navigate to="/dashboard/freelancer" replace />
+            ) : user?.role === "sales" ? (
+              <Navigate to="/dashboard/sales" replace />
+            ) : user?.role === "vendor" ? (
+              <Navigate to="/dashboard/vendor" replace />
             ) : (
               <Navigate to="/unauthorized" replace />
             )

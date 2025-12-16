@@ -1,16 +1,12 @@
 import React from "react";
-import RecruitmentStatusChart from "../charts/RecruitmentStatus";
-
-import RecentActivity from "../charts/RecentActivity";
-import StatusOverview from "../charts/StatusOverview";
-import TeamsOverview from "../charts/TeamsOverview";
-
-import DomainDoughnutChart from "../charts/DomainDoughnutChart";
-import CompanyCharts from "./stats/CompanyCharts";
+import CompanyInvoiceBarChart from "./stats/CompanyInvoiceBarChart";
+import RevenueLineChart from "./stats/RevenueLineChart";
+import StatusOverview from "./stats/StatusOverview";
 
 const AccountDashboard = () => {
   return (
-    <div className="p-4 md:p-6 lg:p-8 space-y-6 bg-gray-50 min-h-screen">
+    <div className="p-4 md:p-6 lg:p-8 space-y-8 bg-white h-full">
+      
       {/* Welcome Overview */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -18,36 +14,30 @@ const AccountDashboard = () => {
             Welcome back
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Here’s a quick overview of your team's recruitment progress.
+            Here’s a quick overview of your team's accounts.
           </p>
         </div>
       </div>
 
-      {/* Status Summary */}
-      <div className="bg-white p-4 rounded-xl shadow">
+      {/* Dashboard Content */}
+      <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm space-y-8">
+        
+        {/* Status Overview */}
         <StatusOverview />
-      </div>
-      <CompanyCharts />
-      {/* Chart Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column */}
-        <div className="space-y-6">
-          <div className="bg-white p-4 rounded-xl shadow">
-            <DomainDoughnutChart />
-          </div>
-          <div className="bg-white p-4 rounded-xl shadow">
-            <RecruitmentStatusChart />
-          </div>
-        </div>
 
-        {/* Right Column */}
-        <div className="space-y-6">
-          <div className="bg-white p-4 rounded-xl shadow">
-            <RecentActivity />
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          
+          {/* Invoice Chart */}
+          <div className="h-full">
+            <CompanyInvoiceBarChart />
           </div>
-          <div className="bg-white p-4 rounded-xl shadow">
-            <TeamsOverview />
+
+          {/* Revenue Chart */}
+          <div className="h-full">
+            <RevenueLineChart />
           </div>
+
         </div>
       </div>
     </div>

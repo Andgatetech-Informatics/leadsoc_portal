@@ -3,7 +3,7 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-import { Bookmark, Briefcase, Users, MapPin } from "lucide-react";
+import { Briefcase, Users, MapPin } from "lucide-react";
 import axios from "axios";
 import { baseUrl } from "../api";
 import dayjs from "dayjs";
@@ -17,12 +17,6 @@ const statusColors = {
   Filled: "bg-blue-100 text-blue-600",
   Inactive: "bg-gray-200 text-gray-600",
   "On Hold": "bg-yellow-100 text-yellow-600",
-};
-
-const priorityColors = {
-  High: "bg-red-100 text-red-600",
-  Medium: "bg-yellow-100 text-yellow-600",
-  Low: "bg-green-100 text-green-600",
 };
 
 const JobDashboard = ({ token }) => {
@@ -128,12 +122,39 @@ const JobDashboard = ({ token }) => {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 4,
+    slidesToShow: 4, // ✅ BASE (Desktop)
     slidesToScroll: 1,
     arrows: true,
     prevArrow: <PrevArrow />,
     nextArrow: <NextArrow />,
-    responsive: [{ breakpoint: 768, settings: { slidesToShow: 1 } }],
+
+    responsive: [
+      {
+        breakpoint: 1536, // large desktop ↓
+        settings: {
+          slidesToShow: 4,
+        },
+      },
+      {
+        breakpoint: 1280, // laptop ↓
+        settings: {
+          slidesToShow: 3,
+        },
+      },
+      {
+        breakpoint: 1024, // tablet ↓
+        settings: {
+          slidesToShow: 2,
+        },
+      },
+      {
+        breakpoint: 768, // mobile ↓
+        settings: {
+          slidesToShow: 1,
+          arrows: true,
+        },
+      },
+    ],
   };
 
   return (
@@ -142,49 +163,50 @@ const JobDashboard = ({ token }) => {
 
       <Slider {...settings}>
         {jobOpenings.slice(0, 8).map((job) => (
-          <div key={job.id} className="px-3">
-            <div
-              onClick={() => setSelectedJob(job)}
-              className={`p-4 bg-white border rounded-lg shadow-sm transition cursor-pointer ${
-                selectedJob?.id === job.id
-                  ? "border-blue-500"
-                  : "border-gray-200"
-              } h-[190px]`} // Fixed height for consistent card sizing
-            >
-              {/* Header */}
-              <div className="flex justify-between items-center">
-                <h3 className="font-semibold text-base text-gray-800">
-                  {job.title}
-                </h3>
-                <span
-                  className={`px-2 py-0.5 text-xs font-medium rounded-full ${
-                    statusColors[job.status]
-                  }`}
-                >
-                  {job.status}
-                </span>
-              </div>
+          <div key={job.id} className="px-2">
+    <div
+    onClick={() => setSelectedJob(job)}
+    className={`w-full h-[220px] flex flex-col
+      p-4 bg-white border rounded-xl cursor-pointer transition
+      hover:shadow-md hover:border-blue-400
+      ${
+        selectedJob?.id === job.id
+          ? "border-blue-500 ring-1 ring-blue-200"
+          : "border-gray-200"
+      }
+    `}
+  >
+    {/* Header */}
+    <div className="flex justify-between items-start gap-2">
+      <h3 className="font-semibold text-gray-800 text-sm md:text-base leading-snug line-clamp-2 min-h-[42px]">
+        {job.title}
+      </h3>
+      <span className={`shrink-0 px-2 py-0.5 text-xs font-medium rounded-full ${statusColors[job.status]}`}>
+        {job.status}
+      </span>
+    </div>
 
-              {/* Details */}
-              <div className="mt-2 text-sm text-gray-600 space-y-1">
-                <p className="flex items-center gap-2">
-                  <Briefcase size={14} className="text-gray-400" />{" "}
-                  {job.experienceMin} - {job.experienceMax} years
-                </p>
-                <p className="flex items-center gap-2">
-                  <Users size={14} className="text-gray-400" />{" "}
-                  {job.noOfPositions} Positions
-                </p>
-                <p className="flex items-center gap-2">
-                  <MapPin size={14} className="text-gray-400" /> {job.location}
-                </p>
-              </div>
+    {/* Details */}
+    <div className="flex-1 mt-3 space-y-2 text-sm text-gray-600">
+      <p className="flex items-center gap-2">
+        <Briefcase size={14} className="text-gray-400" />
+        {job.experienceMin} - {job.experienceMax} yrs
+      </p>
+      <p className="flex items-center gap-2">
+        <Users size={14} className="text-gray-400" />
+        {job.noOfPositions} Positions
+      </p>
+      <p className="flex items-center gap-2 truncate">
+        <MapPin size={14} className="text-gray-400" />
+        {job.location}
+      </p>
+    </div>
 
-              {/* Footer */}
-              <p className="mt-3 text-xs text-gray-400">
-                Posted {job.createdAt ? dayjs(job.createdAt).fromNow() : "N/A"}
-              </p>
-            </div>
+    {/* Footer */}
+    <p className="text-xs text-gray-400">
+      Posted {job.createdAt ? dayjs(job.createdAt).fromNow() : "N/A"}
+    </p>
+  </div>
           </div>
         ))}
       </Slider>

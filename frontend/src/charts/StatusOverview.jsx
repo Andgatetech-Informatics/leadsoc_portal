@@ -91,7 +91,7 @@ const StatusOverview = ({ loading, setLoading, dateRange }) => {
   return (
     <div className="">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        {/* ----------- LOADING SKELETON ----------- */}
+      
         {loading &&
           statusItems.map((_, i) => (
             <div

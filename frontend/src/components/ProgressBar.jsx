@@ -42,9 +42,9 @@ const ProgressBar = ({ status, candidate, redirect }) => {
     const routeName = fullPath.split("/").filter(Boolean).pop();
 
     if (routeName === "shortlisted-all-candidates") {
-      setRedirectTo("_dm");
+      setRedirectTo("_bu");
     } else {
-      setRedirectTo("_hr");
+      setRedirectTo("_ta");
     }
   }, [location.pathname]);
 
