@@ -151,7 +151,7 @@ exports.getAllOrganizations = async (req, res) => {
     try {
         const companies = await CompanyModel.find(
             {},
-            { organization: 1, email: 1, phone: 1, address: 1, website: 1, industry: 1, _id: 1 }
+            { organization: 1, email: 1, phone: 1, address: 1, website: 1, industry: 1, _id: 1, logo: 1 }
         ).lean();
 
         if (!companies || companies.length === 0) {
