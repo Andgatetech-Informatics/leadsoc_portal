@@ -32,7 +32,7 @@ const priorityColors = {
   Low: "bg-green-100 text-green-600",
 };
 
-const ActiveJobsFreelancer = ({ token, hrId }) => {
+const ActiveJobsVendor = ({ token, hrId }) => {
   const [selectedJob, setSelectedJob] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -352,4 +352,4 @@ const ActiveJobsFreelancer = ({ token, hrId }) => {
   );
 };
 
-export default ActiveJobsFreelancer;
+export default ActiveJobsVendor;

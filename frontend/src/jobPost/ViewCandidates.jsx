@@ -7,40 +7,63 @@ import {
   FaUserAlt,
   FaBriefcase,
 } from "react-icons/fa";
+import { Search } from "lucide-react";
 import axios from "axios";
 import { baseUrl } from "../api";
-import { Link } from "react-router-dom";
+import ProgressBar from "../components/ProgressBar";
 
+/* ====================== SKELETONS ====================== */
+const TableSkeleton = ({ rows = 5 }) => (
+  <tbody>
+    {Array.from({ length: rows }).map((_, i) => (
+      <tr key={i} className="animate-pulse border-b">
+        {Array.from({ length: 6 }).map((__, j) => (
+          <td key={j} className="px-6 py-4">
+            <div className="h-4 bg-gray-200 rounded w-full" />
+          </td>
+        ))}
+      </tr>
+    ))}
+  </tbody>
+);
+
+const CardSkeleton = ({ count = 4 }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    {Array.from({ length: count }).map((_, i) => (
+      <div
+        key={i}
+        className="animate-pulse border rounded-xl p-4 bg-white space-y-3"
+      >
+        <div className="h-4 bg-gray-200 rounded w-2/3" />
+        <div className="h-3 bg-gray-200 rounded w-1/2" />
+        <div className="h-3 bg-gray-200 rounded w-full" />
+        <div className="h-8 bg-gray-200 rounded w-full" />
+      </div>
+    ))}
+  </div>
+);
+
+/* ====================== COMPONENT ====================== */
 const ViewCandidates = () => {
   const [candidateData, setCandidateData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const location = useLocation();
   const { jobId } = location.state || {};
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-  useEffect(() => {
-    const normalizeSkills = (raw) => {
-      if (Array.isArray(raw)) return raw;
-      if (typeof raw === "string") {
-        return raw
-          .split(",")
-          .map((s) => s.trim())
-          .filter(Boolean);
-      }
-      return [];
-    };
 
+  useEffect(() => {
     const fetchCandidates = async () => {
       try {
         const res = await axios.get(
           `${baseUrl}/api/shortlisted_candidates_activeJobs/${jobId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
-        setCandidateData(res.data.data);
+        setCandidateData(res.data.data || []);
       } catch (err) {
-        console.error("❌ Error fetching candidates:", err);
+        console.error("Error fetching candidates:", err);
         setCandidateData([]);
       } finally {
         setLoading(false);
@@ -51,147 +74,191 @@ const ViewCandidates = () => {
     else setLoading(false);
   }, [jobId, token]);
 
-  if (loading) return <p className="p-6">Loading candidates...</p>;
+  const filteredCandidates = candidateData.filter((c) =>
+    `${c.firstName} ${c.lastName} ${c.email} ${c.hrName} ${c.status}`
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+  );
 
   return (
-    <div className="overflow-x-auto bg-white border border-gray-200 shadow-sm rounded-xl p-6">
-      <h1 className="text-3xl font-semibold text-gray-800 mb-6">
-        Candidate Management
-      </h1>
+    <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-4 sm:p-6">
+      {/* ================= HEADER ================= */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between mb-6">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-semibold text-gray-800">
+          Candidate Management
+        </h1>
 
-      {candidateData.length === 0 ? (
-        <p className="text-gray-600">No candidates found.</p>
-      ) : (
-        <table className="w-full text-sm text-left table-auto border border-gray-200 rounded-lg overflow-hidden">
-          <thead className="bg-gray-100 text-gray-700 uppercase text-xs font-semibold border-b sticky top-0 z-10">
+        <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          <div className="relative w-full sm:w-72">
+            <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
+            <input
+              type="text"
+              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md
+              focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search candidate, email, HR, status"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <button className="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
+            Download XLSX
+          </button>
+        </div>
+      </div>
+
+      {/* ================= DESKTOP TABLE (>=1000px) ================= */}
+      <div className="hidden lg:block overflow-x-auto">
+        <table className="w-full text-sm border text-left border-gray-200 rounded-lg overflow-hidden">
+          <thead className="bg-gray-200 text-xs uppercase font-normal">
             <tr>
-              <th className="px-6 py-4">Applicant Name</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Applicant Details</th>
+              <th className="px-6 py-4">Applicant</th>
+              <th className="px-4 py-4">Status</th>
+              <th className="px-4 py-4">Contact</th>
               <th className="px-6 py-4">Skills</th>
-              <th className="px-6 py-4">HR Name</th>
+              <th className="px-6 py-4">HR</th>
               <th className="px-6 py-4">Resume</th>
             </tr>
           </thead>
+          {loading ? (
+            <TableSkeleton rows={6} />
+          ) : (
+            <tbody className="divide-y">
+              {filteredCandidates.map((c) => (
+                <tr
+                  key={c._id}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() =>
+                    navigate(`/application-tracker_sales/${c._id}`)
+                  }
+                >
+                  <td className="px-6 py-4">
+                    <div className="font-medium">
+                      {c.firstName} {c.lastName}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                      <FaUserAlt /> {c._id?.slice(-5)}
+                    </div>
+                  </td>
+                  {/* Status */}
+                  <td className="px-4 py-3 relative group">
+                    <ProgressBar status={c.status} candidate={c} />
+                  </td>
+                  {/* Contact */}
+                  <td className="px-4 py-4 max-w-[220px]">
+                    <a
+                      href={`mailto:${c.email}`}
+                      className="block truncate text-gray-600"
+                    >
+                      {c.email}
+                    </a>
+                    <div className="flex items-center mt-2 text-gray-500">
+                      <a
+                        href={`tel:${c.mobile}`}
+                        className="flex items-center hover:text-blue-600"
+                      >
+                        <FaPhoneSquareAlt className="mr-2" />
+                        {c.mobile}
+                      </a>
+                      <a
+                        href={`https://wa.me/${c.mobile}`}
+                        className="ml-2 hover:text-green-500"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        <FaWhatsapp />
+                      </a>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div>{c.skills}</div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                      <FaBriefcase /> {c.experience}
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">{c.hrName}</td>
+                  <td className="px-6 py-4">
+                    {c.resumeUrl ? (
+                      <a
+                        href={`${baseUrl}/${c.resumeUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 flex items-center gap-1"
+                      >
+                        <FaEye /> View
+                      </a>
+                    ) : (
+                      "N/A"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          )}
+        </table>
+      </div>
 
-          <tbody className="divide-y divide-gray-200 text-sm bg-white">
-            {candidateData.map((c, index) => (
-              <tr
-                key={index}
-                className="hover:bg-gray-50 transition cursor-pointer"
+      {/* ================= MOBILE / TABLET CARDS (<1000px) ================= */}
+      <div className="lg:hidden">
+        {loading ? (
+          <CardSkeleton />
+        ) : filteredCandidates.length === 0 ? (
+          <p className="text-center text-gray-500 py-6">No candidates found</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {filteredCandidates.map((c) => (
+              <div
+                key={c._id}
                 onClick={() => navigate(`/application-tracker_sales/${c._id}`)}
+                className="border rounded-xl p-4 bg-white hover:shadow cursor-pointer"
               >
-                {/* Applicant Name */}
-                <td className="px-6 py-4">
-                  <div className="font-medium text-gray-900">
-                    {c.firstName} {c.lastName}
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-semibold text-gray-800">
+                      {c.firstName} {c.lastName}
+                    </h3>
+                    <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                      <FaUserAlt /> {c._id?.slice(-5)}
+                    </p>
                   </div>
-
-                  <div className="flex items-center gap-2 mt-1 text-gray-500">
-                    <FaUserAlt className="text-gray-500" />
-                    <span>{c._id ? c._id.slice(-5) : ""}</span>
-                  </div>
-                </td>
-
-                {/* Status */}
-                <td className="px-4 py-3">
                   <span
-                    className={`
-              px-3 py-1 rounded-full text-xs font-medium
-              ${
-                c.status === "shortlisted"
-                  ? "bg-green-100 text-green-700"
-                  : c.status === "rejected"
-                  ? "bg-red-100 text-red-700"
-                  : c.status === "pending"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-gray-100 text-gray-700"
-              }
-            `}
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      c.status === "shortlisted"
+                        ? "bg-green-100 text-green-700"
+                        : c.status === "rejected"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}
                   >
                     {c.status}
                   </span>
-                </td>
+                </div>
 
-                {/* Applicant Details */}
-                <td className="px-4 py-4">
-                  <a
-                    href={`mailto:${c.email}`}
-                    className="text-gray-600 hover:underline"
-                  >
-                    {c.email}
-                  </a>
-
-                  <div className="flex items-center gap-3 mt-2 text-gray-600">
-                    <a
-                      href={`tel:${c.mobile}`}
-                      className="flex items-center gap-2 hover:text-blue-600"
-                    >
-                      <FaPhoneSquareAlt />
-                      {c.mobile}
-                    </a>
-
-                    <a
-                      href={`https://wa.me/${c.mobile}`}
-                      className="hover:text-green-600"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <FaWhatsapp className="text-xl" />
-                    </a>
+                <div className="mt-3 text-sm text-gray-600">
+                  <p>{c.email}</p>
+                  <div className="flex gap-4 mt-2">
+                    <FaPhoneSquareAlt />
+                    <FaWhatsapp />
                   </div>
-                </td>
+                </div>
 
-                {/* Skills */}
-                <td className="px-6 py-4">
-                  <p className="text-gray-700">{c.skills}</p>
+                <div className="mt-3 text-sm">
+                  <p className="font-medium">Skills</p>
+                  <p className="text-gray-600">{c.skills}</p>
+                  <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                    <FaBriefcase /> {c.experience}
+                  </p>
+                </div>
 
-                  <div className="flex items-center gap-2 text-gray-500 mt-2">
-                    <FaBriefcase />
-                    <span>{c.experience}</span>
-                  </div>
-                </td>
-
-                {/* HR Name */}
-                <td className="px-6 py-4">
-                  <span className="text-gray-800">{c.hrName}</span>
-                </td>
-
-                {/* Resume */}
-                <td className="px-6 py-4">
-                  {c.resumeUrl ? (
-                    (() => {
-                      const resumeUrl = `${baseUrl}/${c.resumeUrl}`;
-                      const isDoc =
-                        c.resumeUrl.endsWith(".doc") ||
-                        c.resumeUrl.endsWith(".docx");
-
-                      const viewUrl = isDoc
-                        ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                            resumeUrl
-                          )}`
-                        : resumeUrl;
-
-                      return (
-                        <a
-                          href={viewUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium"
-                        >
-                          <FaEye /> View Resume
-                        </a>
-                      );
-                    })()
-                  ) : (
-                    <span className="text-gray-400">No Resume</span>
-                  )}
-                </td>
-              </tr>
+                <div className="flex justify-between items-center mt-4">
+                  <span className="text-sm text-gray-700">HR: {c.hrName}</span>
+                  {c.resumeUrl && <FaEye className="text-blue-600" />}
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
-      )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -11,7 +11,7 @@ import {
 const navItems = [
   { to: "/dashboard/vendor", label: "Dashboard", icon: LayoutDashboard },
   { to: "/applicants-list", label: "Applicants", icon: BriefcaseBusiness },
-  { to: "/current-active-jobs-bu", label: "Active Jobs", icon: CheckCircle },
+  { to: "/current-active-jobs-vendor", label: "Active Jobs", icon: CheckCircle },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {

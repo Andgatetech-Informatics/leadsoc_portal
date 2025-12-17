@@ -294,7 +294,7 @@ const CreatePostJob = ({ onSubmit, closeModal }) => {
 
               {openVisibility && (
                 <div className="absolute w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-16 z-20">
-                  {["Public", "Vendor", "TA"].map((item) => (
+                  {["Public", "BU"].map((item) => (
                     <label
                       key={item}
                       className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 text-sm cursor-pointer"

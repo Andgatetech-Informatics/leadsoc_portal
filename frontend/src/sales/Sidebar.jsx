@@ -15,11 +15,11 @@ import {
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  // {
-  //   to: "/shortlisted-all-candidates",
-  //   label: "Shortlisted Candidates",
-  //   icon: UsersRoundIcon,
-  // },
+  {
+    to: "/referred-all-candidates",
+    label: "Referred Talent",
+    icon: UsersRoundIcon,
+  },
   { to: "/all-job-feeds", label: "Companies", icon: CheckCircle },
   { to: "/create-company", label: "Create Company", icon: BuildingIcon },
   { to: "/post-new-job", label: "Post New Job", icon: PlusCircleIcon },

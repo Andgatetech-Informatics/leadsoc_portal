@@ -107,9 +107,14 @@ const ApplicantsList = () => {
   );
 
   const handleRedirect = (status, candidateId) => {
-    const redirectStatuses = ["assigned", "shortlisted", "submitted"];
+    const redirectStatuses = [
+      "assigned",
+      "shortlisted",
+      "approved",
+      "submitted",
+    ];
     if (redirectStatuses.includes(status.toLowerCase())) {
-      navigate(`/application-tracker_freelancer/${candidateId}`);
+      navigate(`/application-tracker_vendor/${candidateId}`);
     }
   };
 
@@ -203,7 +208,6 @@ const ApplicantsList = () => {
                   "assigned",
                   "shortlisted",
                   "approved",
-                  
                 ].includes(key);
 
                 return (

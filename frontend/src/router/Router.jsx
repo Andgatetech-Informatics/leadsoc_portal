@@ -52,11 +52,11 @@ import Companies from "../accounts/Companies";
 import CompanyInvoiceList from "../accounts/CompanyInvoiceList";
 import FeedbackForm from "../feedback/FeedbackForm";
 
-// Freelancer Components
-import FreelancerLayout from "../layout/VendorLayout";
+// Vendor Components
+import VendorLayout from "../layout/VendorLayout";
 import ApplicantsList from "../vendor/ApplicantsList";
-import FreelancerDashboard from "../vendor/FreelancerDashboard";
-import ActiveJobsFreelancer from "../vendor/ActiveJobsFreelancer";
+import VendorDashboard from "../vendor/VendorDashboard";
+import ActiveJobsVendor from "../vendor/ActiveJobsVendor";
 import ProfileSubmissionForm from "../vendor/ProfileSubmissionForm";
 
 // Sales Components
@@ -69,6 +69,7 @@ import TaDashboard from "../ta/TaDashboard";
 import ApplicantStatus from "../ta/ApplicantStatus";
 import VendorCandidates from "../ta/VendorCandidates";
 import AssignedVendorCandidates from "../ta/AssignedVendorCandidates";
+import ReferredTalent from "../sales/ReferredTalent";
 // import ShortlistedCandidateAllHR from "../hr/ShortlistedCandidateAllHR";
 
 // Route Wrappers
@@ -220,10 +221,10 @@ const AppRouter = ({ isAuth }) => {
         <Route element={<SalesRoute user={user} />}>
           <Route element={<SalesLayout />}>
             <Route path="/dashboard/sales" element={<SalesDashboard />} />
-            {/* <Route
-              path="/shortlisted-all-candidates"
-              element={<ShortlistedCandidates />}
-            />*/}
+            <Route
+              path="/referred-all-candidates"
+              element={<ReferredTalent />}
+            />
             <Route
               path="/application-tracker_sales/:candidateId"
               element={<ApplicationTracker />}
@@ -267,13 +268,13 @@ const AppRouter = ({ isAuth }) => {
 
         {/* Vendor Routes */}
         <Route element={<VendorRoute user={user} />}>
-          <Route element={<FreelancerLayout />}>
-            <Route path="/dashboard/vendor" element={<FreelancerDashboard />} />
+          <Route element={<VendorLayout />}>
+            <Route path="/dashboard/vendor" element={<VendorDashboard />} />
             <Route path="/profile/vendor" element={<Profile />} />
             <Route path="/applicants-list" element={<ApplicantsList />} />
             <Route
-              path="/current-active-jobs"
-              element={<ActiveJobsFreelancer />}
+              path="/current-active-jobs-vendor"
+              element={<ActiveJobsVendor />}
             />
             <Route
               path="/profile-submission-form"
