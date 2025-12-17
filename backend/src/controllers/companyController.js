@@ -14,67 +14,92 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Modify the createCompany function to handle logo upload
-exports.createCompany = async (req, res) => {
-  try {
-    // Handle file upload as a part of the request
-    upload.single("logo")(req, res, async (err) => {
+exports.createCompany = (req, res) => {
+  upload.single("logo")(req, res, async (err) => {
+    try {
+      // ---- Multer Error ----
       if (err) {
         return res.status(400).json({
           status: false,
-          message: "Error uploading logo.",
+          message: "Logo upload failed",
           error: err.message,
         });
       }
 
-      const { organization, email, phone, address, website, industry } = req.body;
-      const logo = req.file ? req.file.path : null; // Save the logo file path
-
-      // Check if the required fields are provided
-      if (!organization || !email || !phone || !address) {
-        return res.status(400).json({
-          status: false,
-          message: "Please provide all required fields: organization, email, phone, address",
-        });
-      }
-
-      // Check if the company already exists
-      const existingCompany = await CompanyModel.findOne({ email });
-      if (existingCompany) {
-        return res.status(409).json({
-          status: false,
-          message: "Company with this email already exists.",
-        });
-      }
-
-      // Create a new company document
-      const newCompany = new CompanyModel({
+      const {
         organization,
         email,
         phone,
         address,
         website,
         industry,
-        logo, // Save the logo path
+      } = req.body;
+
+      // ---- Required Fields Validation ----
+      if (!organization || !email || !phone || !address) {
+        return res.status(400).json({
+          status: false,
+          message:
+            "organization, email, phone, and address are required fields",
+        });
+      }
+
+      // ---- Email Validation ----
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid email format",
+        });
+      }
+
+      // ---- Phone Validation (basic) ----
+      const phoneRegex = /^[0-9]{8,15}$/;
+      if (!phoneRegex.test(phone)) {
+        return res.status(400).json({
+          status: false,
+          message: "Invalid phone number",
+        });
+      }
+
+      // ---- Check Existing Company ----
+      const existingCompany = await CompanyModel.findOne({ email });
+      if (existingCompany) {
+        return res.status(409).json({
+          status: false,
+          message: "Company with this email already exists",
+        });
+      }
+
+      // ---- Create Company ----
+      const company = new CompanyModel({
+        organization: organization.trim(),
+        email: email.toLowerCase().trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        website: website?.trim(),
+        industry,
+        logo: req.file?.path || null,
       });
 
-      // Save the company to the database
-      const savedCompany = await newCompany.save();
+      const savedCompany = await company.save();
 
-      return res.status(200).json({
+      return res.status(201).json({
         status: true,
         message: "Company created successfully",
         data: savedCompany,
       });
-    });
-  } catch (error) {
-    console.error("Error adding company:", error);
-    return res.status(500).json({
-      status: false,
-      message: "Failed to add company.",
-      error: error.message,
-    });
-  }
+    } catch (error) {
+      console.error("Create company error:", error);
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+        error: error.message,
+      });
+    }
+  });
 };
+
 
 // exports.createCompany = async (req, res) => {
 //     try {
@@ -123,54 +148,54 @@ exports.createCompany = async (req, res) => {
 // };
 
 exports.getCompanyById = async (req, res) => {
-    const { companyId } = req.params;
+  const { companyId } = req.params;
 
-    try {
-        const company = await CompanyModel.findById(companyId);
-        if (!company) {
-            return res.status(404).json({
-                status: false,
-                message: "Company not found",
-            });
-        }
-        return res.status(200).json({
-            status: true,
-            data: company,
-        });
-    } catch (error) {
-        console.error("Error fetching company:", error);
-        return res.status(500).json({
-            status: false,
-            message: "Failed to fetch company.",
-            error: error.message,
-        });
+  try {
+    const company = await CompanyModel.findById(companyId);
+    if (!company) {
+      return res.status(404).json({
+        status: false,
+        message: "Company not found",
+      });
     }
+    return res.status(200).json({
+      status: true,
+      data: company,
+    });
+  } catch (error) {
+    console.error("Error fetching company:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to fetch company.",
+      error: error.message,
+    });
+  }
 };
 
 exports.getAllOrganizations = async (req, res) => {
-    try {
-        const companies = await CompanyModel.find(
-            {},
-            { organization: 1, email: 1, phone: 1, address: 1, website: 1, industry: 1, _id: 1, logo: 1 }
-        ).lean();
+  try {
+    const companies = await CompanyModel.find(
+      {},
+      { organization: 1, email: 1, phone: 1, address: 1, website: 1, industry: 1, _id: 1, logo: 1 }
+    ).lean();
 
-        if (!companies || companies.length === 0) {
-            return res.status(404).json({
-                status: false,
-                message: "No companies found",
-            });
-        }
-
-        return res.status(200).json({
-            status: true,
-            data: companies,
-        });
-    } catch (error) {
-        console.error("Error fetching companies:", error);
-        return res.status(500).json({
-            status: false,
-            message: "Failed to fetch companies.",
-            error: error.message,
-        });
+    if (!companies || companies.length === 0) {
+      return res.status(404).json({
+        status: false,
+        message: "No companies found",
+      });
     }
+
+    return res.status(200).json({
+      status: true,
+      data: companies,
+    });
+  } catch (error) {
+    console.error("Error fetching companies:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to fetch companies.",
+      error: error.message,
+    });
+  }
 };

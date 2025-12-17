@@ -85,7 +85,7 @@ const Feeds = () => {
                 <div className="p-6 flex items-center gap-5">
                   {c.logo ? (
                     <img
-                      src={c.logo}
+                      src={`${baseUrl}/${c.logo}`}
                       alt={c.organization}
                       className="w-16 h-16 object-contain rounded-full border border-gray-200 bg-white shadow"
                     />

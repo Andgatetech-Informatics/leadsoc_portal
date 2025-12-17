@@ -392,7 +392,7 @@ const OpeningJobCard = () => {
       <div className="flex items-center gap-4">
         {logo ? (
           <img
-            src={logo}
+            src={`${baseUrl}/${logo}`}
             alt={organization}
             className="w-12 h-12 rounded-lg object-contain border bg-white"
           />
