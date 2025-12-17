@@ -528,7 +528,7 @@ const ApplicationTracker = () => {
                 {/* Add Event Button */}
                 {candidate.status !== "rejected" &&
                   candidate.status !== "approved" &&
-                  userRole === "delivery" && (
+                  userRole === "sales" && (
                     <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                       <button
                         onClick={() => setInitiateCandidateModel(true)}

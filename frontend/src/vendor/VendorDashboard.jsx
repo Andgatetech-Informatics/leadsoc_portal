@@ -9,7 +9,7 @@ import RecruitmentStatus from "../charts/RecruitmentStatus";
 import DateFilter from "../components/DateFilter";
 import { getDateRange } from "../utils/getDateRange";
 
-const FreelancerDashboard = () => {
+const VendorDashboard = () => {
   const [activeFilter, setActiveFilter] = useState("week");
   const [dateRange, setDateRange] = useState(null);
   const [loading, setLoading] = useState({
@@ -39,10 +39,10 @@ const FreelancerDashboard = () => {
             Here’s a quick overview of your team's recruitment progress.
           </p>
         </div>
-      <DateFilter
-        activeFilter={activeFilter}
-        setActiveFilter={setActiveFilter}
-      />
+        <DateFilter
+          activeFilter={activeFilter}
+          setActiveFilter={setActiveFilter}
+        />
       </div>
 
       {/* Status Summary */}
@@ -87,4 +87,4 @@ const FreelancerDashboard = () => {
   );
 };
 
-export default FreelancerDashboard;
+export default VendorDashboard;

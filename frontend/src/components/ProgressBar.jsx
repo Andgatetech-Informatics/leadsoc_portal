@@ -3,16 +3,23 @@ import TooltipCard from "./Tooltip";
 import { useLocation } from "react-router-dom";
 
 const statusMap = {
-  pending:      { label: "Pending",      color: "bg-gray-500" },     // Neutral
-  assigned:     { label: "Assigned",     color: "bg-blue-600" },      // Action
-  onhold:       { label: "On Hold",      color: "bg-yellow-500" },    // Warning
-  shortlisted:  { label: "Shortlisted",  color: "bg-purple-600" },    // Highlight
-  approved:     { label: "Approved",     color: "bg-emerald-600" },   // Success
-  rejected:     { label: "Rejected",     color: "bg-red-600" },       // Danger
-  hired:        { label: "Hired",        color: "bg-green-700" },     // Final success
+  pending: { label: "Pending", color: "bg-gray-500" }, // Neutral
+  assigned: { label: "Assigned", color: "bg-blue-600" }, // Action
+  onhold: { label: "On Hold", color: "bg-yellow-500" }, // Warning
+  shortlisted: { label: "Shortlisted", color: "bg-purple-600" }, // Highlight
+  approved: { label: "Approved", color: "bg-emerald-600" }, // Success
+  rejected: { label: "Rejected", color: "bg-red-600" }, // Danger
+  hired: { label: "Hired", color: "bg-green-700" }, // Final success
 };
 
-const steps = ["pending", "assigned", "onhold", "shortlisted", "approved", "hired"];
+const steps = [
+  "pending",
+  "assigned",
+  "onhold",
+  "shortlisted",
+  "approved",
+  "hired",
+];
 
 const ProgressBar = ({ status, candidate, redirect }) => {
   if (!status) return null;
@@ -46,6 +53,10 @@ const ProgressBar = ({ status, candidate, redirect }) => {
     } else {
       setRedirectTo("_ta");
     }
+
+    if (routeName === "referred-all-candidates") {
+      setRedirectTo("_sales");
+    }
   }, [location.pathname]);
 
   const getTooltipPosition = () => {
@@ -71,12 +82,12 @@ const ProgressBar = ({ status, candidate, redirect }) => {
         onMouseLeave={() => setIsHovered(true)}
       >
         <div
-          className={`h-2 rounded-full transition-all duration-300 ${normalizedStatus === "reject"
-            ? "bg-red-500"  // Ensure it turns red when rejected
-            : statusMap[normalizedStatus]?.color
-            }`}
+          className={`h-2 rounded-full transition-all duration-300 ${
+            normalizedStatus === "reject"
+              ? "bg-red-500" // Ensure it turns red when rejected
+              : statusMap[normalizedStatus]?.color
+          }`}
           style={{ width: `${progressPercent}%` }}
-
         />
       </div>
 
@@ -92,7 +103,11 @@ const ProgressBar = ({ status, candidate, redirect }) => {
             zIndex: 9999,
           }}
         >
-          <TooltipCard candidate={candidate} redirect={redirectTo} statusMap={statusMap} />
+          <TooltipCard
+            candidate={candidate}
+            redirect={redirectTo}
+            statusMap={statusMap}
+          />
         </div>
       )}
 

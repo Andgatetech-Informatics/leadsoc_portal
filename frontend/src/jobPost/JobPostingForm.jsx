@@ -21,7 +21,7 @@ const JobPostingForm = ({ closeModal, organizationName, onSubmit }) => {
   const [referralAmount, setReferralAmount] = useState("");
   const [postDate, setPostDate] = useState("");
   const [endDate, setEndDate] = useState("");
-  const [status, setStatus] = useState(""); 
+  const [status, setStatus] = useState("");
   const [noOfPositions, setNoOfPositions] = useState("");
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -217,7 +217,7 @@ const JobPostingForm = ({ closeModal, organizationName, onSubmit }) => {
 
               {openVisibility && (
                 <div className="absolute w-full bg-white border border-gray-200 rounded-lg shadow-lg mt-16 z-20">
-                  {["Public", "Vendor", "TA"].map((item) => (
+                  {["Public", "BU"].map((item) => (
                     <label
                       key={item}
                       className="flex items-center gap-3 px-3 py-2 hover:bg-gray-50 text-sm cursor-pointer"
