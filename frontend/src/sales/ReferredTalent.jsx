@@ -6,7 +6,7 @@ import Pagination from "../components/Pagination";
 import CandidateTable from "../components/CandidateTable";
 import moment from "moment";
 import { Search, X } from "lucide-react";
-import BUCandidateTable from "../components/BUCandidateTable";
+import SalesCandidateTable from "../components/SalesCandidateTable";
 
 /** ✅ Debounce Hook */
 const useDebounce = (value, delay = 500) => {
@@ -20,6 +20,7 @@ const useDebounce = (value, delay = 500) => {
 
 const ReferredTalent = () => {
   const token = localStorage.getItem("token");
+  const [candidateType, setCandidateType] = useState("all");
 
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 600);
@@ -106,31 +107,45 @@ const ReferredTalent = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Title */}
           <h2 className="text-3xl font-bold text-gray-800">
-            Shortlisted Candidates
+            Referred Candidates
           </h2>
 
           {/* Right Actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+            {/* Candidate Type Dropdown */}
+            <div className="relative w-full sm:w-44">
+              <select
+                value={candidateType}
+                onChange={(e) => setCandidateType(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm
+        bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Candidates</option>
+                <option value="bench">Bench</option>
+                <option value="pipeline">Pipeline</option>
+              </select>
+            </div>
+
             {/* Search */}
             <div className="relative w-full sm:w-72">
               <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
               <input
                 type="text"
                 className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
+        focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Search by HR, Candidate, Email, or Status"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
-            {/* Approve Button */}
+            {/* Download Button */}
             <button
               className="px-4 py-2 text-sm font-medium text-white bg-green-600
-                 rounded-md hover:bg-green-700 transition
-                 disabled:opacity-50 disabled:cursor-not-allowed"
+      rounded-md hover:bg-green-700 transition
+      disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Approve
+              Download XLSX
             </button>
           </div>
         </div>
@@ -147,7 +162,7 @@ const ReferredTalent = () => {
       </div>
 
       {/* Candidate Table */}
-      <BUCandidateTable
+      <SalesCandidateTable
         candidates={candidates}
         loading={loading}
         onView={setSelectedCandidate}

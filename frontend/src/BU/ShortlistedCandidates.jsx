@@ -20,7 +20,7 @@ const useDebounce = (value, delay = 500) => {
 
 const ShortlistedCandidates = () => {
   const token = localStorage.getItem("token");
-
+  const [candidateType, setCandidateType] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 600);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -111,6 +111,19 @@ const ShortlistedCandidates = () => {
 
           {/* Right Actions */}
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+            {/* Candidate Type Dropdown */}
+            <div className="relative w-full sm:w-44">
+              <select
+                value={candidateType}
+                onChange={(e) => setCandidateType(e.target.value)}
+                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm
+        bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Candidates</option>
+                <option value="bench">Bench</option>
+                <option value="pipeline">Pipeline</option>
+              </select>
+            </div>
             {/* Search */}
             <div className="relative w-full sm:w-72">
               <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
