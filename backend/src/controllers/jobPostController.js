@@ -2,6 +2,7 @@ const Job = require("../models/jobPost");
 const Organization = require("../models/company");
 const Candidate = require("../models/candidate");
 const { ObjectId } = require("mongoose").Types;
+const generateJobId = require("../utils/generateJobId");
 
 exports.jobPost = async (req, res) => {
   try {
@@ -20,110 +21,64 @@ exports.jobPost = async (req, res) => {
       priority,
       status,
       referralAmount,
+      visibility,
     } = req.body;
 
-    if (!title || !organizationName || !location || !description) {
-      return res.status(400).json({
-        message:
-          "Title, organization name, location, and description are required.",
-      });
-    }
-
-    if (experienceMin !== undefined && isNaN(experienceMin)) {
-      return res
-        .status(400)
-        .json({ message: "experienceMin must be a number" });
-    }
-
-    if (experienceMax !== undefined && isNaN(experienceMax)) {
-      return res
-        .status(400)
-        .json({ message: "experienceMax must be a number" });
-    }
-
-    if (noOfPositions !== undefined && isNaN(noOfPositions)) {
-      return res
-        .status(400)
-        .json({ message: "noOfPositions must be a number" });
-    }
-
-    if (referralAmount !== undefined && isNaN(referralAmount)) {
-      return res
-        .status(400)
-        .json({ message: "referralAmount must be a number" });
-    }
-
     if (
-      experienceMin !== undefined &&
-      experienceMax !== undefined &&
-      Number(experienceMin) > Number(experienceMax)
+      !title?.trim() ||
+      !organizationName?.trim() ||
+      !location?.trim() ||
+      !description?.trim() ||
+      !visibility
     ) {
       return res.status(400).json({
-        message: "experienceMin cannot be greater than experienceMax",
+        message:
+          "Title, organization name, location, description and visibility are required.",
       });
     }
-
-    if (postDate && isNaN(Date.parse(postDate))) {
-      return res.status(400).json({ message: "Invalid postDate format" });
-    }
-
-    if (endDate && isNaN(Date.parse(endDate))) {
-      return res.status(400).json({ message: "Invalid endDate format" });
-    }
-
-    if (postDate && endDate && new Date(postDate) > new Date(endDate)) {
-      return res
-        .status(400)
-        .json({ message: "endDate must be greater than postDate" });
-    }
-
-    const allowedStatuses = ["Active", "Inactive", "On Hold", "Filled"];
-    if (status && !allowedStatuses.includes(status)) {
-      return res.status(400).json({
-        message: `Invalid status. Allowed values: ${allowedStatuses.join(
-          ", "
-        )}`,
-      });
-    }
-
-    const cleanTitle = title.trim();
-    const cleanOrganizationName = organizationName.trim();
-    const cleanLocation = location.trim();
 
     const org = await Organization.findOne({
-      organization: cleanOrganizationName,
+      organization: organizationName.trim(),
     });
 
     if (!org) {
       return res.status(404).json({ message: "Organization not found" });
     }
 
-    const job = new Job({
-      title: cleanTitle,
-      location: cleanLocation,
+    /* ✅ Year-Wise Auto-Increment Job ID */
+    const jobId = await generateJobId();
+
+    const job = await Job.create({
+      jobId,
+      title: title.trim(),
+      location: location.trim(),
       organization: org.organization,
-      clientName,
+      clientName: clientName?.trim(),
       experienceMin,
       experienceMax,
       noOfPositions,
-      description,
+      description: description.trim(),
       postDate,
       endDate,
       skills,
       priority,
       status,
       referralAmount,
+      visibility: visibility.toLowerCase(),
     });
 
-    await job.save();
-
-    res.status(201).json({
+    return res.status(201).json({
+      success: true,
       message: "Job posted successfully",
       job,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Job Post Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
   }
 };
 

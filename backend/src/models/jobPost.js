@@ -2,6 +2,12 @@ const mongoose = require("mongoose");
 
 const JobSchema = new mongoose.Schema(
   {
+    jobId: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+    },
     title: {
       type: String,
       required: true,
@@ -91,6 +97,11 @@ const JobSchema = new mongoose.Schema(
         },
       },
     ],
+    visibility: {
+      type: String,
+      enum: ["public", "bu"],
+      default: "public",
+    }
   },
   { timestamps: true, versionKey: false }
 );

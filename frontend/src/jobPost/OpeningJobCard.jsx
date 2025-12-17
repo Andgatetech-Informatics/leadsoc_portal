@@ -327,7 +327,7 @@ const OpeningJobCard = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const limit = 5;
+  const limit = 3;
 
   /* ---------------- Debounce Search ---------------- */
   useEffect(() => {
