@@ -291,7 +291,7 @@
 //             <JobPostingForm
 //               isOpen={isModalOpen}
 //               closeModal={closeModal}
-//               organizationName={organization}
+//               organization={organization}
 //               onSubmit={postJob}
 //             />
 //           </div>
@@ -314,7 +314,7 @@ import JobPostingForm from "./JobPostingForm";
 const OpeningJobCard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { logo, organization, industry } = location.state || {};
+  const { organization } = location.state || {};
 
   const [jobOpenings, setJobOpenings] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -352,7 +352,7 @@ const OpeningJobCard = () => {
     try {
       const { data } = await axios.get(`${baseUrl}/api/getjobs`, {
         params: {
-          organization,
+          organization: organization._id,
           page: currentPage,
           limit,
           searchTerm: debouncedSearch,
@@ -375,69 +375,64 @@ const OpeningJobCard = () => {
   const formatSkills = (skills) =>
     Array.isArray(skills) ? skills.join(", ") : skills;
 
-  const postJob = () => {
-    setIsModalOpen(false);
-    fetchJobs();
-  };
-
   return (
     <div className="bg-gray-50 w-full h-full p-4 sm:p-6">
-{/* ================= Company Header ================= */}
-<div className="bg-white border border-gray-200 rounded-xl shadow-sm">
-  <div className="p-5 sm:p-6">
+      {/* ================= Company Header ================= */}
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm">
+        <div className="p-5 sm:p-6">
 
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-      {/* Left: Company Info */}
-      <div className="flex items-center gap-4">
-        {logo ? (
-          <img
-            src={`${baseUrl}/${logo}`}
-            alt={organization}
-            className="w-12 h-12 rounded-lg object-contain border bg-white"
-          />
-        ) : (
-          <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-semibold">
-            {organization?.charAt(0)}
+            {/* Left: Company Info */}
+            <div className="flex items-center gap-4">
+              {organization.logo ? (
+                <img
+                  src={`${baseUrl}/${organization.logo}`}
+                  alt={organization.organization}
+                  className="w-12 h-12 rounded-lg object-contain border bg-white"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-lg bg-indigo-600 text-white flex items-center justify-center text-lg font-semibold">
+                  {organization.organization?.charAt(0)}
+                </div>
+              )}
+
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                  {organization.organization}
+                </h2>
+                <p className="text-sm text-gray-500">{organization.industry}</p>
+              </div>
+            </div>
+
+            {/* Right: Search + Post Job */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+
+              {/* Search */}
+              <div className="relative w-full sm:w-72">
+                <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search job title"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              {/* Post Job */}
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="w-full sm:w-auto px-5 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition"
+              >
+                + Post Job
+              </button>
+            </div>
+
           </div>
-        )}
 
-        <div>
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-            {organization}
-          </h2>
-          <p className="text-sm text-gray-500">{industry}</p>
         </div>
       </div>
-
-      {/* Right: Search + Post Job */}
-      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-
-        {/* Search */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search job title"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-
-        {/* Post Job */}
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="w-full sm:w-auto px-5 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 transition"
-        >
-          + Post Job
-        </button>
-      </div>
-
-    </div>
-
-  </div>
-</div>
 
 
 
@@ -468,47 +463,60 @@ const OpeningJobCard = () => {
           jobOpenings.map((job) => (
             <div
               key={job._id}
-              className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition"
+              className="group bg-white border border-gray-200 rounded-2xl p-6 transition
+             hover:border-gray-300 hover:shadow-lg"
             >
-              <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {job.title}
-                  </h3>
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-                  <div className="flex flex-wrap gap-2 text-xs">
+                {/* Left Content */}
+                <div className="flex-1 space-y-3">
+                  {/* Title & Job ID */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition">
+                      {job.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Job ID: <span className="font-medium">{job.jobId}</span>
+                    </p>
+                  </div>
+
+                  {/* Status / Priority / Location */}
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
                     <Badge value={job.priority} />
                     <Badge value={job.status} />
                     <span className="text-gray-500">{job.location}</span>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <Meta
-                      label={`${job.experienceMin}-${job.experienceMax} yrs`}
-                    />
+                  {/* Meta Info */}
+                  <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+                    <Meta label={`${job.experienceMin}-${job.experienceMax} yrs`} />
                     <Meta label={`${job.noOfPositions} Positions`} />
                     <Meta
-                      label={`Ends ${new Date(
-                        job.endDate
-                      ).toLocaleDateString()}`}
+                      label={`Ends ${new Date(job.endDate).toLocaleDateString()}`}
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center">
+                {/* Action */}
+                <div className="flex justify-start lg:justify-end">
                   <button
                     onClick={() =>
                       navigate(`/view-candidates/${job._id}`, {
                         state: { jobId: job._id, organization },
                       })
                     }
-                    className="px-5 py-2 text-sm font-medium text-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-50 transition"
+                    className="inline-flex items-center justify-center px-6 py-2.5
+                   text-sm font-medium rounded-lg border
+                   border-indigo-600 text-indigo-600
+                   hover:bg-indigo-600 hover:text-white
+                   transition-all duration-200"
                   >
                     View Candidates
                   </button>
                 </div>
               </div>
             </div>
+
           ))
         ) : (
           <p className="text-center text-sm text-gray-500 py-10">
@@ -529,10 +537,8 @@ const OpeningJobCard = () => {
             </button>
 
             <JobPostingForm
-              isOpen={isModalOpen}
-              closeModal={() => setIsModalOpen(false)}
-              organizationName={organization}
-              onSubmit={postJob}
+              organization={organization}
+              fetchJobs={fetchJobs}
             />
           </div>
         </div>
@@ -561,9 +567,8 @@ const Badge = ({ value }) => {
 
   return (
     <span
-      className={`px-2.5 py-1 rounded-full font-medium ${
-        styles[value] || "bg-gray-100 text-gray-600"
-      }`}
+      className={`px-2.5 py-1 rounded-full font-medium ${styles[value] || "bg-gray-100 text-gray-600"
+        }`}
     >
       {value || "N/A"}
     </span>

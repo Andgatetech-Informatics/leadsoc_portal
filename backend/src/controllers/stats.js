@@ -4,6 +4,7 @@ const moment = require("moment");
 
 exports.getCandidateStats = async (req, res) => {
   const params = req.query;
+  const user = req.user;
 
   const startDate = params["range[startDate]"];
   const endDate = params["range[endDate]"];
@@ -18,8 +19,9 @@ exports.getCandidateStats = async (req, res) => {
     };
   }
 
-  if (role && role === "freelancer") {
+  if (role && (role === "freelancer" || role === "vendor")) {
     query.isFreelancer = true;
+    query.FreelancerId = user._id;
   }
   try {
     const stats = await Candidate.aggregate([
@@ -129,7 +131,7 @@ exports.getDomainStats = async (req, res) => {
   const endDate = params["range[endDate]"];
   const role = params.role;
 
-    const query = {};
+  const query = {};
 
   if (startDate && endDate) {
     query.updatedAt = {
@@ -141,7 +143,7 @@ exports.getDomainStats = async (req, res) => {
   if (role && role === "freelancer") {
     query.isFreelancer = true;
   }
-  
+
   try {
     const domainCounts = await Candidate.aggregate([
       // {
@@ -153,7 +155,7 @@ exports.getDomainStats = async (req, res) => {
       //   },
       // },
 
-        { $match: query },
+      { $match: query },
       { $unwind: "$domain" },
       {
         $group: {

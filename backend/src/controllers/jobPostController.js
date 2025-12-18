@@ -53,6 +53,7 @@ exports.jobPost = async (req, res) => {
       title: title.trim(),
       location: location.trim(),
       organization: org.organization,
+      organizationId: org._id,
       clientName: clientName?.trim(),
       experienceMin,
       experienceMax,
@@ -99,7 +100,7 @@ exports.getJobs = async (req, res) => {
       filter.location = { $regex: location, $options: "i" };
     }
 
-    if (organization) filter.organization = organization.trim();
+    if (organization) filter.organizationId = organization;
 
     // Experience filter (minimum experience based on the selected option)
     if (experience && experience !== "All") {

@@ -20,15 +20,20 @@ const StatusOverview = ({ loading, setLoading, dateRange }) => {
       try {
         const res = await axios.get(`${baseUrl}/api/stats/candidates`, {
           params: {
-            "range[startDate]": dateRange.startDate,
-            "range[endDate]": dateRange.endDate,
-            role: role,
+            range: {
+              startDate: dateRange.startDate,
+              endDate: dateRange.endDate,
+            },
+            role,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
 
         setData(res.data);
       } catch (error) {
-        console.error("Failed to fetch candidate stats:", error);
+        console.error("Failed to fetch candidate stats:", error);1
       } finally {
         setLoading(false);
       }
@@ -91,7 +96,7 @@ const StatusOverview = ({ loading, setLoading, dateRange }) => {
   return (
     <div className="">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-      
+
         {loading &&
           statusItems.map((_, i) => (
             <div

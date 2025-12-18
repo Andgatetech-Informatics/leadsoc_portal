@@ -69,7 +69,7 @@ const CandidateDetails = ({
             </button>
           )}
 
-          {isAssignedTableButton && !selectedCandidate?.FreelancerId && (
+          {isAssignedTableButton && (
             <button
               onClick={() => handleButtonClick("assigned", "Accepting...")}
               className="min-w-[100px] bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded text-sm text-center"

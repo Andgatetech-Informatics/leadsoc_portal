@@ -36,86 +36,80 @@ const Feeds = () => {
   }, []);
 
   return (
-    <div className="p-8 bg-gray-50 relative">
-      {/* Company Directory */}
-      <div className="mt-10">
-        {loading ? (
-          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-            {/* Skeleton Loader */}
-            {[...Array(4)].map(
-              (
-                _,
-                index // Use 4 as a placeholder for the loader, or use companies.length if necessary
-              ) => (
+    <div className="min-h-screen bg-gray-50 px-6 py-8">
+      <div className="mx-auto max-w-7xl">
+        {/* Company Directory */}
+        <div className="mt-8">
+          {loading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {[...Array(4)].map((_, index) => (
                 <div
                   key={index}
-                  className="bg-white rounded-lg shadow-lg p-6 cursor-pointer border border-gray-100 animate-pulse relative overflow-hidden"
+                  className="relative rounded-xl border border-gray-200 bg-white p-6 shadow-sm animate-pulse"
                 >
-                  <div className="flex items-center gap-6 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-gray-300 to-gray-400 rounded-full animate-pulse"></div>
-                    <div className="space-y-4">
-                      <div className="w-32 h-5 bg-gradient-to-r from-gray-300 to-gray-400 rounded animate-pulse"></div>
-                      <div className="w-24 h-4 bg-gradient-to-r from-gray-300 to-gray-400 rounded animate-pulse"></div>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="h-14 w-14 rounded-full bg-gray-300" />
+                    <div className="space-y-3">
+                      <div className="h-4 w-32 rounded bg-gray-300" />
+                      <div className="h-3 w-24 rounded bg-gray-200" />
                     </div>
                   </div>
-                  <div className="w-28 h-4 bg-gradient-to-r from-gray-300 to-gray-400 rounded animate-pulse"></div>
+                  <div className="h-3 w-28 rounded bg-gray-200" />
                 </div>
-              )
-            )}
-          </div>
-        ) : companies.length > 0 ? (
-          <div className="grid gap-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {companies.map((c) => (
-              <div
-                key={c._id}
-                onClick={() =>
-                  navigate("/all-job-feeds/company/openings", {
-                    state: {
-                      logo: c.logo,
-                      organization: c.organization,
-                      industry: c.industry,
-                    },
-                  })
-                }
-                className="group relative bg-white rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 overflow-hidden transition-all duration-300 hover:-translate-y-1"
-              >
-                {/* Decorative bar */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-500 to-blue-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></div>
+              ))}
+            </div>
+          ) : companies.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {companies.map((c) => (
+                <div
+                  key={c._id}
+                  onClick={() =>
+                    navigate("/all-job-feeds/company/openings", {
+                      state: { organization: c },
+                    })
+                  }
+                  className="group cursor-pointer rounded-2xl border border-gray-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                >
+                  {/* Accent bar */}
+                  <div className="h-1 w-full scale-x-0 bg-gradient-to-r from-indigo-500 to-blue-500 transition-transform duration-300 group-hover:scale-x-100" />
 
-                <div className="p-6 flex items-center gap-5">
-                  {c.logo ? (
-                    <img
-                      src={`${baseUrl}/${c.logo}`}
-                      alt={c.organization}
-                      className="w-16 h-16 object-contain rounded-full border border-gray-200 bg-white shadow"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold text-2xl shadow">
-                      {c.organization?.charAt(0)}
+                  <div className="flex items-center gap-4 p-6">
+                    {c.logo ? (
+                      <img
+                        src={`${baseUrl}/${c.logo}`}
+                        alt={c.organization}
+                        className="h-14 w-14 rounded-full border border-gray-200 bg-white object-contain"
+                      />
+                    ) : (
+                      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 text-xl font-semibold text-white">
+                        {c.organization?.charAt(0)}
+                      </div>
+                    )}
+
+                    <div className="min-w-0">
+                      <h2 className="truncate text-base font-semibold text-gray-800 group-hover:text-indigo-600">
+                        {c.organization}
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        {c.industry || "Technology Solutions"}
+                      </p>
                     </div>
-                  )}
+                  </div>
 
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                      {c.organization}
-                    </h2>
-                    <p className="text-sm text-gray-500">
-                      {c.industry || "Technology Solutions"}
-                    </p>
+                  <div className="px-6 pb-5">
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 group-hover:text-indigo-800">
+                      View Openings →
+                    </span>
                   </div>
                 </div>
-
-                <div className="px-6 pb-6">
-                  <button className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800 transition-colors">
-                    View Openings <span>→</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-center">No companies found.</p>
-        )}
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-sm text-gray-500">
+              No companies found.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

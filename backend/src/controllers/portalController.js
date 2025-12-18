@@ -5,6 +5,7 @@ const User = require("../models/User");
 const transporter = require("../utils/mailer");
 const { htmlTemplate, rejectCandidate } = require("../utils/emailTemplates");
 const NotificationModel = require("../models/notification");
+const Job = require("../models/jobPost");
 
 exports.getAllUnassignedCanditates = async (req, res) => {
   const search = req.query.search;
@@ -1091,13 +1092,33 @@ exports.addRemark = async (req, res) => {
 exports.getCandidateDetails = async (req, res) => {
   const { candidateId } = req.params;
   try {
-    const candidate = await CandidateModel.findById(candidateId);
+    const candidate = await CandidateModel.findById(candidateId).lean();
+
 
     if (!candidate) {
       return res.status(400).json({
         status: false,
         message: "Candidate Not available.",
       });
+    }
+
+    if (candidate.isFreelancer && candidate.FreelancerId) {
+      const freelancerDetails = await User
+        .findById(candidate.FreelancerId)
+        .select("firstName lastName");
+
+      candidate.freelancerName = freelancerDetails
+        ? `${freelancerDetails.firstName} ${freelancerDetails.lastName}`
+        : null;
+    }
+
+    if (candidate.isReferred) {
+      const referrerJobs = await Job.find({
+        _id: { $in: candidate.jobsReferred }
+      })
+        .select("jobId title organization");
+
+      candidate.referredJobDetails = referrerJobs;
     }
 
     return res.status(200).json({
@@ -1561,7 +1582,7 @@ exports.getFreelanceCandidatesByHR = async (req, res) => {
 
     // Validate HR user
     const hrUser = await User.findById(hrId);
-    if (!hrUser || hrUser.role !== "hr") {
+    if (!hrUser || (hrUser.role !== "hr" && hrUser.role !== "ta")) {
       return res
         .status(404)
         .json({ success: false, message: "HR not found or invalid role" });

@@ -31,6 +31,11 @@ const JobSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    organizationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "organization",
+      required: true,
+    },
     clientName: {
       type: String,
       trim: true,

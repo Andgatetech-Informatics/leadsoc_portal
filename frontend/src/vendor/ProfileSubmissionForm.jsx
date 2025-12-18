@@ -33,6 +33,7 @@ const ProfileSubmissionForm = () => {
     email: "",
     mobile: "",
     domain: [],
+     dob: "",
     releventExp: "",
     experienceYears: "",
     preferredLocation: "",

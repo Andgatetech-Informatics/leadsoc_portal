@@ -512,6 +512,52 @@ const ApplicationTracker = () => {
             <div>
               <strong>Skills:</strong> {candidate.skills}
             </div>
+            {
+              candidate.isAssigned && (
+                <div>
+                  <strong>Assigned TA:</strong> {candidate.poc}
+                </div>
+              )
+            }
+
+            {
+              candidate.FreelancerId && (
+                <div>
+                  <strong>Vendor Name:</strong> {candidate.freelancerName}
+                </div>
+              )
+            }
+
+            {candidate.isReferred && candidate.referredJobDetails?.length > 0 && (
+              <div className="relative group inline-block">
+                {/* Tooltip Trigger */}
+                <span className="cursor-pointer text-blue-600 text-sm font-medium underline">
+                  Referred Jobs ({candidate.referredJobDetails.length})
+                </span>
+
+                {/* Tooltip */}
+                <div className="absolute z-20 hidden group-hover:block w-80 max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg p-3 mt-2">
+                  <p className="text-xs font-semibold text-gray-700 mb-2">
+                    Referred Job Details
+                  </p>
+
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {candidate.referredJobDetails.map((job) => (
+                      <div
+                        key={job._id}
+                        className="text-xs text-gray-800 border-b last:border-b-0 pb-1"
+                      >
+                        <p className="font-medium">
+                          {job.title}{" "}
+                          <span className="text-gray-500">({job.jobId})</span>
+                        </p>
+                        <p className="text-gray-500">{job.organization}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
