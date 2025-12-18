@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { baseUrl } from "../../api";
+import { baseUrl, companyName } from "../../api";
 import { useEffect } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
@@ -404,7 +404,7 @@ const CandidateRegistration = () => {
               {/* Company Logo */}
               <div className="text-center mb-6 ">
                 <img
-                  src="/andgate-logo.png"
+                  src="/leadsoclogo.png"
                   alt="AndGate Informatics Pvt Ltd"
                   className="mx-auto h-12"
                 />
@@ -418,8 +418,7 @@ const CandidateRegistration = () => {
             {/* Main Content */}
             <div className="text-center text-gray-800 space-y-4">
               <div className="text-lg font-medium">
-                Thank you for registering with{" "}
-                <strong>AndGate Informatics Pvt Ltd.</strong>
+                Thank you for registering with <strong>{companyName}</strong>
               </div>
               <div className="text-base">
                 Our HR team will review your details shortly. If your profile
@@ -441,7 +440,7 @@ const CandidateRegistration = () => {
             {/* Optional Call to Action */}
             <div className="flex justify-center mt-6">
               <a
-                href="https://www.linkedin.com/company/andgatetech"
+                href="https://www.linkedin.com/company/leadsoc-technologies-india-pvt-ltd"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-700 font-semibold transition duration-300"
@@ -734,7 +733,7 @@ const CandidateRegistration = () => {
 
                 <div className="flex flex-col">
                   <label>
-                    Interview Self-Rating (e.g., 7/10){" "}
+                    Skills Self-Rating (e.g., 7/10){" "}
                     <span className="text-red-500">*</span>
                   </label>
                   <input

@@ -8,3 +8,4 @@ export const candidateRegistrationUrl =
 // export const baseUrl = "https://myportal.andgatetech.com/backend";
 
 export const companyLogoText = "LeadSoc";
+export const companyName = "LeadSoc Technologies Pvt Ltd";
