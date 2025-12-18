@@ -2,12 +2,33 @@ import axios from "axios";
 import React, { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { baseUrl } from "../../api";
+import { baseUrl, companyName } from "../../api";
 import { useEffect } from "react";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 
 const experienceSteps = ["Experience Info", "Tech & Offers"];
+const SKILL_OPTIONS = [
+  "Python",
+  "React",
+  "Node.js",
+  "MongoDB",
+  "Express",
+  "DFT",
+  "PD",
+  "DV",
+  "PDK",
+  "RLT",
+  "Analog Mixed Signaling",
+  "Analog Layout Design",
+  "Design Engineer",
+  "Synthesis",
+  "Physical Verification",
+  "Embedded",
+  "FPGA",
+  "STA",
+  "Software",
+].map((s) => ({ label: s, value: s }));
 
 const domainOptions = [
   { value: "DFT", label: "DFT" },
@@ -35,6 +56,20 @@ const CandidateRegistration = () => {
   const [submitted, setSubmitted] = useState(false);
   const [hrList, setHrList] = useState([]);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [errors, setErrors] = useState({
+    email: "",
+    mobile: "",
+  });
+
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validateMobile = (mobile) => {
+    const regex = /^[6-9]\d{9}$/; // Indian mobile numbers
+    return regex.test(mobile);
+  };
 
   const initialFormState = {
     email: "",
@@ -59,7 +94,7 @@ const CandidateRegistration = () => {
     jobChangeReason: "",
     interviewsAttended: "",
     foreignWork: "",
-    skills: "",
+    skills: [],
     companiesAppliedSixMonths: "",
     currentCTC: "",
     expectedCTC: "",
@@ -67,6 +102,13 @@ const CandidateRegistration = () => {
   };
 
   const [formData, setFormData] = useState(initialFormState);
+
+  const handleSkillsChange = (values) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: values ? values.map((v) => v.label) : [],
+    }));
+  };
 
   const handleDomainChange = (selectedOptions) => {
     setFormData((prev) => ({
@@ -105,6 +147,24 @@ const CandidateRegistration = () => {
       }
 
       return;
+    }
+
+    // ===== Email Validation =====
+    if (name === "email") {
+      setErrors((prev) => ({
+        ...prev,
+        email: validateEmail(value) ? "" : "Enter a valid email address",
+      }));
+    }
+
+    // ===== Mobile Validation =====
+    if (name === "mobile") {
+      setErrors((prev) => ({
+        ...prev,
+        mobile: validateMobile(value)
+          ? ""
+          : "Enter valid 10-digit mobile number",
+      }));
     }
 
     setFormData((prev) => ({
@@ -164,6 +224,9 @@ const CandidateRegistration = () => {
     const cleanedData = Object.fromEntries(
       Object.entries({
         ...formData,
+        skills: Array.isArray(formData.skills)
+          ? formData.skills.join(", ")
+          : formData.skills,
         domain: Array.isArray(formData.domain)
           ? formData.domain.map((d) => d.value)
           : [formData.domain],
@@ -213,6 +276,9 @@ const CandidateRegistration = () => {
     // Create a copy to avoid mutating original state
     const payload = {
       ...formData,
+      skills: Array.isArray(formData.skills)
+        ? formData.skills.join(", ")
+        : formData.skills,
       domain: Array.isArray(formData.domain)
         ? formData.domain.map((d) => d.value)
         : [formData.domain],
@@ -277,10 +343,11 @@ const CandidateRegistration = () => {
             className="flex flex-col items-center flex-1 relative z-10"
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${experienceStep >= index
+              className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
+                experienceStep >= index
                   ? "bg-blue-600 text-white"
                   : "bg-gray-300 text-gray-600"
-                }`}
+              }`}
             >
               {index + 1}
             </div>
@@ -293,10 +360,12 @@ const CandidateRegistration = () => {
         {experienceSteps.map((_, index) => {
           if (index === experienceSteps.length - 1) return null;
 
-          const leftPos = `calc(${(index / (experienceSteps.length - 1)) * 100
-            }% + 16px)`;
-          const segmentWidth = `calc(${100 / (experienceSteps.length - 1)
-            }% - 32px)`;
+          const leftPos = `calc(${
+            (index / (experienceSteps.length - 1)) * 100
+          }% + 16px)`;
+          const segmentWidth = `calc(${
+            100 / (experienceSteps.length - 1)
+          }% - 32px)`;
 
           let background = "#d1d5db";
           if (experienceStep > index) {
@@ -335,7 +404,7 @@ const CandidateRegistration = () => {
               {/* Company Logo */}
               <div className="text-center mb-6 ">
                 <img
-                  src="/andgate-logo.png"
+                  src="/leadsoclogo.png"
                   alt="AndGate Informatics Pvt Ltd"
                   className="mx-auto h-12"
                 />
@@ -349,8 +418,7 @@ const CandidateRegistration = () => {
             {/* Main Content */}
             <div className="text-center text-gray-800 space-y-4">
               <div className="text-lg font-medium">
-                Thank you for registering with{" "}
-                <strong>AndGate Informatics Pvt Ltd.</strong>
+                Thank you for registering with <strong>{companyName}</strong>
               </div>
               <div className="text-base">
                 Our HR team will review your details shortly. If your profile
@@ -372,7 +440,7 @@ const CandidateRegistration = () => {
             {/* Optional Call to Action */}
             <div className="flex justify-center mt-6">
               <a
-                href="https://www.linkedin.com/company/andgatetech"
+                href="https://www.linkedin.com/company/leadsoc-technologies-india-pvt-ltd"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-700 font-semibold transition duration-300"
@@ -409,9 +477,16 @@ const CandidateRegistration = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="border px-3 py-2 rounded"
+                      className={`border px-3 py-2 rounded ${
+                        errors.email ? "border-red-500" : ""
+                      }`}
                       required
                     />
+                    {errors.email && (
+                      <span className="text-red-500 text-sm">
+                        {errors.email}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex flex-col">
@@ -423,9 +498,17 @@ const CandidateRegistration = () => {
                       name="mobile"
                       value={formData.mobile}
                       onChange={handleChange}
-                      className="border px-3 py-2 rounded"
+                      maxLength={10}
+                      className={`border px-3 py-2 rounded ${
+                        errors.mobile ? "border-red-500" : ""
+                      }`}
                       required
                     />
+                    {errors.mobile && (
+                      <span className="text-red-500 text-sm">
+                        {errors.mobile}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-col">
                     <label>
@@ -491,13 +574,14 @@ const CandidateRegistration = () => {
                       Technical skills, tools, strengths{" "}
                       <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      name="skills"
-                      value={formData.skills}
-                      onChange={handleChange}
-                      className="border px-3 py-2 rounded"
-                      required
+                    <CreatableSelect
+                      isMulti
+                      options={SKILL_OPTIONS}
+                      value={formData.skills.map((s) => ({
+                        label: s,
+                        value: s,
+                      }))}
+                      onChange={handleSkillsChange}
                     />
                   </div>
                   <div className="flex flex-col">
@@ -605,10 +689,11 @@ const CandidateRegistration = () => {
                         type="submit"
                         disabled={submitLoading}
                         onClick={fresherCandidateSubmit}
-                        className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 w-full sm:w-auto ${submitLoading
+                        className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 w-full sm:w-auto ${
+                          submitLoading
                             ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
                             : "bg-green-600 text-white hover:bg-green-700"
-                          }`}
+                        }`}
                       >
                         {submitLoading ? "Submitting..." : "Submit"}
                       </button>
@@ -648,7 +733,7 @@ const CandidateRegistration = () => {
 
                 <div className="flex flex-col">
                   <label>
-                    Interview Self-Rating (e.g., 7/10){" "}
+                    Skills Self-Rating (e.g., 7/10){" "}
                     <span className="text-red-500">*</span>
                   </label>
                   <input
@@ -872,10 +957,11 @@ const CandidateRegistration = () => {
                   type="submit"
                   disabled={submitLoading}
                   onClick={experienceCandidateSubmit}
-                  className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 ${submitLoading
+                  className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
+                    submitLoading
                       ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
                       : "bg-green-600 text-white hover:bg-green-700"
-                    }`}
+                  }`}
                 >
                   {submitLoading ? "Submitting..." : "Submit"}
                 </button>
