@@ -93,7 +93,9 @@ const ApplicantStatus = () => {
     <div className="mx-auto bg-white px-6 py-8 font-inter shadow-lg rounded-md border border-gray-200  flex flex-col">
       <div className="mb-6 flex flex-col lg:flex-row lg:justify-between lg:items-center gap-5">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Applicants Status</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            Applicants Status
+          </h2>
           <p className="text-sm text-gray-500 mt-1">
             Track and manage TA's and candidate activity
           </p>
@@ -141,6 +143,11 @@ const ApplicantStatus = () => {
           redirect="/teams"
         />
       </div>
+      {!loading && hrData.length === 0 && (
+        <div className="text-center text-gray-500 py-10">
+          No candidates found.
+        </div>
+      )}
 
       {selectedCandidate && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-center items-center px-6">

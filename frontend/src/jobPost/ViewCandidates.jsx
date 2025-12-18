@@ -108,95 +108,116 @@ const ViewCandidates = () => {
       </div>
 
       {/* ================= DESKTOP TABLE (>=1000px) ================= */}
-      <div className="hidden lg:block overflow-x-auto">
-        <table className="w-full text-sm border text-left border-gray-200 rounded-lg overflow-hidden">
-          <thead className="bg-gray-200 text-xs uppercase font-normal">
-            <tr>
-              <th className="px-6 py-4">Applicant</th>
-              <th className="px-4 py-4">Status</th>
-              <th className="px-4 py-4">Contact</th>
-              <th className="px-6 py-4">Skills</th>
-              <th className="px-6 py-4">HR</th>
-              <th className="px-6 py-4">Resume</th>
-            </tr>
-          </thead>
-          {loading ? (
-            <TableSkeleton rows={6} />
-          ) : (
-            <tbody className="divide-y">
-              {filteredCandidates.map((c) => (
-                <tr
-                  key={c._id}
-                  className="hover:bg-gray-50 cursor-pointer"
-                  onClick={() =>
-                    navigate(`/application-tracker_sales/${c._id}`)
-                  }
+     <div className="hidden lg:block overflow-x-auto">
+  <table className="w-full text-sm border text-left border-gray-200 rounded-lg overflow-hidden">
+    <thead className="bg-gray-200 text-xs uppercase font-normal">
+      <tr>
+        <th className="px-6 py-4">Applicant</th>
+        <th className="px-4 py-4">Status</th>
+        <th className="px-4 py-4">Contact</th>
+        <th className="px-6 py-4">Skills</th>
+        <th className="px-6 py-4">HR</th>
+        <th className="px-6 py-4">Resume</th>
+      </tr>
+    </thead>
+
+    <tbody className="divide-y">
+      {/* Loading */}
+      {loading && <TableSkeleton rows={6} />}
+
+      {/* No Candidates */}
+      {!loading && filteredCandidates.length === 0 && (
+        <tr>
+          <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
+            No candidates found
+          </td>
+        </tr>
+      )}
+
+      {/* Data */}
+      {!loading &&
+        filteredCandidates.length > 0 &&
+        filteredCandidates.map((c) => (
+          <tr
+            key={c._id}
+            className="hover:bg-gray-50 cursor-pointer"
+            onClick={() =>
+              navigate(`/application-tracker_sales/${c._id}`)
+            }
+          >
+            <td className="px-6 py-4">
+              <div className="font-medium">
+                {c.firstName} {c.lastName}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                <FaUserAlt /> {c._id?.slice(-5)}
+              </div>
+            </td>
+
+            {/* Status */}
+            <td className="px-4 py-3">
+              <ProgressBar status={c.status} candidate={c} />
+            </td>
+
+            {/* Contact */}
+            <td className="px-4 py-4 max-w-[220px]">
+              <a
+                href={`mailto:${c.email}`}
+                className="block truncate text-gray-600"
+              >
+                {c.email}
+              </a>
+              <div className="flex items-center mt-2 text-gray-500">
+                <a
+                  href={`tel:${c.mobile}`}
+                  className="flex items-center hover:text-blue-600"
                 >
-                  <td className="px-6 py-4">
-                    <div className="font-medium">
-                      {c.firstName} {c.lastName}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                      <FaUserAlt /> {c._id?.slice(-5)}
-                    </div>
-                  </td>
-                  {/* Status */}
-                  <td className="px-4 py-3 relative group">
-                    <ProgressBar status={c.status} candidate={c} />
-                  </td>
-                  {/* Contact */}
-                  <td className="px-4 py-4 max-w-[220px]">
-                    <a
-                      href={`mailto:${c.email}`}
-                      className="block truncate text-gray-600"
-                    >
-                      {c.email}
-                    </a>
-                    <div className="flex items-center mt-2 text-gray-500">
-                      <a
-                        href={`tel:${c.mobile}`}
-                        className="flex items-center hover:text-blue-600"
-                      >
-                        <FaPhoneSquareAlt className="mr-2" />
-                        {c.mobile}
-                      </a>
-                      <a
-                        href={`https://wa.me/${c.mobile}`}
-                        className="ml-2 hover:text-green-500"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <FaWhatsapp />
-                      </a>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div>{c.skills}</div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
-                      <FaBriefcase /> {c.experience}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">{c.hrName}</td>
-                  <td className="px-6 py-4">
-                    {c.resumeUrl ? (
-                      <a
-                        href={`${baseUrl}/${c.resumeUrl}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 flex items-center gap-1"
-                      >
-                        <FaEye /> View
-                      </a>
-                    ) : (
-                      "N/A"
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          )}
-        </table>
-      </div>
+                  <FaPhoneSquareAlt className="mr-2" />
+                  {c.mobile}
+                </a>
+                <a
+                  href={`https://wa.me/${c.mobile}`}
+                  className="ml-2 hover:text-green-500"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <FaWhatsapp />
+                </a>
+              </div>
+            </td>
+
+            {/* Skills */}
+            <td className="px-6 py-4">
+              <div>{c.skills}</div>
+              <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                <FaBriefcase /> {c.experience}
+              </div>
+            </td>
+
+            {/* HR */}
+            <td className="px-6 py-4">{c.hrName}</td>
+
+            {/* Resume */}
+            <td className="px-6 py-4">
+              {c.resumeUrl ? (
+                <a
+                  href={`${baseUrl}/${c.resumeUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 flex items-center gap-1"
+                >
+                  <FaEye /> View
+                </a>
+              ) : (
+                "N/A"
+              )}
+            </td>
+          </tr>
+        ))}
+    </tbody>
+  </table>
+</div>
+
 
       {/* ================= MOBILE / TABLET CARDS (<1000px) ================= */}
       <div className="lg:hidden">
