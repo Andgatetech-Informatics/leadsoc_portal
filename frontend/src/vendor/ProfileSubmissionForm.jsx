@@ -290,7 +290,7 @@ const ProfileSubmissionForm = () => {
           limit: 4,
         },
       });
-      console.log("all jobs:", res.data);
+
       if (res.status === 200) {
         setJobList(res.data.jobs);
       }
