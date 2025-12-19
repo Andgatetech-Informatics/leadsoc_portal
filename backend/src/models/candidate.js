@@ -80,6 +80,7 @@ const candidateSchema = new mongoose.Schema(
     isDummy: { type: Boolean, default: false },
     isReferred: { type: Boolean, default: false },
     isFreelancer: { type: Boolean, default: false },
+    freelancerName : { type: String },
     FreelancerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     jobsReferred: [
       {
