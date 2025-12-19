@@ -561,6 +561,12 @@ exports.uploadResume = async (req, res) => {
 };
 
 exports.uploadConsentForm = async (req, res) => {
+  const { candidateType } = req.body;
+
+  if (!candidateType) {
+    return res.status(400).json({ error: "Candidate type is required" });
+  }
+
   if (!req.file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
@@ -591,6 +597,7 @@ exports.uploadConsentForm = async (req, res) => {
         status: "shortlisted",
         consentForm: base64Pdf,
         isConsentUploaded: true,
+        candidateType: candidateType,
       },
       { new: true }
     );

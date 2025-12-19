@@ -16,6 +16,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import InitiateCandidateModel from "../../components/InitiateCandidateModel";
 import EventModal from "../../components/createEventModel";
 import { localDatetimeToISOString } from "../../utils/utils"
+import ConsentModel from "../../components/consentModel";
 
 const initialFormData = {
   candidate: {
@@ -49,6 +50,21 @@ const statusStyles = {
   default: "bg-gray-100 text-gray-700",
 };
 
+const hrEventOptions = [
+  { value: "Screening", label: "Screening Round" },
+  { value: "Technical 1", label: "Technical Round 1" },
+  { value: "Technical 2", label: "Technical Round 2" },
+  { value: "Technical 3", label: "Technical Round 3" },
+  { value: "HR Discussion", label: "HR Discussion" },
+];
+
+const deliveryEventOptions = [
+  { value: "Orientation", label: "Orientation Round" },
+  { value: "Client 1", label: "Client Round 1" },
+  { value: "Client 2", label: "Client Round 2" },
+  { value: "Client 3", label: "Client Round 3" },
+];
+
 const ApplicationTracker = () => {
   const location = useLocation();
   const page = location.state?.page;
@@ -72,7 +88,6 @@ const ApplicationTracker = () => {
     rejected: false,
   });
 
-  const [isUploading, setIsUploading] = useState(false);
   const [initiateCandidateModel, setInitiateCandidateModel] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
@@ -83,21 +98,6 @@ const ApplicationTracker = () => {
   const [isEditModelOpen, setIsEditEventOpen] = useState(null)
 
   const navigate = useNavigate();
-
-  const hrEventOptions = [
-    { value: "Screening", label: "Screening Round" },
-    { value: "Technical 1", label: "Technical Round 1" },
-    { value: "Technical 2", label: "Technical Round 2" },
-    { value: "Technical 3", label: "Technical Round 3" },
-    { value: "HR Discussion", label: "HR Discussion" },
-  ];
-
-  const deliveryEventOptions = [
-    { value: "Orientation", label: "Orientation Round" },
-    { value: "Client 1", label: "Client Round 1" },
-    { value: "Client 2", label: "Client Round 2" },
-    { value: "Client 3", label: "Client Round 3" },
-  ];
 
   const eventOptions =
     userRole === "ta" ? hrEventOptions : deliveryEventOptions;
@@ -265,38 +265,6 @@ const ApplicationTracker = () => {
     }
   }, [candidateId, deleteLoadingId]);
 
-  const handleFileChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setIsUploading(true);
-
-    try {
-      const uploadData = new FormData();
-      uploadData.append("file", file);
-
-      let response = await axios.post(
-        `${baseUrl}/api/upload_consent/${candidate._id}`,
-        uploadData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.status !== 200) {
-        toast.error("Consent form upload failed.");
-        return;
-      }
-
-      fetchCandidateDetails();
-      toast.success("File uploaded successfully");
-    } catch (err) {
-      console.error("Upload failed", err);
-      toast.error("Upload failed.");
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   const handleRemarkSave = async (newRemark) => {
     try {
@@ -599,72 +567,31 @@ const ApplicationTracker = () => {
                   )}
 
                 {/* Upload Consent Button */}
-                {enableConsentButton >= 2 && RejectedEvents === 0 && (
-                  <>
+                <>
+                  {enableConsentButton >= 2 && RejectedEvents === 0 && (
                     <label
-                      onClick={() => {
-                        if (candidate?.consentForm) {
-                          setShowConsentModal(true); // Open modal
-                        }
-                      }}
-                      className={`relative w-full sm:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-2.5
-        text-sm font-medium rounded-lg shadow-md transition duration-200 ease-in-out
-        ${isUploading || candidate?.consentForm
-                          ? "bg-blue-600 text-white cursor-pointer hover:bg-blue-700"
-                          : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white cursor-pointer"
-                        }`}
+                      onClick={() => setShowConsentModal(true)}
+                      className="relative w-full sm:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-2.5
+      text-sm font-medium rounded-lg shadow-md transition duration-200 ease-in-out
+      bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
+      text-white cursor-pointer"
                     >
-                      {isUploading ? (
-                        <>
-                          <FaSpinner className="animate-spin mr-2" />
-                          Please Wait
-                        </>
-                      ) : candidate?.consentForm ? (
-                        <p>📄 View Consent Form</p>
-                      ) : (
-                        <>
-                          <FaFileUpload className="mr-2" />
-                          <p>Upload Consent PDF</p>
-                        </>
-                      )}
-
-                      {!candidate?.consentForm && (
-                        <input
-                          type="file"
-                          accept="application/pdf"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={handleFileChange}
-                          disabled={isUploading}
-                        />
-                      )}
+                      <FaFileUpload className="mr-2" />
+                      {
+                        candidate.consentForm && candidate.isConsentUploaded ? <p>View Consent PDF</p> : <p>Upload Consent PDF</p>
+                      }
                     </label>
+                  )}
 
-                    {/* Consent Form Modal */}
-                    {showConsentModal && (
-                      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-                        <div className="bg-white w-full max-w-5xl h-[90vh] rounded-lg shadow-lg p-4 relative flex flex-col">
-                          <button
-                            onClick={() => setShowConsentModal(false)}
-                            className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl"
-                          >
-                            ❌
-                          </button>
-                          <h2 className="text-lg font-semibold mb-4">
-                            Consent Form Preview
-                          </h2>
+                  {showConsentModal && (
+                    <ConsentModel
+                      setShowConsentModal={setShowConsentModal}
+                      candidate={candidate}
+                      fetchCandidateDetails={fetchCandidateDetails}
+                    />
+                  )}
 
-                          <div className="flex-1 overflow-hidden">
-                            <iframe
-                              src={candidate.consentForm}
-                              title="Consent Form"
-                              className="w-full h-full border rounded"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                )}
+                </>
 
                 {!eventLoading &&
                   candidate?.status !== "rejected" &&

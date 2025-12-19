@@ -93,6 +93,7 @@ const candidateSchema = new mongoose.Schema(
     organizarionId: { type: String },
     joiningFeedback: { type: String, default: "" },
     designation: { type: String },
+    candidateType: { type: String, enum: ["internal", "external"], default: "external" },
   },
   {
     versionKey: false,
