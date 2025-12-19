@@ -1778,6 +1778,7 @@ exports.changeAssignedHR = async (req, res) => {
 };
 
 exports.filterCandidatesStatusWise = async (req, res) => {
+  const user = req.user;
   try {
     let {
       status,
@@ -1785,7 +1786,7 @@ exports.filterCandidatesStatusWise = async (req, res) => {
       endDate,
       page = 1,
       limit = 10,
-      search = ""
+      search = "",
     } = req.query;
 
     page = parseInt(page);
@@ -1799,12 +1800,17 @@ exports.filterCandidatesStatusWise = async (req, res) => {
       filter.status = status;
     }
 
+    if (user.role === "freelancer" || user.role === "vendor") {
+      filter.isFreelancer = true;
+      filter.FreelancerId = user._id;
+    }
+
     // 🟡 Search Filter
     if (search) {
       filter.$or = [
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
-        { mobile: { $regex: search, $options: "i" } }
+        { mobile: { $regex: search, $options: "i" } },
       ];
     }
 
@@ -1812,14 +1818,17 @@ exports.filterCandidatesStatusWise = async (req, res) => {
     const isValidDate = (d) => !isNaN(new Date(d).getTime());
 
     // 🟡 Date Range Filter (only if valid)
-    if (startDate && endDate && isValidDate(startDate) && isValidDate(endDate)) {
+    if (
+      startDate &&
+      endDate &&
+      isValidDate(startDate) &&
+      isValidDate(endDate)
+    ) {
       filter.updatedAt = {
         $gte: new Date(startDate),
-        $lte: new Date(endDate)
+        $lte: new Date(endDate),
       };
     }
-
-
 
     // 🟢 Main Query
     const candidates = await CandidateModel.find(filter)
@@ -1835,12 +1844,10 @@ exports.filterCandidatesStatusWise = async (req, res) => {
       totalCount,
       currentPage: page,
       totalPages: Math.ceil(totalCount / limit),
-      candidates
+      candidates,
     });
-
   } catch (error) {
     console.log("Fetching Candidates Status Wise:", error.message);
     return res.status(500).json({ success: false, message: error.message });
   }
 };
-

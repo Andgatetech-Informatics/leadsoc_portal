@@ -240,8 +240,6 @@ const ProfileSubmissionForm = () => {
     cleanedData.isAssigned = true;
     cleanedData.assignedTo = hrDetails?._id;
     cleanedData.poc = `${hrDetails?.firstName} ${hrDetails?.lastName}`;
-    console.log("Submitting jobs:", selectedJobs);
-    console.log("Data :", cleanedData);
 
     try {
       const res = await axios.post(
