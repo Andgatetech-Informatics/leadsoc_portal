@@ -94,7 +94,82 @@ exports.getJobs = async (req, res) => {
       limit = 10,
     } = req.query;
 
-    let filter = {};
+    let filter = {
+      visibility: "public"
+    };
+
+    if (location) {
+      filter.location = { $regex: location, $options: "i" };
+    }
+
+    if (organization) filter.organizationId = organization;
+
+    // Experience filter (minimum experience based on the selected option)
+    if (experience && experience !== "All") {
+      const minExp = parseInt(experience, 10);
+
+      // Adjust the filter to match jobs with experience greater than or equal to minExp
+      filter.experienceMin = { $gte: minExp };
+    }
+
+    if (searchTerm) {
+      filter.$or = [
+        { title: { $regex: searchTerm, $options: "i" } },
+        { location: { $regex: searchTerm, $options: "i" } },
+        { priority: { $regex: searchTerm, $options: "i" } },
+        { status: { $regex: `^${searchTerm}$`, $options: "i" } },
+      ];
+    }
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const totalJobs = await Job.countDocuments(filter);
+
+    const jobs = await Job.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNumber)
+      .populate(
+        "candidates.candidate",
+        "name email mobile skills experienceYears resume status"
+      )
+      .populate("candidates.addedByHR", "firstName lastName email role");
+
+    jobs.forEach((job) => {
+      job.candidates = job.candidates.filter(
+        (c) => c.candidate && c.candidate.status !== "rejected"
+      );
+    });
+
+    res.status(200).json({
+      totalJobs,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalJobs / limitNumber),
+      count: jobs.length,
+      jobs,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+exports.getJobsForBu = async (req, res) => {
+  try {
+    const {
+      searchTerm,
+      location,
+      organization,
+      experience,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    let filter = {
+      visibility: "bu"
+    };
 
     if (location) {
       filter.location = { $regex: location, $options: "i" };

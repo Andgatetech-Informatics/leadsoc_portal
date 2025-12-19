@@ -51,7 +51,7 @@ const ActiveJobs = ({ token, hrId }) => {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseUrl}/api/getjobs`, {
+      const response = await axios.get(`${baseUrl}/api/getjobsbu`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
