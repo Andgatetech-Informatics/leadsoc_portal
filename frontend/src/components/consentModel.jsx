@@ -120,8 +120,8 @@ const ConsentModel = ({
             focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
               >
                 <option value="">Select type</option>
-                <option value="bench">On Bench</option>
-                <option value="pipeline">On Pipeline</option>
+                <option value="internal">On Bench</option>
+                <option value="external">On Pipeline</option>
               </select>
             </div>
 
