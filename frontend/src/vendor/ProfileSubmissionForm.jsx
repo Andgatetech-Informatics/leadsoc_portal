@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { baseUrl } from "../api";
 import { FaArrowLeft } from "react-icons/fa";
@@ -7,6 +7,30 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import CreatableSelect from "react-select/creatable";
 import "react-toastify/dist/ReactToastify.css";
+
+import { ChevronDown } from "lucide-react";
+
+const SKILL_OPTIONS = [
+  "Python",
+  "React",
+  "Node.js",
+  "MongoDB",
+  "Express",
+  "DFT",
+  "PD",
+  "DV",
+  "PDK",
+  "RLT",
+  "Analog Mixed Signaling",
+  "Analog Layout Design",
+  "Design Engineer",
+  "Synthesis",
+  "Physical Verification",
+  "Embedded",
+  "FPGA",
+  "STA",
+  "Software",
+].map((s) => ({ label: s, value: s }));
 
 const domainOptions = [
   { value: "DFT", label: "DFT" },
@@ -27,47 +51,86 @@ const domainOptions = [
   { value: "STA", label: "STA" },
 ];
 
+const initialState = {
+  name: "",
+  email: "",
+  mobile: "",
+  domain: [],
+  dob: "",
+  degree: "",
+  releventExp: "",
+  experienceYears: "",
+  preferredLocation: "",
+  currentLocation: "",
+  isAssigned: true,
+  skills: [],
+  poc: "",
+  isReferred: true,
+  jobsReferred: [],
+  availability: "",
+  resume: null,
+  FreelancerId: "",
+  isFreelancer: true,
+};
+
 const ProfileSubmissionForm = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    mobile: "",
-    domain: [],
-     dob: "",
-    releventExp: "",
-    experienceYears: "",
-    preferredLocation: "",
-    currentLocation: "",
-    isAssigned: true,
-    skills: "",
-    poc: "",
-    availability: "",
-    resume: null,
-    FreelancerId: "",
-    isFreelancer: true,
-  });
+  const fileInputRef = useRef(null);
+  const [formData, setFormData] = useState(initialState);
 
   const [errors, setErrors] = useState({});
   const [hrList, setHrList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [jobList, setJobList] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [selectedJobs, setSelectedJobs] = useState([]);
+  const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const getAllHrs = async () => {
-      try {
-        const res = await axios.get(`${baseUrl}/api/auth/get_all_hr`);
-        if (res.status === 200) setHrList(res.data.data);
-      } catch (error) {
-        console.log("Error fetching HR list:", error.message);
-      }
-    };
-    getAllHrs();
-  }, []);
+  const inputBase =
+    "mt-1 w-full h-[42px] px-3 text-sm bg-white border border-gray-300 rounded-md flex items-center justify-between ";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-    setErrors((prev) => ({ ...prev, [name]: "" }));
+
+    // Mobile handling
+    if (name === "mobile") {
+      const cleaned = value.replace(/\D/g, "").slice(0, 10);
+      setFormData((prev) => ({ ...prev, mobile: cleaned }));
+
+      setErrors((prev) => ({
+        ...prev,
+        mobile:
+          cleaned && !validateMobile(cleaned)
+            ? "Enter valid 10-digit mobile number"
+            : "",
+      }));
+      return;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setErrors((prev) => {
+      const updated = { ...prev };
+
+      if (name === "email") {
+        updated.email =
+          value && !validateEmail(value) ? "Enter a valid email address" : "";
+      }
+
+      if (name === "dob") {
+        updated.dob = value ? "" : "Date of birth is required";
+      }
+
+      if (name === "name") {
+        updated.name = value.trim() ? "" : "Name is required";
+      }
+
+      return updated;
+    });
   };
 
   const handleDomainChange = (selectedOptions) => {
@@ -76,6 +139,13 @@ const ProfileSubmissionForm = () => {
       domain: selectedOptions || [],
     }));
     setErrors((prev) => ({ ...prev, domain: "" }));
+  };
+
+  const handleSkillsChange = (values) => {
+    setFormData((prev) => ({
+      ...prev,
+      skills: values ? values.map((v) => v.label) : [],
+    }));
   };
 
   const handleFileChange = async (e) => {
@@ -104,11 +174,25 @@ const ProfileSubmissionForm = () => {
     }
   };
 
+  const validateEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  };
+
+  const validateMobile = (mobile) => {
+    const regex = /^[6-9]\d{9}$/; // Indian mobile numbers
+    return regex.test(mobile);
+  };
   const validate = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
+    else if (!validateEmail(formData.email))
+      newErrors.email = "Enter a valid email address";
+
     if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required";
+    else if (!validateMobile(formData.mobile))
+      newErrors.mobile = "Enter valid 10-digit mobile number";
     if (formData.domain.length === 0)
       newErrors.domain = "Select at least one domain";
     if (!formData.experienceYears)
@@ -124,6 +208,9 @@ const ProfileSubmissionForm = () => {
       newErrors.availability = "Availability in days is required";
     if (!formData.resume) newErrors.resume = "Upload your resume";
     if (!formData.skills) newErrors.resume = "Skills is required";
+    if (!selectedJobs || selectedJobs.length === 0) {
+      newErrors.jobsReferred = "Please select at least one job";
+    }
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
@@ -136,80 +223,125 @@ const ProfileSubmissionForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setLoading(true);
+    // setLoading(true);
 
-    // 🧩 Convert domain to array of strings (["DFT", "PD", "DV"])
     const cleanedData = {
       ...formData,
+
       domain: formData.domain.map((d) => d.value),
+
+      skills: Array.isArray(formData.skills)
+        ? formData.skills.join(", ")
+        : formData.skills,
+      jobsReferred: selectedJobs,
     };
 
-    let hrDetails = hrList.filter((e) => e._id === formData.poc)[0];
-
+    const hrDetails = hrList.find((hr) => hr._id === formData.poc);
     cleanedData.isAssigned = true;
-    cleanedData.assignedTo = hrDetails._id;
-    cleanedData.poc = hrDetails.firstName + " " + hrDetails.lastName;
+    cleanedData.assignedTo = hrDetails?._id;
+    cleanedData.poc = `${hrDetails?.firstName} ${hrDetails?.lastName}`;
+    console.log("Submitting jobs:", selectedJobs);
+    console.log("Data :", cleanedData);
 
     try {
-      const response = await axios.post(
+      const res = await axios.post(
         `${baseUrl}/api/freelancer_registration`,
         cleanedData,
         {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
 
-      if (response.status === 200 || response.status === 201) {
-        toast.success("Application submitted successfully");
-        setFormData({
-          name: "",
-          email: "",
-          mobile: "",
-          domain: [],
-          releventExp: "",
-          experienceYears: "",
-          preferredLocation: "",
-          currentLocation: "",
-          poc: "",
-          availability: "",
-          skills: "",
-          resume: null,
-          FreelancerId: "",
-          isFreelancer: true,
-        });
-      } else {
-        toast.error("Submission failed");
+      toast.success("Application submitted successfully");
+      setFormData(initialState);
+      setSelectedJobs([]); // ✅ clear jobs
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     } catch (error) {
-      console.error("Submission error:", error);
-      toast.error(
-        error.response?.data?.message || "Server error during submission"
-      );
+      toast.error(error.response?.data?.message || "Submission failed");
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSelect = (jobId) => {
+    setSelectedJobs((prev) =>
+      prev.includes(jobId)
+        ? prev.filter((id) => id !== jobId)
+        : [...prev, jobId]
+    );
+  };
+
+  const getAllTAs = async () => {
+    try {
+      const res = await axios.get(`${baseUrl}/api/auth/get_all_hr`);
+      if (res.status === 200) setHrList(res.data.data);
+    } catch (error) {
+      console.log("Error fetching HR list:", error.message);
+    }
+  };
+
+  const getAllJobs = async (search = "") => {
+    try {
+      const res = await axios.get(`${baseUrl}/api/getjobs`, {
+        params: {
+          searchTerm: search,
+          limit: 4,
+        },
+      });
+      console.log("all jobs:", res.data);
+      if (res.status === 200) {
+        setJobList(res.data.jobs);
+      }
+    } catch (error) {
+      console.log("Error fetching jobs:", error.message);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      getAllJobs(search);
+    }
+    getAllTAs();
+  }, [search, open]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="flex items-center justify-center h-full bg-gray-100">
-      <div className="max-w-3xl w-full p-6">
+    <div className="h-full bg-gray-100 px-3 py-4 sm:px-6">
+      <div className="mt-5 px-3 py-4">
+        {/* Back Button */}
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-6 transition"
+          className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-1 transition"
         >
-          <FaArrowLeft className="text-lg" />
-          <span className="text-sm font-medium">Back</span>
+          <FaArrowLeft className="text-base" />
+          <span className="text-sm">Back</span>
         </button>
 
-        <h2 className="text-2xl text-center font-semibold mb-6 text-gray-800">
+        {/* Card */}
+
+        <h2 className="text-xl sm:text-2xl text-center font-semibold mb-4 text-gray-800">
           Profile Submission Form
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Full Name */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Full Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -228,7 +360,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Email */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Email <span className="text-red-500">*</span>
               </label>
               <input
@@ -247,7 +379,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Mobile */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Mobile <span className="text-red-500">*</span>
               </label>
               <input
@@ -264,9 +396,42 @@ const ProfileSubmissionForm = () => {
               )}
             </div>
 
+            <div className="flex flex-col">
+              <label className="text-sm">
+                Date of Birth
+                <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                id="dob"
+                name="dob"
+                value={formData.dob}
+                onChange={handleChange}
+                className="border mt-1 p-2 rounded"
+                required
+              />
+            </div>
+            <div className="flex flex-col">
+              <label>
+                Degree <span className="text-red-500">*</span>
+              </label>
+              <select
+                name="degree"
+                value={formData.degree}
+                onChange={handleChange}
+                className="border mt-1  px-3 py-2 rounded"
+                required
+              >
+                <option value="">Select</option>
+                <option value="B.Tech">B.Tech</option>
+                <option value="M.Tech">M.Tech</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
             {/* Domain */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Domain <span className="text-red-500">*</span>
               </label>
               <CreatableSelect
@@ -281,10 +446,25 @@ const ProfileSubmissionForm = () => {
                 <p className="text-xs text-red-500 mt-1">{errors.domain}</p>
               )}
             </div>
+            <div className="flex flex-col">
+              <label>
+                Technical skills <span className="text-red-500">*</span>
+              </label>
+              <CreatableSelect
+                isMulti
+                options={SKILL_OPTIONS}
+                value={formData.skills.map((s) => ({
+                  label: s,
+                  value: s,
+                }))}
+                onChange={handleSkillsChange}
+                className="mt-1 text-sm"
+              />
+            </div>
 
             {/* Experience */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Total Experience (Years) <span className="text-red-500">*</span>
               </label>
               <input
@@ -305,7 +485,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Relevant Experience */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Relevant Experience (Years){" "}
                 <span className="text-red-500">*</span>
               </label>
@@ -327,7 +507,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Preferred Location */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Preferred Location <span className="text-red-500">*</span>
               </label>
               <input
@@ -350,7 +530,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Current Location */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 Current Location <span className="text-red-500">*</span>
               </label>
               <input
@@ -369,18 +549,30 @@ const ProfileSubmissionForm = () => {
               )}
             </div>
 
+            {/* Availability */}
+            <div>
+              <label className="text-sm">
+                Availability (Days) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                name="availability"
+                value={formData.availability}
+                onChange={handleChange}
+                className="mt-1 block w-full rounded-md border p-2"
+              />
+            </div>
             {/* POC */}
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm">
                 POC (TA’s Name) <span className="text-red-500">*</span>
               </label>
+
               <select
                 name="poc"
                 value={formData.poc}
                 onChange={handleChange}
-                className={`mt-1 block w-full rounded-md border p-2 ${
-                  errors.poc ? "border-red-500" : "border-gray-300"
-                }`}
+                className={`${inputBase} appearance-none`}
               >
                 <option value="">Select</option>
                 {hrList.map((hr) => (
@@ -389,52 +581,87 @@ const ProfileSubmissionForm = () => {
                   </option>
                 ))}
               </select>
+
               {errors.poc && (
                 <p className="text-xs text-red-500 mt-1">{errors.poc}</p>
               )}
             </div>
 
-            {/* Availability */}
-            <div>
-              <label className="text-sm font-medium">
-                Availability (Days) <span className="text-red-500">*</span>
+            {/* jobs */}
+            <div ref={dropdownRef} className="relative w-full">
+              <label className="text-sm">
+                Refer Jobs <span className="text-red-500">*</span>
               </label>
-              <input
-                type="number"
-                name="availability"
-                value={formData.availability}
-                onChange={handleChange}
-                className={`mt-1 block w-full rounded-md border p-2 ${
-                  errors.availability ? "border-red-500" : "border-gray-300"
-                }`}
-              />
-              {errors.availability && (
+
+              <button
+                type="button"
+                onClick={() => setOpen((prev) => !prev)}
+                className={inputBase}
+              >
+                <span className="truncate">
+                  {selectedJobs.length
+                    ? `${selectedJobs.length} job(s) selected`
+                    : "Select jobs"}
+                </span>
+                <ChevronDown className="text-gray-400 text-lg" />
+              </button>
+
+              {open && (
+                <div className="absolute z-30 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
+                  <input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search job..."
+                    className="w-full px-3 py-2 text-sm border-b outline-none"
+                    required
+                  />
+
+                  <div className="max-h-56 overflow-y-auto">
+                    {jobList.length ? (
+                      jobList.map((job) => (
+                        <label
+                          key={job._id}
+                          className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selectedJobs.includes(job._id)}
+                            onChange={() => handleSelect(job._id)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="accent-indigo-600"
+                          />
+                          <span className="text-sm">
+                            {job.title}
+                            <span className="text-gray-500 ml-1">
+                              ({job.jobId})
+                            </span>
+                          </span>
+                        </label>
+                      ))
+                    ) : (
+                      <p className="px-3 py-2 text-sm text-gray-500">
+                        No jobs found
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+              {errors.jobsReferred && (
                 <p className="text-xs text-red-500 mt-1">
-                  {errors.availability}
+                  {errors.jobsReferred}
                 </p>
               )}
             </div>
-            <div className="flex flex-col">
-              <label>
-                Technical skills <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="skills"
-                value={formData.skills}
-                onChange={handleChange}
-                className="border px-3 py-2 rounded"
-                required
-              />
-            </div>
 
-            {/* Resume */}
+            {/* Resume Upload */}
+
             <div>
               <label className="text-sm font-medium">
                 Upload Resume (PDF / DOCX){" "}
                 <span className="text-red-500">*</span>
               </label>
               <input
+                ref={fileInputRef}
                 type="file"
                 name="resume"
                 accept=".pdf,.doc,.docx"
@@ -446,12 +673,13 @@ const ProfileSubmissionForm = () => {
               )}
             </div>
           </div>
-
-          <div className="flex justify-end items-center gap-4 pt-4">
+          {/* Submit Button */}
+          <div className="flex justify-end">
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 disabled:opacity-60"
+              className="px-8 py-2 bg-indigo-600 text-white rounded-lg shadow-md
+                 hover:bg-indigo-700 transition disabled:opacity-60"
             >
               {loading ? "Submitting..." : "Submit"}
             </button>

@@ -212,7 +212,9 @@ const getAllHrs = async (req, res) => {
   try {
     const getAllHr = await User.find(
       {
-        role: "hr",
+        role: {
+          $in: ["hr", "ta"],
+        },
       },
       {
         _id: 1,

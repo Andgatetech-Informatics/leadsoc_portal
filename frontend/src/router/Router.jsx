@@ -280,6 +280,7 @@ const AppRouter = ({ isAuth }) => {
               path="/profile-submission-form"
               element={<ProfileSubmissionForm />}
             />
+             <Route path="/candidates-status-vendor" element={<CandidateStatus />} />
             <Route
               path="/application-tracker_vendor/:candidateId"
               element={<ApplicationTracker />}

@@ -296,7 +296,7 @@ const ApplicantsList = () => {
                       </div>
                     </td>
 
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-4 py-4 text-start">
                       {c.resume && (
                         <a
                           href={`${baseUrl}/${c.resume.replace(/\\/g, "/")}`}

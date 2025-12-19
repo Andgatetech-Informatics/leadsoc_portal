@@ -8,7 +8,7 @@ const CandidateDetails = ({
   handleStatusUpdate,
   isAssignedTableButton = false,
   isShortlistedTable = false,
-  disableStatus = false
+  disableStatus = false,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [buttonText, setButtonText] = useState("");
@@ -69,7 +69,7 @@ const CandidateDetails = ({
             </button>
           )}
 
-          {isAssignedTableButton && (
+          {isAssignedTableButton && selectedCandidate.status !== "assigned" && (
             <button
               onClick={() => handleButtonClick("assigned", "Accepting...")}
               className="min-w-[100px] bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded text-sm text-center"
@@ -120,8 +120,8 @@ const CandidateDetails = ({
                 selectedCandidate.resume.endsWith(".docx");
               const viewUrl = isDoc
                 ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                  resumeUrl
-                )}`
+                    resumeUrl
+                  )}`
                 : resumeUrl;
 
               return (
@@ -157,7 +157,7 @@ const CandidateDetails = ({
         </div>
 
         {/* Experience Section */}
-        {selectedCandidate.experienceYears && (
+        {selectedCandidate.experienceYears &&  (
           <div className="mt-8">
             <h3 className="text-lg sm:text-xl font-semibold text-gray-700 border-b pb-2 mb-4">
               Experience Details

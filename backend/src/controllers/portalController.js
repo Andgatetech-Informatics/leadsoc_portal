@@ -1507,12 +1507,16 @@ exports.freelancerRegistration = async (req, res) => {
       email,
       mobile,
       domain,
+      dob,
+      degree,
       releventExp,
       experienceYears,
       currentLocation,
       preferredLocation,
       resume,
       poc,
+      isReferred,
+      jobsReferred,
       status,
       skills,
       availability,
@@ -1546,12 +1550,16 @@ exports.freelancerRegistration = async (req, res) => {
       email,
       mobile,
       domain,
+      dob,
+      degree,
       releventExp,
       experienceYears,
       currentLocation,
       preferredLocation,
       resume,
       poc,
+      isReferred,
+      jobsReferred,
       status,
       skills,
       availability,
@@ -1611,7 +1619,7 @@ exports.getFreelanceCandidatesByHR = async (req, res) => {
     const [candidates, total] = await Promise.all([
       CandidateModel.find(
         query,
-        "name email mobile domain releventExp experienceYears currentLocation preferredLocation resume FreelancerId jobsReferred status availability createdAt"
+        "name email mobile domain dob degree releventExp experienceYears currentLocation preferredLocation resume FreelancerId jobsReferred status availability createdAt"
       )
         .populate("FreelancerId", "firstName lastName email role")
         .populate("jobsReferred", "title jobCode location status")
@@ -1675,7 +1683,7 @@ exports.getAllFreelanceCandidates = async (req, res) => {
     // ✅ Fetch paginated results
     const candidates = await CandidateModel.find(filters)
       .select(
-        "name email mobile domain preferredLocation currentLocation availability resume assignedTo status jobsReferred createdAt poc experienceYears FreelancerId"
+        "name email mobile domain dob degree preferredLocation currentLocation availability resume assignedTo status jobsReferred createdAt poc experienceYears FreelancerId"
       )
       .populate({
         path: "FreelancerId",
