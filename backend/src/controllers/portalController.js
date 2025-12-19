@@ -17,15 +17,15 @@ exports.getAllUnassignedCanditates = async (req, res) => {
 
   const searchConditions = search
     ? {
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { mobile: { $regex: search, $options: "i" } },
-        { domain: { $regex: search, $options: "i" } },
-        { status: { $regex: search, $options: "i" } },
-        { experienceYears: { $regex: search, $options: "i" } },
-      ],
-    }
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { mobile: { $regex: search, $options: "i" } },
+          { domain: { $regex: search, $options: "i" } },
+          { status: { $regex: search, $options: "i" } },
+          { experienceYears: { $regex: search, $options: "i" } },
+        ],
+      }
     : {};
 
   // Build date range filter if provided
@@ -117,9 +117,9 @@ exports.getAssignedCanditatesToMe = async (req, res) => {
       const domainFilter = Array.isArray(domainParam)
         ? domainParam
         : domainParam
-          .split(",")
-          .map((d) => d.trim())
-          .filter(Boolean);
+            .split(",")
+            .map((d) => d.trim())
+            .filter(Boolean);
 
       if (domainFilter.length > 0) {
         matchStage.domain = { $in: domainFilter };
@@ -128,11 +128,7 @@ exports.getAssignedCanditatesToMe = async (req, res) => {
 
     if (search) {
       const regex = new RegExp(search, "i");
-      matchStage.$or = [
-        { name: regex },
-        { email: regex },
-        { mobile: regex },
-      ];
+      matchStage.$or = [{ name: regex }, { email: regex }, { mobile: regex }];
     }
 
     let experienceExpr = null;
@@ -953,6 +949,7 @@ exports.assignedToMe = async (req, res) => {
       {
         assignedTo: user._id,
         isAssigned: true,
+        poc: user.firstName + " " + user.lastName,
       },
       {
         new: true,
@@ -1011,7 +1008,6 @@ exports.statusChange = async (req, res) => {
         metadata: { candidateId: candidate._id },
       });
     }
-    
 
     if (status === "hired") {
       await NotificationModel.create({
@@ -1101,7 +1097,6 @@ exports.getCandidateDetails = async (req, res) => {
   try {
     const candidate = await CandidateModel.findById(candidateId).lean();
 
-
     if (!candidate) {
       return res.status(400).json({
         status: false,
@@ -1110,9 +1105,9 @@ exports.getCandidateDetails = async (req, res) => {
     }
 
     if (candidate.isFreelancer && candidate.FreelancerId) {
-      const freelancerDetails = await User
-        .findById(candidate.FreelancerId)
-        .select("firstName lastName");
+      const freelancerDetails = await User.findById(
+        candidate.FreelancerId
+      ).select("firstName lastName");
 
       candidate.freelancerName = freelancerDetails
         ? `${freelancerDetails.firstName} ${freelancerDetails.lastName}`
@@ -1121,9 +1116,8 @@ exports.getCandidateDetails = async (req, res) => {
 
     if (candidate.isReferred) {
       const referrerJobs = await Job.find({
-        _id: { $in: candidate.jobsReferred }
-      })
-        .select("jobId title organization");
+        _id: { $in: candidate.jobsReferred },
+      }).select("jobId title organization");
 
       candidate.referredJobDetails = referrerJobs;
     }
@@ -1489,12 +1483,12 @@ exports.freelancerProfileToBeRefered = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      total,                        // total NOT-yet-referred candidates
+      total, // total NOT-yet-referred candidates
       page,
       limit,
       totalPages: Math.ceil(total / limit),
-      count: candidates.length,     // count on this page
-      candidates,                   // all are not referred to this job
+      count: candidates.length, // count on this page
+      candidates, // all are not referred to this job
     });
   } catch (error) {
     console.error("Error fetching candidates by freelancer:", error);
@@ -1607,12 +1601,12 @@ exports.getFreelanceCandidatesByHR = async (req, res) => {
 
     const searchFilter = search
       ? {
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-          { mobile: { $regex: search, $options: "i" } },
-        ],
-      }
+          $or: [
+            { name: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } },
+            { mobile: { $regex: search, $options: "i" } },
+          ],
+        }
       : {};
 
     const query = {
@@ -1667,8 +1661,8 @@ exports.getAllFreelanceCandidates = async (req, res) => {
     const filters = {
       isFreelancer: true,
       status: {
-        $ne : "hired"
-      }
+        $ne: "hired",
+      },
     };
 
     // ✅ If search query exists, add OR conditions
