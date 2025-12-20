@@ -163,15 +163,26 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
                   </td>
 
                   {/* Job */}
-                  <td className="px-4 py-4">{c.jobsReferred ? "DV Engineer" :" PD Engineer"}</td>
+                  <td className="px-4 py-4">
+                    {c.jobsReferred ? "DV Engineer" : " PD Engineer"}
+                  </td>
 
                   {/* Type */}
-                  <td className="px-4 py-4">{c.candidateType ? "Bench" : "Pipeline"}</td>
+                  <td className="px-4 py-4">
+                    {c.candidateType ? "Bench" : "Pipeline"}
+                  </td>
 
                   {/* TA */}
                   <td className="px-4 py-4">
                     <div className="flex flex-col">
-                      <span className="text-sm">{c.poc}</span>
+                      <span className="text-sm">
+                        {c.isFreelancer
+                          ? `${c.FreelancerId?.firstName || ""} ${
+                              c.FreelancerId?.lastName || ""
+                            }`.trim() || c.freelancerName
+                          : c.poc}
+                      </span>
+
                       <span className="text-gray-500">
                         {c.isFreelancer ? "Freelancer" : "TA"}
                       </span>

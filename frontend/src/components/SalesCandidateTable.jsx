@@ -57,6 +57,16 @@ const SalesCandidateTable = ({ loading, candidates = [], onView }) => {
           {/* ================= HEADER ================= */}
           <thead className="bg-gray-200 text-xs uppercase font-semibold">
             <tr>
+              {/* Select All */}
+              <th className="px-4 py-4 w-12 text-center">
+                <input
+                  type="checkbox"
+                  checked={isAll}
+                  ref={(el) => el && (el.indeterminate = isPartial)}
+                  onChange={toggleAll}
+                  className="h-4 w-4 cursor-pointer"
+                />
+              </th>
               <th className="px-4 py-3">Applicant Details</th>
               <th className="px-4 py-3 text-center w-20">Action</th>
               <th className="px-4 py-3 w-40">Status</th>
@@ -86,6 +96,15 @@ const SalesCandidateTable = ({ loading, candidates = [], onView }) => {
                   key={c._id}
                   className="border-b hover:bg-gray-50 transition"
                 >
+                  {/* Checkbox */}
+                  <td className="px-4 py-4 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(c._id)}
+                      onChange={() => toggleOne(c._id)}
+                      className="h-4 w-4 cursor-pointer"
+                    />
+                  </td>
                   {/* Applicant */}
                   <td className="px-4 py-3 truncate max-w-[130px]">
                     <p title={c.name}>{c.name}</p>
