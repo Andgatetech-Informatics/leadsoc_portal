@@ -7,6 +7,7 @@ import CandidateTable from "../components/CandidateTable";
 import moment from "moment";
 import { Search, X } from "lucide-react";
 import SalesCandidateTable from "../components/SalesCandidateTable";
+import { exportSalesCandidatesToXlsx } from "../utils/exportSalesCandidatesToXlsx";
 
 /** ✅ Debounce Hook */
 const useDebounce = (value, delay = 500) => {
@@ -21,7 +22,7 @@ const useDebounce = (value, delay = 500) => {
 const ReferredTalent = () => {
   const token = localStorage.getItem("token");
   const [candidateType, setCandidateType] = useState("all");
-
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 600);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
@@ -30,7 +31,7 @@ const ReferredTalent = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const limit = 7;
+  const limit = 5;
 
   const hrCache = useRef({});
 
@@ -140,10 +141,19 @@ const ReferredTalent = () => {
             </div>
 
             {/* Download Button */}
-            <button
+            {/* <button
               className="px-4 py-2 text-sm font-medium text-white bg-green-600
       rounded-md hover:bg-green-700 transition
       disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Download XLSX
+            </button> */}
+            <button
+              onClick={() => exportSalesCandidatesToXlsx(candidates)}
+              disabled={loading || !candidates.length}
+              className="px-4 py-2 text-sm font-medium text-white bg-green-600
+  rounded-md hover:bg-green-700 transition
+  disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Download XLSX
             </button>
@@ -166,6 +176,7 @@ const ReferredTalent = () => {
         candidates={candidates}
         loading={loading}
         onView={setSelectedCandidate}
+        onSelectionChange={setSelectedCandidateIds}
         showShortlistedDetails
         showShortlistedColumnsOnly
         redirect="_sales"
