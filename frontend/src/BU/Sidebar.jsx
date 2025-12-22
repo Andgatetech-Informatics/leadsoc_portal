@@ -17,7 +17,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   {
     to: "/shortlisted-all-candidates",
-    label: "Shortlisted Candidates",
+    label: "Referred Candidates",
     icon: UsersRoundIcon,
   },
     { to: "/active-jobs-bu", label: "Active Jobs", icon: CheckCircle },

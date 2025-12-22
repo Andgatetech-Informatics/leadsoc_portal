@@ -172,10 +172,12 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
                     {c.candidateType ? "Bench" : "Pipeline"}
                   </td>
 
-                  {/* TA */}
+
+                  {/* TA / Vendor */}
                   <td className="px-4 py-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm">
+                    <div className="flex flex-col gap-1">
+                      {/* Main Name */}
+                      <span className="text-sm font-medium">
                         {c.isFreelancer
                           ? `${c.FreelancerId?.firstName || ""} ${
                               c.FreelancerId?.lastName || ""
@@ -183,9 +185,17 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
                           : c.poc}
                       </span>
 
-                      <span className="text-gray-500">
-                        {c.isFreelancer ? "Freelancer" : "TA"}
+                      {/* Role */}
+                      <span className="text-gray-500 text-xs">
+                        {c.isFreelancer ? "Vendor" : "TA"}
                       </span>
+
+                      {/* Assigned TA (only for Vendor) */}
+                      {c.isFreelancer && (
+                        <span className="text-xs text-blue-600">
+                          Assigned TA: {c.poc}
+                        </span>
+                      )}
                     </div>
                   </td>
                 </tr>

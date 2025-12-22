@@ -21,7 +21,7 @@ const navItems = [
     icon: UsersRoundIcon,
   },
   { to: "/all-job-feeds", label: "Companies", icon: CheckCircle },
-  { to: "/create-company", label: "Create Company", icon: BuildingIcon },
+  { to: "/create-company", label: "Create Logos", icon: BuildingIcon },
   { to: "/post-new-job", label: "Post New Job", icon: PlusCircleIcon },
   // { to: "/approvals", label: "Approvals", icon: CheckCircle },
   // { to: "/user", label: "Users", icon: User },
