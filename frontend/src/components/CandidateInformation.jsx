@@ -10,7 +10,8 @@ const CandidateInformation = ({
   handleStatusUpdate,
   isAssignedTableButton = false,
   isShortlistedTable = false,
-  disableStatus
+  disableStatus,
+  candidateStatus
 }) => {
   const token = localStorage.getItem("token");
   const [isLoading, setIsLoading] = useState(false);
@@ -115,66 +116,68 @@ const CandidateInformation = ({
         {/* Action Buttons */}
         <div className="flex flex-row justify-end gap-2 mb-3 overflow-x-auto">
           {/* POC Dropdown */}
-          {isAssignedTableButton && (selectedCandidate.status === "pending" || selectedCandidate.status === "assigned") && (
-            <div className="flex flex-col">
-              <select
-                value={selectedHrId}
-                onChange={(e) => {
-                  const hrId = e.target.value;
-                  setSelectedHrId(hrId);
+          {isAssignedTableButton &&
+            (selectedCandidate.status === "pending" ||
+              selectedCandidate.status === "assigned") && (
+              <div className="flex flex-col">
+                <select
+                  value={selectedHrId}
+                  onChange={(e) => {
+                    const hrId = e.target.value;
+                    setSelectedHrId(hrId);
 
-                  // find HR name
-                  const hr = hrList.find((h) => h._id === hrId);
-                  setSelectedHrName(`${hr.firstName} ${hr.lastName}`);
+                    // find HR name
+                    const hr = hrList.find((h) => h._id === hrId);
+                    setSelectedHrName(`${hr.firstName} ${hr.lastName}`);
 
-                  // open popup immediately
-                  setShowAssignPopup(true);
-                }}
-                className="border px-2 py-2 rounded"
-              >
-                <option value="">Change POC's</option>
-                {hrList?.map((hr) => (
-                  <option key={hr._id} value={hr._id}>
-                    {hr.firstName} {hr.lastName}
-                  </option>
-                ))}
-              </select>
+                    // open popup immediately
+                    setShowAssignPopup(true);
+                  }}
+                  className="border px-2 py-2 rounded"
+                >
+                  <option value="">Change POC's</option>
+                  {hrList?.map((hr) => (
+                    <option key={hr._id} value={hr._id}>
+                      {hr.firstName} {hr.lastName}
+                    </option>
+                  ))}
+                </select>
 
-              {showAssignPopup && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white p-6 rounded shadow-lg w-[350px]">
-                    <h2 className="text-lg font-semibold mb-4">
-                      Confirm Assignment
-                    </h2>
+                {showAssignPopup && (
+                  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded shadow-lg w-[350px]">
+                      <h2 className="text-lg font-semibold mb-4">
+                        Confirm Assignment
+                      </h2>
 
-                    <p className="text-sm mb-4">
-                      Assign candidate to <b>{selectedHrName}</b>?
-                    </p>
+                      <p className="text-sm mb-4">
+                        Assign candidate to <b>{selectedHrName}</b>?
+                      </p>
 
-                    <div className="flex justify-end gap-3">
-                      <button
-                        onClick={() => setShowAssignPopup(false)}
-                        className="px-4 py-2 border rounded"
-                      >
-                        Cancel
-                      </button>
+                      <div className="flex justify-end gap-3">
+                        <button
+                          onClick={() => setShowAssignPopup(false)}
+                          className="px-4 py-2 border rounded"
+                        >
+                          Cancel
+                        </button>
 
-                      <button
-                        onClick={async () => {
-                          await handleAssign();
-                          setShowAssignPopup(false);
-                        }}
-                        className="bg-blue-600 text-white px-4 py-2 rounded"
-                      >
-                        Confirm
-                      </button>
+                        <button
+                          onClick={async () => {
+                            await handleAssign();
+                            setShowAssignPopup(false);
+                          }}
+                          className="bg-blue-600 text-white px-4 py-2 rounded"
+                        >
+                          Confirm
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-          {!isShortlistedTable && !disableStatus && (
+                )}
+              </div>
+            )}
+          {!isShortlistedTable && !disableStatus && !candidateStatus && (
             <button
               onClick={() => handleButtonClick("onhold", "On Hold...")}
               className="min-w-[100px] bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded text-sm text-center"
@@ -186,7 +189,7 @@ const CandidateInformation = ({
             </button>
           )}
 
-          {isAssignedTableButton && selectedCandidate.status !== "assigned" && (
+          {isAssignedTableButton && selectedCandidate.status !== "assigned" && candidateStatus && (
             <button
               onClick={() => handleButtonClick("assigned", "Accepting...")}
               className="min-w-[100px] bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded text-sm text-center"
@@ -198,7 +201,7 @@ const CandidateInformation = ({
             </button>
           )}
 
-          {!isShortlistedTable && !disableStatus &&(
+          {!isShortlistedTable && !disableStatus && candidateStatus && (
             <button
               onClick={() => handleButtonClick("rejected", "Rejecting...")}
               className="min-w-[100px] bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm text-center"
@@ -242,8 +245,8 @@ const CandidateInformation = ({
                 selectedCandidate.resume.endsWith(".docx");
               const viewUrl = isDoc
                 ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                  resumeUrl
-                )}`
+                    resumeUrl
+                  )}`
                 : resumeUrl;
 
               return (

@@ -1585,6 +1585,10 @@ exports.freelancerRegistration = async (req, res) => {
       });
     }
 
+    const freelancerName = [user.firstName, user.lastName]
+      .filter(Boolean)
+      .join(" ");
+
     // Create new candidate
     const candidate = await CandidateModel.create({
       name,
@@ -1605,6 +1609,7 @@ exports.freelancerRegistration = async (req, res) => {
       skills,
       availability,
       FreelancerId: user._id,
+      freelancerName,
       isFreelancer,
       isAssigned,
       assignedTo,

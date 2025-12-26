@@ -11,6 +11,9 @@ import Pagination from "../components/Pagination";
 import axios from "axios";
 import { baseUrl } from "../api";
 import { useLocation } from "react-router-dom";
+import { FaEye } from "react-icons/fa6";
+import { toast } from "react-toastify";
+import CandidateInformation from "../components/CandidateInformation";
 
 const statusColors = {
   pending: "bg-slate-100 text-slate-700",
@@ -27,6 +30,7 @@ const CandidateStatus = () => {
   /* -----------------------------
         SAFE LOCATION STATE
   ------------------------------*/
+  const token = localStorage.getItem("token");
   const location = useLocation();
   const state = location.state ?? {};
 
@@ -44,8 +48,45 @@ const CandidateStatus = () => {
   const [endDate, setEndDate] = useState(dateRange?.endDate || null);
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
 
   const limit = 6;
+
+  const capitalizeFirst = (str) => str.charAt(0).toUpperCase() + str.slice(1);
+  const onView = (candidate) => {
+    setSelectedCandidate(candidate);
+  };
+
+  const showActionColumn = candidateData?.some(
+    (item) => item?.status?.toLowerCase() === "onhold"
+  );
+
+  const handleStatusUpdate = async (status) => {
+    try {
+      const response = await axios.patch(
+        `${baseUrl}/api/change_candidate_status/${selectedCandidate._id}`,
+        { status },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success(`Status updated to ${capitalizeFirst(status)}`);
+
+        setSelectedCandidate(null); // ✅ CLOSE MODAL
+        getCandidates(); // ✅ REFRESH TABLE
+      } else {
+        toast.error("Failed to update status");
+      }
+    } catch (error) {
+      console.error("Status Update Error:", error);
+      toast.error("Something went wrong while updating status");
+    }
+  };
 
   useEffect(() => {
     if (dateRange?.startDate && dateRange?.endDate) {
@@ -120,7 +161,9 @@ const CandidateStatus = () => {
     <thead className="bg-gray-200 text-gray-700 uppercase text-xs border-b font-medium">
       <tr>
         <th className="px-6 py-4">APPLICANT DETAILS</th>
+        {showActionColumn && <th className="px-6 py-4">Action</th>}
         <th className="px-6 py-4">Status</th>
+        <th className="px-6 py-4">Assigned To</th>
         <th className="px-6 py-4">DOMAIN</th>
         <th className="px-6 py-4">CONTACT</th>
         <th className="px-6 py-4 text-center">LAST UPDATE</th>
@@ -130,7 +173,7 @@ const CandidateStatus = () => {
 
   const SkeletonLoader = () => (
     <tr className="animate-pulse">
-      {[...Array(5)].map((_, i) => (
+      {[...Array(6)].map((_, i) => (
         <td key={i} className="px-4 py-3">
           <div className="h-4 w-32 bg-gray-200 rounded"></div>
         </td>
@@ -237,10 +280,24 @@ const CandidateStatus = () => {
                     </div>
                   </td>
 
+                  {/* Action */}
+                  {c?.status === "onhold" && (
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => onView(c)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-full text-xs"
+                      >
+                        <FaEye />
+                      </button>
+                    </td>
+                  )}
+
                   {/* Status */}
                   <td className="px-4 py-4">
                     {renderStatusBadge(c?.status || "N/A")}
                   </td>
+
+                  <td className="px-4 py-4">{c?.poc || "Not Assignee"}</td>
 
                   {/* Domain */}
                   <td className="px-4 py-3 truncate max-w-[120px]">
@@ -315,6 +372,7 @@ const CandidateStatus = () => {
               key={c._id}
               className="border border-gray-200 rounded-lg shadow-sm p-4 bg-white"
             >
+              {/* Header */}
               <div className="flex justify-between items-start">
                 <div>
                   <h3 className="font-semibold text-gray-900">{c.name}</h3>
@@ -323,20 +381,24 @@ const CandidateStatus = () => {
                   </p>
                 </div>
 
-                {renderStatusBadge(c?.status || "N/A")}
+                <div className="flex items-center gap-2">
+                  {renderStatusBadge(c?.status || "N/A")}
+                </div>
               </div>
 
+              {/* Domain + Experience */}
               <div className="mt-3 flex items-center gap-2 text-sm text-gray-700">
                 <FaBriefcase className="text-gray-500 text-sm" />
                 <p>
                   {Array.isArray(c.domain) ? c.domain.join(", ") : c.domain}
                 </p>
-                <span className="text-gray-500 text-sm">
+                <span className="text-gray-500">
                   ||{" "}
                   {c.experienceYears ? `${c.experienceYears} yrs` : "Fresher"}
                 </span>
               </div>
 
+              {/* Contact */}
               <div className="mt-3 space-y-1 text-sm text-gray-700">
                 <p>
                   📧{" "}
@@ -353,6 +415,7 @@ const CandidateStatus = () => {
                   <a
                     href={`https://wa.me/${c.mobile}`}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-green-600 hover:text-green-700"
                   >
                     <FaWhatsapp />
@@ -360,13 +423,34 @@ const CandidateStatus = () => {
                 </p>
               </div>
 
+              {/* Last Update */}
               <p className="text-xs text-gray-500 mt-3">
                 <span className="font-medium">Last Update:</span>{" "}
                 {moment(c.offerDate).format("MMM DD, YYYY")}
               </p>
+              <div className="mt-2">
+                {c?.status === "onhold" && (
+                  <button
+                    onClick={() => onView(c)}
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 rounded-md text-sm font-medium"
+                  >
+                    <FaEye className="inline mr-1" /> View
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
+      )}
+
+      {selectedCandidate && (
+        <CandidateInformation
+          selectedCandidate={selectedCandidate}
+          onClose={() => setSelectedCandidate(null)}
+          handleStatusUpdate={handleStatusUpdate}
+          isAssignedTableButton={true}
+          candidateStatus={true}
+        />
       )}
     </div>
   );
