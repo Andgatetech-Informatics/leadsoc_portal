@@ -10,7 +10,7 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import moment from "moment";
 import EventDetails from "./Feedback";
-import { ArrowLeft, Edit, InfoIcon, Pencil, Trash } from "lucide-react";
+import { ArrowLeft, Edit, InfoIcon, MessageCircleMore, Pencil, Trash } from "lucide-react";
 import RemarkModal from "../../components/RemarkModal";
 import "react-datepicker/dist/react-datepicker.css";
 import InitiateCandidateModel from "../../components/InitiateCandidateModel";
@@ -439,10 +439,10 @@ const ApplicationTracker = () => {
         <div className="bg-white p-6 rounded-lg shadow mb-10">
           <div className="flex justify-between items-center">
             <h1 className="text-lg font-semibold text-gray-800 mb-4 flex items-center space-x-2">
-              <span>👤 {candidate.name}</span>
-              <InfoIcon
+              <span>{candidate.name}</span>
+              <MessageCircleMore
                 onClick={() => setModalOpen(true)}
-                className="text-blue-500 w-4 h-4"
+                className="text-blue-500 w-6 h-7"
               />
             </h1>
             {modalOpen && (
