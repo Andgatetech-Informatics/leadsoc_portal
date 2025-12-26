@@ -34,7 +34,7 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
     typeof window !== "undefined" ? window.innerWidth < 1100 : false
   );
 
-  const allIds = useMemo(() => candidates.map((c) => c._id), [candidates]);
+  const allIds = useMemo(() => candidates.map((c, i) => c.i), [candidates]);
   const isAll = selectedIds.length === allIds.length;
   const isPartial = selectedIds.length > 0 && !isAll;
   const toggleAll = () => setSelectedIds(isAll ? [] : allIds);
@@ -92,9 +92,9 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
             )}
 
             {!loading &&
-              candidates.map((c) => (
+              candidates.map((c, i) => (
                 <tr
-                  key={c._id}
+                  key={i}
                   className="border-b hover:bg-gray-50 transition"
                 >
                   {/* Checkbox */}
@@ -163,17 +163,17 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
                   </td>
 
                   {/* Job */}
-                  <td className="px-4 py-4">{c.jobsReferred ? "DV Engineer" :" PD Engineer"}</td>
+                  <td className="px-4 py-4">{c.jobDetails.title}</td>
 
                   {/* Type */}
-                  <td className="px-4 py-4">{c.candidateType ? "Bench" : "Pipeline"}</td>
+                  <td className="px-4 py-4">{c.candidateType === "internal" ? "Bench" : "Pipeline"}</td>
 
                   {/* TA */}
                   <td className="px-4 py-4">
                     <div className="flex flex-col">
                       <span className="text-sm">{c.poc}</span>
                       <span className="text-gray-500">
-                        {c.isFreelancer ? "Freelancer" : "TA"}
+                        {c.isFreelancer ? "Vendor" : "TA"}
                       </span>
                     </div>
                   </td>
@@ -200,9 +200,9 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
 
       {/* Data */}
       {!loading &&
-        candidates.map((c) => (
+        candidates.map((c, i) => (
           <div
-            key={c._id}
+            key={i}
             className="bg-white border rounded-xl p-4 shadow-sm space-y-3"
           >
             {/* Header */}
@@ -263,7 +263,7 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
             <div className="text-sm text-gray-700 space-y-1">
               <p>
                 <span className="font-medium">Job:</span>{" "}
-                {c.jobsReferred || "N/A"}
+                {c.jobDetails.title || "N/A"}
               </p>
               <p>
                 <span className="font-medium">Type:</span>{" "}
@@ -274,7 +274,7 @@ const BUCandidateTable = ({ loading, candidates = [], onView }) => {
             {/* TA */}
             <div className="text-sm text-gray-600">
               <span className="font-medium">TA:</span> {c.poc || "-"} •{" "}
-              {c.isFreelancer ? "Freelancer" : "Employee"}
+              {c.isFreelancer ? "Vendor" : "TA"}
             </div>
 
             {/* Action */}

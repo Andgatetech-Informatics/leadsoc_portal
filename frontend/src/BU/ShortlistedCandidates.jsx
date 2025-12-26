@@ -40,7 +40,7 @@ const ShortlistedCandidates = () => {
       const { data } = await axios.get(
         `${baseUrl}/api/get_all_shortlisted_candidates`,
         {
-          params: { page: currentPage, limit, search: debouncedSearch },
+          params: { page: currentPage, limit, search: debouncedSearch, candidateType },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
@@ -68,9 +68,8 @@ const ShortlistedCandidates = () => {
             );
 
             const fullName =
-              `${hrData?.data?.firstName || ""} ${
-                hrData?.data?.lastName || ""
-              }`.trim() || "N/A";
+              `${hrData?.data?.firstName || ""} ${hrData?.data?.lastName || ""
+                }`.trim() || "N/A";
             hrCache.current[assignedTo] = fullName; // cache result
             return { ...candidate, hrName: fullName };
           } catch {
@@ -92,7 +91,7 @@ const ShortlistedCandidates = () => {
   /** ✅ Fetch whenever page or search changes */
   useEffect(() => {
     fetchCandidates();
-  }, [token, debouncedSearch, currentPage]);
+  }, [token, debouncedSearch, currentPage, candidateType]);
 
   /** ✅ Reset to page 1 when search changes */
   useEffect(() => {
@@ -120,8 +119,8 @@ const ShortlistedCandidates = () => {
         bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Candidates</option>
-                <option value="bench">Bench</option>
-                <option value="pipeline">Pipeline</option>
+                <option value="internal">Bench</option>
+                <option value="external">Pipeline</option>
               </select>
             </div>
             {/* Search */}
@@ -229,10 +228,10 @@ const CandidateModal = ({ candidate, onClose }) => (
               <a
                 href={
                   candidate.resume.endsWith(".doc") ||
-                  candidate.resume.endsWith(".docx")
+                    candidate.resume.endsWith(".docx")
                     ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                        `${baseUrl}/${candidate.resume}`
-                      )}`
+                      `${baseUrl}/${candidate.resume}`
+                    )}`
                     : `${baseUrl}/${candidate.resume}`
                 }
                 target="_blank"

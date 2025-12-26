@@ -117,9 +117,9 @@ exports.getAssignedCanditatesToMe = async (req, res) => {
       const domainFilter = Array.isArray(domainParam)
         ? domainParam
         : domainParam
-            .split(",")
-            .map((d) => d.trim())
-            .filter(Boolean);
+          .split(",")
+          .map((d) => d.trim())
+          .filter(Boolean);
 
       if (domainFilter.length > 0) {
         matchStage.domain = { $in: domainFilter };
@@ -334,11 +334,18 @@ exports.getAllShortlistedCanditates = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search?.trim() || "";
+    const candidateType = req.query.candidateType;
 
-    let query = { status: "shortlisted" };
+    const matchStage = {
+      status: "shortlisted",
+    };
+
+    if (candidateType !== "all") {
+      matchStage.candidateType = candidateType;
+    }
 
     if (search) {
-      query.$or = [
+      const orConditions = [
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
         { mobile: { $regex: search, $options: "i" } },
@@ -349,20 +356,52 @@ exports.getAllShortlistedCanditates = async (req, res) => {
 
       const asNumber = Number(search);
       if (!isNaN(asNumber)) {
-        query.$or.push({ experienceYears: asNumber });
+        orConditions.push({ experienceYears: asNumber });
       }
+
+      matchStage.$or = orConditions;
     }
 
-    const total = await CandidateModel.countDocuments(query);
+    const result = await CandidateModel.aggregate([
+      { $match: matchStage },
 
-    const allShortlisted = await CandidateModel.find(query)
-      .sort({ updatedAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+      { $sort: { updatedAt: -1 } },
+
+      {
+        $facet: {
+          data: [
+            {
+              '$unwind': {
+                'path': '$jobsReferred'
+              }
+            }, {
+              '$lookup': {
+                'from': 'jobs',
+                'localField': 'jobsReferred',
+                'foreignField': '_id',
+                'as': 'jobDetails'
+              }
+            }, {
+              '$unwind': {
+                'path': '$jobDetails'
+              }
+            },
+            { $skip: (page - 1) * limit },
+            { $limit: limit },
+          ],
+          totalCount: [
+            { $count: "count" },
+          ],
+        },
+      },
+    ]);
+
+    const data = result[0]?.data || [];
+    const total = result[0]?.totalCount[0]?.count || 0;
 
     return res.status(200).json({
       status: true,
-      data: allShortlisted,
+      data,
       totalCount: total,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
@@ -376,6 +415,7 @@ exports.getAllShortlistedCanditates = async (req, res) => {
     });
   }
 };
+
 
 exports.getAllAsssignedAndShortlisted = async (req, res) => {
   const user = req.user;
@@ -1601,12 +1641,12 @@ exports.getFreelanceCandidatesByHR = async (req, res) => {
 
     const searchFilter = search
       ? {
-          $or: [
-            { name: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-            { mobile: { $regex: search, $options: "i" } },
-          ],
-        }
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { mobile: { $regex: search, $options: "i" } },
+        ],
+      }
       : {};
 
     const query = {
