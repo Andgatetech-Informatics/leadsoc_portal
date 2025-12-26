@@ -75,7 +75,7 @@ const RemarkModal = ({ isOpen, onClose, onSave, initialRemark }) => {
         {/* Content */}
         <section className="flex flex-col h-[calc(90vh-140px)] px-6 py-4">
           {/* Saved Remarks – Scrollable */}
-          <div className="flex-1 overflow-y-auto bg-[#efeae2] p-3 space-y-3 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto bg-[#efeae2] p-3 space-y-3">
             {remarks.map((remark, index) => {
               const isMe = String(remark.by) === String(currentUserId);
 
