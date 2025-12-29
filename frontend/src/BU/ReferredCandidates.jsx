@@ -18,7 +18,7 @@ const useDebounce = (value, delay = 500) => {
   return debouncedValue;
 };
 
-const ShortlistedCandidates = () => {
+const ReferredCandidates = () => {
   const token = localStorage.getItem("token");
   const [candidateType, setCandidateType] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -40,7 +40,12 @@ const ShortlistedCandidates = () => {
       const { data } = await axios.get(
         `${baseUrl}/api/get_all_shortlisted_candidates`,
         {
-          params: { page: currentPage, limit, search: debouncedSearch, candidateType },
+          params: {
+            page: currentPage,
+            limit,
+            search: debouncedSearch,
+            candidateType,
+          },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
@@ -68,8 +73,9 @@ const ShortlistedCandidates = () => {
             );
 
             const fullName =
-              `${hrData?.data?.firstName || ""} ${hrData?.data?.lastName || ""
-                }`.trim() || "N/A";
+              `${hrData?.data?.firstName || ""} ${
+                hrData?.data?.lastName || ""
+              }`.trim() || "N/A";
             hrCache.current[assignedTo] = fullName; // cache result
             return { ...candidate, hrName: fullName };
           } catch {
@@ -105,7 +111,7 @@ const ShortlistedCandidates = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           {/* Title */}
           <h2 className="text-3xl font-bold text-gray-800">
-            Shortlisted Candidates
+            Referred Candidates
           </h2>
 
           {/* Right Actions */}
@@ -228,10 +234,10 @@ const CandidateModal = ({ candidate, onClose }) => (
               <a
                 href={
                   candidate.resume.endsWith(".doc") ||
-                    candidate.resume.endsWith(".docx")
+                  candidate.resume.endsWith(".docx")
                     ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                      `${baseUrl}/${candidate.resume}`
-                    )}`
+                        `${baseUrl}/${candidate.resume}`
+                      )}`
                     : `${baseUrl}/${candidate.resume}`
                 }
                 target="_blank"
@@ -245,7 +251,7 @@ const CandidateModal = ({ candidate, onClose }) => (
         </div>
 
         {/* Notes */}
-        <div className="col-span-2">
+        {/* <div className="col-span-2">
           <span className="font-semibold text-gray-700">Notes:</span>
           {candidate?.remark.map((e) => {
             return (
@@ -258,8 +264,8 @@ const CandidateModal = ({ candidate, onClose }) => (
               </div>
             );
           })}
-          {/* {selectedCandidate.remark || "No notes provided."} */}
-        </div>
+          {selectedCandidate.remark || "No notes provided."}
+        </div> */}
       </div>
     </div>
   </div>
@@ -272,4 +278,4 @@ const Info = ({ label, value }) => (
   </div>
 );
 
-export default ShortlistedCandidates;
+export default ReferredCandidates;

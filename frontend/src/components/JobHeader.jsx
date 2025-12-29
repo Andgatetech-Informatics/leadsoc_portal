@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Search, MapPin } from "lucide-react";
 
 const JobHeader = ({
+  title,
   search,
   setSearch,
   filterStatus,
@@ -16,7 +17,7 @@ const JobHeader = ({
       {/* 🔹 Top Bar */}
       <div className="p-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
         {/* Title */}
-        <h2 className="text-xl md:text-2xl font-bold">Latest Job Openings</h2>
+        <h2 className="text-xl md:text-2xl font-bold"> {title}</h2>
 
         {/* 🔹 Search + Status + Filters */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">

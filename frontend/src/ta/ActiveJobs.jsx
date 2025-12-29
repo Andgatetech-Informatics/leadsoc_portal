@@ -60,12 +60,12 @@ const ActiveJobs = ({ token, hrId }) => {
           filterStatus,
           experience,
           location,
-          page, 
-          limit: 8, 
+          page,
+          limit: 8,
         },
       });
       setJobOpenings(response.data.jobs || []);
-      setTotal(response.data.totalJobs); 
+      setTotal(response.data.totalJobs);
       setTotalPages(response.data.totalPages);
       if (response.data.jobs?.length > 0) {
         setSelectedJob(response.data.jobs[0]);
@@ -92,6 +92,7 @@ const ActiveJobs = ({ token, hrId }) => {
       {/* 🔹 Header */}
       <div className="flex-shrink-0">
         <JobHeader
+          title="Latest Job Openings"
           search={search}
           setSearch={setSearch}
           filterStatus={filterStatus}

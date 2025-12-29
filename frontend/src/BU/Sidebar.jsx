@@ -15,17 +15,17 @@ import {
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+
   {
-    to: "/shortlisted-all-candidates",
-    label: "Referred Candidates",
+    to: "/approve-candidates",
+    label: "Approve Candidates",
     icon: UsersRoundIcon,
   },
-    { to: "/active-jobs-bu", label: "Active Jobs", icon: CheckCircle },
+  { to: "/active-jobs-bu", label: "Active Jobs", icon: CheckCircle },
   // { to: "/all-job-feeds", label: "Companies", icon: CheckCircle },
   // { to: "/create-company", label: "Create Company", icon: BuildingIcon },
   // { to: "/post-new-job", label: "Post New Job", icon: PlusCircleIcon },
   // { to: "/approvals", label: "Approvals", icon: CheckCircle },
-  // { to: "/user", label: "Users", icon: User },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {

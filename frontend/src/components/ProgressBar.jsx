@@ -45,17 +45,14 @@ const ProgressBar = ({ status, candidate, redirect }) => {
   }
 
   useEffect(() => {
-    const fullPath = location.pathname;
-    const routeName = fullPath.split("/").filter(Boolean).pop();
+    const path = location.pathname;
 
-    if (routeName === "shortlisted-all-candidates") {
+    if (path.startsWith("/referred-candidates_bu/")) {
       setRedirectTo("_bu");
+    } else if (path.includes("referred-all-candidates")) {
+      setRedirectTo("_sales");
     } else {
       setRedirectTo("_ta");
-    }
-
-    if (routeName === "referred-all-candidates") {
-      setRedirectTo("_sales");
     }
   }, [location.pathname]);
 

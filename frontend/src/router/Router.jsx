@@ -32,7 +32,6 @@ import OnboardingCandidates from "../ta/OnboardingCandidates";
 
 // BU Components
 import BUDashboard from "../bu/BUDashboard";
-import ShortlistedCandidates from "../bu/ShortlistedCandidates";
 import ForgotPassword from "../components/ForgotPassword";
 import JobPostingForm from "../jobPost/JobPostingForm";
 // import Feeds from "../bu/Feeds";
@@ -40,8 +39,6 @@ import CandidateRegistrationDummy from "../pages/registration/Registration-dummy
 import JobDetailPage from "../components/JobDetailPage";
 import OpeningJobCard from "../jobPost/OpeningJobCard";
 import ViewCandidates from "../jobPost/ViewCandidates";
-// import CreatePostJob from "../bu/CreatePostJob";
-// import CreateCompany from "../bu/CreateCompany";
 
 // Account Manager Components
 import AccountDashboard from "../accounts/AccountDashboard";
@@ -70,6 +67,8 @@ import ApplicantStatus from "../ta/ApplicantStatus";
 import VendorCandidates from "../ta/VendorCandidates";
 import AssignedVendorCandidates from "../ta/AssignedVendorCandidates";
 import ReferredTalent from "../sales/ReferredTalent";
+import ApproveCandidates from "../BU/ApproveCandidates";
+import ReferredCandidates from "../BU/ReferredCandidates";
 // import ShortlistedCandidateAllHR from "../hr/ShortlistedCandidateAllHR";
 
 // Route Wrappers
@@ -191,15 +190,17 @@ const AppRouter = ({ isAuth }) => {
         <Route element={<BURoute user={user} />}>
           <Route element={<BULayout />}>
             <Route path="/dashboard/bu" element={<BUDashboard />} />
-            <Route
-              path="/shortlisted-all-candidates"
-              element={<ShortlistedCandidates />}
-            />
+
             <Route
               path="/application-tracker_bu/:candidateId"
               element={<ApplicationTracker />}
             />
             <Route path="/active-jobs-bu" element={<ActiveJobs />} />
+            <Route path="/approve-candidates" element={<ApproveCandidates />} />
+            <Route
+              path="/referred-candidates_bu/:jobId"
+              element={<ReferredCandidates />}
+            />
             {/* <Route path="/post-new-job" element={<CreatePostJob />} />
             <Route path="/create-company" element={<CreateCompany />} />
             <Route path="/all-job-feeds" element={<Feeds />} />
@@ -209,7 +210,7 @@ const AppRouter = ({ isAuth }) => {
               element={<OpeningJobCard />}
             />
             <Route
-              path="/view-candidates/:jobId"
+              path="//approve-candidates/:jobId"
               element={<ViewCandidates />}
             /> */}
             <Route path="/candidates-status-bu" element={<CandidateStatus />} />
@@ -280,7 +281,10 @@ const AppRouter = ({ isAuth }) => {
               path="/profile-submission-form"
               element={<ProfileSubmissionForm />}
             />
-             <Route path="/candidates-status-vendor" element={<CandidateStatus />} />
+            <Route
+              path="/candidates-status-vendor"
+              element={<CandidateStatus />}
+            />
             <Route
               path="/application-tracker_vendor/:candidateId"
               element={<ApplicationTracker />}
