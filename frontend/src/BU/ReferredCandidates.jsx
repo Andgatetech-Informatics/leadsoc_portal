@@ -1,180 +1,222 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import { baseUrl } from "../api";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Pagination from "../components/Pagination";
-import CandidateTable from "../components/CandidateTable";
+import BUCandidateTable from "../components/BUCandidateTable";
 import moment from "moment";
 import { Search, X } from "lucide-react";
-import BUCandidateTable from "../components/BUCandidateTable";
+import { useLocation } from "react-router-dom";
 
-/** ✅ Debounce Hook */
+/* ------------------ Debounce Hook ------------------ */
 const useDebounce = (value, delay = 500) => {
-  const [debouncedValue, setDebouncedValue] = useState(value);
+  const [debounced, setDebounced] = useState(value);
+
   useEffect(() => {
-    const handler = setTimeout(() => setDebouncedValue(value), delay);
-    return () => clearTimeout(handler);
+    const id = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(id);
   }, [value, delay]);
-  return debouncedValue;
+
+  return debounced;
 };
 
-const ReferredCandidates = () => {
-  const token = localStorage.getItem("token");
-  const [candidateType, setCandidateType] = useState("all");
-  const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm, 600);
-  const [selectedCandidate, setSelectedCandidate] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [candidates, setCandidates] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+/* ------------------ Paginated Fetch Hook ------------------ */
+const usePaginatedFetch = ({
+  jobId,
+  token,
+  search,
+  candidateType,
+  page,
+  limit,
+}) => {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
 
-  const limit = 5;
+  const fetchData = useCallback(async () => {
+    if (!jobId || !token) return;
 
-  const hrCache = useRef({});
-
-  const fetchCandidates = async () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.get(
-        `${baseUrl}/api/get_all_shortlisted_candidates`,
+      const res = await axios.get(
+        `${baseUrl}/api/shortlisted_candidates_activeJobs_bu/${jobId}`,
         {
-          params: {
-            page: currentPage,
-            limit,
-            search: debouncedSearch,
-            candidateType,
-          },
+          params: { page, limit, search, candidateType },
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      const candidatesData = data?.data || [];
-      const total = data?.totalCount || candidatesData.length;
+      const rows = res?.data?.data ?? [];
+      const total = res?.data?.total ?? rows.length;
 
-      const withHrNames = await Promise.all(
-        candidatesData.map(async (candidate) => {
-          const { assignedTo } = candidate;
-
-          // If not assigned
-          if (!assignedTo) return { ...candidate, hrName: "N/A" };
-
-          // Use cached HR if available
-          if (hrCache.current[assignedTo]) {
-            return { ...candidate, hrName: hrCache.current[assignedTo] };
-          }
-
-          // Otherwise fetch HR name
-          try {
-            const { data: hrData } = await axios.get(
-              `${baseUrl}/api/get_assigned_hr_to_candidate/${assignedTo}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            );
-
-            const fullName =
-              `${hrData?.data?.firstName || ""} ${
-                hrData?.data?.lastName || ""
-              }`.trim() || "N/A";
-            hrCache.current[assignedTo] = fullName; // cache result
-            return { ...candidate, hrName: fullName };
-          } catch {
-            return { ...candidate, hrName: "N/A" };
-          }
-        })
-      );
-
-      setCandidates(withHrNames);
-      setTotalPages(Math.ceil(total / limit));
+      setData(rows);
+      setTotalPages(Math.max(1, Math.ceil(total / limit)));
     } catch (error) {
-      console.error("Fetch Error:", error?.response?.data || error.message);
-      toast.error("Failed to fetch shortlisted candidates.");
+      console.error("Fetch error:", error);
+      toast.error("Failed to fetch candidates");
     } finally {
       setLoading(false);
     }
-  };
+  }, [jobId, token, page, limit, search, candidateType]);
 
-  /** ✅ Fetch whenever page or search changes */
   useEffect(() => {
-    fetchCandidates();
-  }, [token, debouncedSearch, currentPage, candidateType]);
+    fetchData();
+  }, [fetchData]);
 
-  /** ✅ Reset to page 1 when search changes */
+  return { loading, data, totalPages, refetch: fetchData };
+};
+
+/* ------------------ Main Component ------------------ */
+const ReferredCandidates = () => {
+  const { state } = useLocation();
+  const jobId = state?.jobId ?? null;
+
+  const token = useMemo(() => localStorage.getItem("token"), []);
+
+  const [candidateType, setCandidateType] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [selected, setSelected] = useState([]);
+  const [page, setPage] = useState(1);
+  const [btnLoading, setBtnLoading] = useState(false);
+
+  const debouncedSearch = useDebounce(searchTerm, 600);
+  const limit = 5;
+
+  /* Reset page & selection when filters change */
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm]);
+    setPage(1);
+    setSelected([]);
+  }, [debouncedSearch, candidateType]);
+
+  const {
+    loading,
+    data: candidates,
+    totalPages,
+    refetch,
+  } = usePaginatedFetch({
+    jobId,
+    token,
+    search: debouncedSearch,
+    candidateType,
+    page,
+    limit,
+  });
+
+  const handlePrevious = useCallback(
+    () => setPage((p) => Math.max(1, p - 1)),
+    []
+  );
+
+  const handleNext = useCallback(
+    () => setPage((p) => Math.min(totalPages, p + 1)),
+    [totalPages]
+  );
+
+  /* ------------------ APPROVE LOGIC (FIXED) ------------------ */
+  const handleSubmit = useCallback(async () => {
+    if (!jobId || selected.length === 0) return;
+
+    setBtnLoading(true);
+
+    try {
+      await axios.put(
+        `${baseUrl}/api/approve_candidates/${jobId}`,
+        { candidateIds: selected },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success("Candidates approved successfully");
+
+      // ✅ clear UI state
+      setSelected([]);
+      setSelectedCandidate(null);
+
+      // ✅ FORCE pagination reset
+      setPage(1);
+
+      // ✅ ENSURE refetch happens AFTER page reset
+      setTimeout(() => {
+        refetch();
+      }, 0);
+    } catch (error) {
+      console.error("Approval error:", error);
+      toast.error("Failed to approve candidates");
+    } finally {
+      setBtnLoading(false);
+    }
+  }, [jobId, selected, token, refetch]);
 
   return (
-    <div className="mx-auto px-4 py-8 h-full bg-white font-inter">
-      {/* Header & Search */}
-      <div className="mb-6 border-b border-gray-200 pb-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          {/* Title */}
-          <h2 className="text-3xl font-bold text-gray-800">
-            Referred Candidates
-          </h2>
+    <div className="mx-auto px-4 py-8 bg-white font-inter">
+      {/* -------- Header -------- */}
+      <div className="mb-6 border-b pb-4">
+        <div className="flex flex-col md:flex-row md:justify-between gap-4">
+          <h2 className="text-3xl font-bold">Referred Candidates</h2>
 
-          {/* Right Actions */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
-            {/* Candidate Type Dropdown */}
-            <div className="relative w-full sm:w-44">
-              <select
-                value={candidateType}
-                onChange={(e) => setCandidateType(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm
-        bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All Candidates</option>
-                <option value="internal">Bench</option>
-                <option value="external">Pipeline</option>
-              </select>
-            </div>
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Candidate Type */}
+            <select
+              value={candidateType}
+              onChange={(e) => setCandidateType(e.target.value)}
+              className="px-3 py-2 border rounded-md"
+            >
+              <option value="all">All</option>
+              <option value="internal">Bench</option>
+              <option value="external">Pipeline</option>
+            </select>
+
             {/* Search */}
-            <div className="relative w-full sm:w-72">
-              <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
+            <div className="relative">
+              <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
               <input
-                type="text"
-                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm
-                   focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Search by HR, Candidate, Email, or Status"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search candidates"
+                className="pl-10 pr-4 py-2 border rounded-md"
               />
             </div>
 
             {/* Approve Button */}
             <button
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600
-                 rounded-md hover:bg-green-700 transition
-                 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={handleSubmit}
+              disabled={btnLoading || selected.length === 0}
+              className={`px-4 py-2 text-white rounded-md ${
+                btnLoading
+                  ? "bg-green-600 opacity-60 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
             >
-              Approve
+              {btnLoading ? "Approving..." : "Approve"}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Pagination */}
-      <div className="mb-2">
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPrevious={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-          onNext={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-        />
-      </div>
+      {/* -------- Pagination -------- */}
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        onPrevious={handlePrevious}
+        onNext={handleNext}
+      />
 
-      {/* Candidate Table */}
+      {/* -------- Table -------- */}
       <BUCandidateTable
         candidates={candidates}
         loading={loading}
         onView={setSelectedCandidate}
-        showShortlistedDetails
-        showShortlistedColumnsOnly
-        redirect="_bu"
+        setSelected={setSelected}
+        selected={selected}
       />
 
-      {/* Candidate Modal */}
+      {/* -------- Modal -------- */}
       {selectedCandidate && (
         <CandidateModal
           candidate={selectedCandidate}
@@ -185,96 +227,30 @@ const ReferredCandidates = () => {
   );
 };
 
-/** ✅ Candidate Modal */
+/* ------------------ Modal ------------------ */
 const CandidateModal = ({ candidate, onClose }) => (
-  <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-center items-center px-4">
-    <div className="bg-white w-full max-w-xl rounded-lg shadow-lg p-6 relative">
-      <button
-        className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-        onClick={onClose}
-      >
-        <X size={20} />
+  <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div className="bg-white rounded-lg p-6 w-full max-w-xl relative">
+      <button onClick={onClose} className="absolute top-4 right-4">
+        <X />
       </button>
 
-      <h3 className="text-xl font-bold mb-4 text-gray-800">
-        Candidate Profile
-      </h3>
+      <h3 className="text-xl font-bold mb-4">Candidate Profile</h3>
 
-      <div className="grid grid-cols-2 gap-4 text-sm">
-        <Info label="Name" value={candidate.name} />
-        <Info label="Email" value={candidate.email} />
-        <Info label="Phone" value={candidate.mobile || "N/A"} />
-
-        {/* Skills */}
-        <div className="col-span-2">
-          <span className="font-semibold text-gray-700">Skills:</span>
-          <div className="flex flex-wrap gap-2 mt-1">
-            {candidate.skills?.split(",").map((skill, idx) => (
-              <span
-                key={idx}
-                className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800"
-              >
-                {skill.trim()}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <Info label="HR" value={candidate.hrName || "N/A"} />
-        <Info
-          label="Last Updated"
-          value={moment(candidate.updatedAt).format("lll")}
-        />
-
-        {/* Resume */}
-        <div className="col-span-2">
-          <span className="font-semibold text-gray-700">Resume:</span>
-          {candidate.resume && (
-            <div className="mt-1">
-              <a
-                href={
-                  candidate.resume.endsWith(".doc") ||
-                  candidate.resume.endsWith(".docx")
-                    ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                        `${baseUrl}/${candidate.resume}`
-                      )}`
-                    : `${baseUrl}/${candidate.resume}`
-                }
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline hover:text-blue-800 transition"
-              >
-                📄 View Resume
-              </a>
-            </div>
-          )}
-        </div>
-
-        {/* Notes */}
-        {/* <div className="col-span-2">
-          <span className="font-semibold text-gray-700">Notes:</span>
-          {candidate?.remark.map((e) => {
-            return (
-              <div key={e._id} className="p-2 border-b border-gray-200">
-                <p className="text-sm text-gray-600">{e.title}</p>
-                <p className="text-xs text-gray-400">
-                  {moment(e.date).format("lll")}
-                </p>
-                <p className="text-xs text-gray-400">By: {e.name}</p>
-              </div>
-            );
-          })}
-          {selectedCandidate.remark || "No notes provided."}
-        </div> */}
-      </div>
+      <Info label="Name" value={candidate.name} />
+      <Info label="Email" value={candidate.email} />
+      <Info label="Phone" value={candidate.mobile || "N/A"} />
+      <Info
+        label="Last Updated"
+        value={moment(candidate.updatedAt).format("lll")}
+      />
     </div>
   </div>
 );
 
 const Info = ({ label, value }) => (
-  <div>
-    <span className="font-semibold text-gray-700">{label}:</span>
-    <div>{value}</div>
+  <div className="mb-2">
+    <span className="font-semibold">{label}:</span> {value}
   </div>
 );
 

@@ -100,6 +100,17 @@ const JobSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        approvedByBU: {
+          type: Boolean,
+          default: false,
+        },
+        BuApprovalDate: {
+          type: Date,
+        },
+        BuApprovedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
       },
     ],
     visibility: {

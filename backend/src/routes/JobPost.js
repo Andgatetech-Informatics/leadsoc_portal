@@ -6,7 +6,9 @@ const {
   addCandidatesToJob,
   getshortlistedProfilesToMe,
   getShortlistedCandidatesForjobId,
-  getJobsForBu
+  getJobsForBu,
+  getReferredCandidatesForBujobId,
+  approveSelectedCandidatesByBu
 } = require("../controllers/jobPostController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 
@@ -14,7 +16,9 @@ router.post("/jobpost", jobPost);
 router.get("/getjobs", getJobs);
 router.get("/getjobsbu", getJobsForBu);
 router.get("/shortlisted_candidates_activeJobs/:jobId", getShortlistedCandidatesForjobId);
+router.get("/shortlisted_candidates_activeJobs_bu/:jobId", getReferredCandidatesForBujobId);
 router.post("/addcandidatestojob/:jobId", addCandidatesToJob);
 router.get("/getshortlistedProfilesToMe", authMiddleware, getshortlistedProfilesToMe)
+router.put("/approve_candidates/:jobId", authMiddleware, approveSelectedCandidatesByBu);
 
 module.exports = router;

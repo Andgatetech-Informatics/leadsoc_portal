@@ -3,6 +3,7 @@ const Organization = require("../models/company");
 const Candidate = require("../models/candidate");
 const { ObjectId } = require("mongoose").Types;
 const generateJobId = require("../utils/generateJobId");
+const mongoose = require("mongoose");
 
 exports.jobPost = async (req, res) => {
   try {
@@ -418,6 +419,211 @@ exports.getShortlistedCandidatesForjobId = async (req, res) => {
     return res.status(500).json({
       status: false,
       message: "Failed to fetch shortlisted candidates.",
+      error: error.message,
+    });
+  }
+};
+
+
+exports.getReferredCandidatesForBujobId = async (req, res) => {
+  const { jobId } = req.params;
+  const {
+    page = 1,
+    limit = 10,
+    search = "",
+    candidateType,
+  } = req.query;
+
+
+  const skip = (Number(page) - 1) * Number(limit);
+
+  try {
+    const shortlistedCandidates = await Job.aggregate([
+      {
+        $match: { _id: new ObjectId(jobId) }
+      },
+      {
+        $unwind: "$candidates"
+      },
+
+      // 🔥 EXCLUDE BU-APPROVED CANDIDATES
+      {
+        $match: {
+          $or: [
+            { "candidates.approvedByBU": { $exists: false } },
+            { "candidates.approvedByBU": false }
+          ]
+        }
+      },
+
+      {
+        $lookup: {
+          from: "candidates",
+          let: { userId: "$candidates.candidate" },
+          pipeline: [
+            {
+              $match: {
+                $expr: { $eq: ["$_id", "$$userId"] },
+                status: "shortlisted"
+              }
+            }
+          ],
+          as: "candidateDetails"
+        }
+      },
+      {
+        $unwind: {
+          path: "$candidateDetails",
+          preserveNullAndEmptyArrays: false
+        }
+      },
+      {
+        $match: {
+          ...(candidateType && candidateType !== "all" && {
+            "candidateDetails.candidateType": candidateType
+          }),
+          ...(search && {
+            $or: [
+              { "candidateDetails.name": { $regex: search, $options: "i" } },
+              { "candidateDetails.email": { $regex: search, $options: "i" } },
+              { "candidateDetails.mobile": { $regex: search, $options: "i" } },
+              { "candidateDetails.skills": { $regex: search, $options: "i" } },
+              { "candidateDetails.poc": { $regex: search, $options: "i" } },
+            ]
+          })
+        }
+      },
+      {
+        $project: {
+          _id: "$candidateDetails._id",
+          status: "$candidateDetails.status",
+          name: "$candidateDetails.name",
+          email: "$candidateDetails.email",
+          mobile: "$candidateDetails.mobile",
+          experience: "$candidateDetails.experienceYears",
+          skills: "$candidateDetails.skills",
+          hrName: "$candidateDetails.poc",
+          resume: "$candidateDetails.resume",
+          addedAt: "$candidateDetails.updatedAt",
+          candidateType: "$candidateDetails.candidateType"
+        }
+      },
+      {
+        $facet: {
+          data: [
+            { $sort: { addedAt: -1 } },
+            { $skip: skip },
+            { $limit: Number(limit) }
+          ],
+          totalCount: [
+            { $count: "count" }
+          ]
+        }
+      },
+      {
+        $project: {
+          data: 1,
+          total: {
+            $ifNull: [{ $arrayElemAt: ["$totalCount.count", 0] }, 0]
+          }
+        }
+      }
+    ]);
+
+
+    return res.status(200).json({
+      status: true,
+      message: "Shortlisted candidates fetched successfully",
+      data: shortlistedCandidates[0].data,
+      total: shortlistedCandidates[0].total,
+      page: Number(page),
+      limit: Number(limit),
+    });
+
+  } catch (error) {
+    console.error("Error fetching shortlisted candidates:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to fetch shortlisted candidates.",
+      error: error.message,
+    });
+  }
+};
+
+
+exports.approveSelectedCandidatesByBu = async (req, res) => {
+  const { jobId } = req.params;
+  const { candidateIds } = req.body;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid jobId.",
+      });
+    }
+
+    if (!Array.isArray(candidateIds) || candidateIds.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "candidateIds must be a non-empty array.",
+      });
+    }
+
+    const candidateObjectIds = candidateIds
+      .filter(mongoose.Types.ObjectId.isValid)
+      .map(id => new mongoose.Types.ObjectId(id));
+
+    if (candidateObjectIds.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "No valid candidateIds provided.",
+      });
+    }
+
+    const result = await Job.updateOne(
+      { _id: jobId },
+      {
+        $set: {
+          "candidates.$[c].approvedByBU": true,
+          "candidates.$[c].BuApprovalDate": new Date(),
+          "candidates.$[c].BuApprovedBy": req.user._id,
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "c.candidate": { $in: candidateObjectIds },
+          },
+        ],
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        status: false,
+        message: "Job not found.",
+      });
+    }
+
+    if (result.modifiedCount === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "No candidates were updated.",
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Candidates approved successfully.",
+      updatedCount: result.modifiedCount,
+    });
+
+  } catch (error) {
+    console.error("Error approving candidates:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to approve candidates.",
       error: error.message,
     });
   }
