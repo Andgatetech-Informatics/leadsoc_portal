@@ -33,7 +33,7 @@ import OnboardingCandidates from "../ta/OnboardingCandidates";
 // BU Components
 import BUDashboard from "../bu/BUDashboard";
 import ForgotPassword from "../components/ForgotPassword";
-import JobPostingForm from "../jobPost/JobPostingForm";
+import ActiveJobsBu from "../BU/ActiveJobsBu";
 // import Feeds from "../bu/Feeds";
 import CandidateRegistrationDummy from "../pages/registration/Registration-dummy";
 import JobDetailPage from "../components/JobDetailPage";
@@ -195,7 +195,7 @@ const AppRouter = ({ isAuth }) => {
               path="/application-tracker_bu/:candidateId"
               element={<ApplicationTracker />}
             />
-            <Route path="/active-jobs-bu" element={<ActiveJobs />} />
+            <Route path="/active-jobs-bu" element={<ActiveJobsBu />} />
             <Route path="/approve-candidates" element={<ApproveCandidates />} />
             <Route
               path="/referred-candidates_bu/:jobId"

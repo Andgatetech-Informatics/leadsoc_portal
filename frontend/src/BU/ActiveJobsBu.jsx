@@ -9,7 +9,7 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import JobHeader from "../components/JobHeader";
-import SubmitProfileModal from "./SubmitProfileModel";
+import SubmitProfileModal from "./SubmitProfileModelBu";
 import axios from "axios";
 import { baseUrl } from "../api";
 import dayjs from "dayjs";
@@ -31,7 +31,8 @@ const priorityColors = {
   Low: "bg-green-100 text-green-600",
 };
 
-const ActiveJobs = ({ token, hrId }) => {
+const ActiveJobsBu = () => {
+  const token = localStorage.getItem("token");
   const [selectedJob, setSelectedJob] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -50,8 +51,9 @@ const ActiveJobs = ({ token, hrId }) => {
   // Fetch job listings from API
   const fetchJobs = async () => {
     setLoading(true);
+
     try {
-      const response = await axios.get(`${baseUrl}/api/getjobs`, {
+      const response = await axios.get(`${baseUrl}/api/getjobsbu`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -128,18 +130,16 @@ const ActiveJobs = ({ token, hrId }) => {
                   key={job._id} // API jobs should have _id
                   onClick={() => setSelectedJob(job)}
                   className={`p-4 border rounded-xl shadow-sm cursor-pointer transition 
-                hover:shadow-lg hover:scale-[1.02] ${
-                  selectedJob?._id === job._id
-                    ? "border-blue-500"
-                    : "border-gray-200"
-                }`}
+                hover:shadow-lg hover:scale-[1.02] ${selectedJob?._id === job._id
+                      ? "border-blue-500"
+                      : "border-gray-200"
+                    }`}
                 >
                   <div className="flex justify-between items-start">
                     <h3 className="font-semibold text-lg">{job.title}</h3>
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        statusColors[job.status] || "bg-gray-200 text-gray-600"
-                      }`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[job.status] || "bg-gray-200 text-gray-600"
+                        }`}
                     >
                       {job.status}
                     </span>
@@ -159,10 +159,9 @@ const ActiveJobs = ({ token, hrId }) => {
                     <MapPin className="w-4 h-4 text-gray-400" />
                     {job.location}
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${
-                        priorityColors[job.priority] ||
+                      className={`px-2 py-0.5 rounded-full text-xs ${priorityColors[job.priority] ||
                         "bg-gray-200 text-gray-600"
-                      }`}
+                        }`}
                     >
                       {job.priority}
                     </span>
@@ -244,10 +243,9 @@ const ActiveJobs = ({ token, hrId }) => {
                     />
                   </div>
                   <span
-                    className={`px-3 py-1 text-sm font-medium rounded-full ${
-                      statusColors[selectedJob.status] ||
+                    className={`px-3 py-1 text-sm font-medium rounded-full ${statusColors[selectedJob.status] ||
                       "bg-gray-200 text-gray-600"
-                    } mt-2`}
+                      } mt-2`}
                   >
                     {selectedJob.status}
                   </span>
@@ -281,10 +279,9 @@ const ActiveJobs = ({ token, hrId }) => {
                       Priority
                     </h3>
                     <p
-                      className={`inline-block text-base font-semibold px-3 py-1 rounded-md ${
-                        priorityColors[selectedJob.priority] ||
+                      className={`inline-block text-base font-semibold px-3 py-1 rounded-md ${priorityColors[selectedJob.priority] ||
                         "bg-gray-200 text-gray-600"
-                      } bg-opacity-10`}
+                        } bg-opacity-10`}
                     >
                       {selectedJob.priority}
                     </p>
@@ -344,4 +341,4 @@ const ActiveJobs = ({ token, hrId }) => {
   );
 };
 
-export default ActiveJobs;
+export default ActiveJobsBu;

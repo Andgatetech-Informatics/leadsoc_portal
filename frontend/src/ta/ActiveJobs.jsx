@@ -31,7 +31,8 @@ const priorityColors = {
   Low: "bg-green-100 text-green-600",
 };
 
-const ActiveJobs = ({ token, hrId }) => {
+const ActiveJobs = () => {
+  const token = localStorage.getItem("token");
   const [selectedJob, setSelectedJob] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const [search, setSearch] = useState("");
@@ -51,7 +52,7 @@ const ActiveJobs = ({ token, hrId }) => {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseUrl}/api/getjobsbu`, {
+      const response = await axios.get(`${baseUrl}/api/getjobs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
