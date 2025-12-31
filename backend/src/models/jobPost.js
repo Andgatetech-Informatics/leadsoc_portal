@@ -8,6 +8,11 @@ const JobSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
     title: {
       type: String,
       required: true,

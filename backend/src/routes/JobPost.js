@@ -15,7 +15,7 @@ const {
 } = require("../controllers/jobPostController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 
-router.post("/jobpost", jobPost);
+router.post("/jobpost", authMiddleware, jobPost);
 router.get("/getjobs", getJobs);
 router.get("/getjobsSales", getJobsSales);
 router.get("/getjobsbu", getJobsForBu);

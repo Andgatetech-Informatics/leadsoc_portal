@@ -4,6 +4,7 @@ const Candidate = require("../models/candidate");
 const { ObjectId } = require("mongoose").Types;
 const generateJobId = require("../utils/generateJobId");
 const mongoose = require("mongoose");
+const NotificationModel = require("../models/notification");
 
 exports.jobPost = async (req, res) => {
   try {
@@ -67,6 +68,7 @@ exports.jobPost = async (req, res) => {
       status,
       referralAmount,
       visibility: visibility.toLowerCase(),
+      createdBy: req.user._id,
     });
 
     return res.status(201).json({
@@ -417,6 +419,16 @@ exports.addCandidatesToJobForBu = async (req, res) => {
     }
 
     await job.save();
+
+    await NotificationModel.create({
+      title: `New users shortlisted for Job ${job.title}`,
+      senderId: req.user._id,
+      priority: "high",
+      receiverId: job.createdBy,
+      entityType: "notification",
+      message: `You have shortlisted new candidates for the job "${job.title}".`,
+      metadata: { jobId: job._id, candidatesAdded: added.length },
+    });
 
     res.status(200).json({
       message: "Candidates processed successfully",
@@ -770,7 +782,7 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
     }
 
     const candidateObjectIds = candidateIds
-      .filter(mongoose.Types.ObjectId.isValid)
+      .filter(id => mongoose.Types.ObjectId.isValid(id))
       .map(id => new mongoose.Types.ObjectId(id));
 
     if (candidateObjectIds.length === 0) {
@@ -780,7 +792,7 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
       });
     }
 
-    const result = await Job.updateOne(
+    const job = await Job.findOneAndUpdate(
       { _id: jobId },
       {
         $set: {
@@ -791,31 +803,36 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
       },
       {
         arrayFilters: [
-          {
-            "c.candidate": { $in: candidateObjectIds },
-          },
+          { "c.candidate": { $in: candidateObjectIds } },
         ],
+        new: true,
       }
     );
 
-    if (result.matchedCount === 0) {
+    if (!job) {
       return res.status(404).json({
         status: false,
         message: "Job not found.",
       });
     }
 
-    if (result.modifiedCount === 0) {
-      return res.status(400).json({
-        status: false,
-        message: "No candidates were updated.",
-      });
-    }
+    await NotificationModel.create({
+      title: `Candidates approved for Job ${job.title}`,
+      senderId: req.user._id,
+      priority: "high",
+      receiverId: job.createdBy,
+      entityType: "notification",
+      message: `BU has approved selected candidates for the job "${job.title}".`,
+      metadata: {
+        jobId: job._id,
+        approvedCandidates: candidateObjectIds.length,
+      },
+    });
 
     return res.status(200).json({
       status: true,
       message: "Candidates approved successfully.",
-      updatedCount: result.modifiedCount,
+      approvedCount: candidateObjectIds.length,
     });
 
   } catch (error) {
@@ -827,3 +844,4 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
     });
   }
 };
+
