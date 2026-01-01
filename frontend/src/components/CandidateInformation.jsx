@@ -177,7 +177,7 @@ const CandidateInformation = ({
                 )}
               </div>
             )}
-          {!isShortlistedTable && !disableStatus && !candidateStatus && (
+          {!isShortlistedTable && !disableStatus &&  (
             <button
               onClick={() => handleButtonClick("onhold", "On Hold...")}
               className="min-w-[100px] bg-orange-500 hover:bg-orange-600 text-white px-4 py-1.5 rounded text-sm text-center"
@@ -189,7 +189,7 @@ const CandidateInformation = ({
             </button>
           )}
 
-          {isAssignedTableButton && selectedCandidate.status !== "assigned" && candidateStatus && (
+          {isAssignedTableButton && selectedCandidate.status !== "assigned" &&  (
             <button
               onClick={() => handleButtonClick("assigned", "Accepting...")}
               className="min-w-[100px] bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded text-sm text-center"
@@ -201,7 +201,7 @@ const CandidateInformation = ({
             </button>
           )}
 
-          {!isShortlistedTable && !disableStatus && candidateStatus && (
+          {!isShortlistedTable && !disableStatus &&  (
             <button
               onClick={() => handleButtonClick("rejected", "Rejecting...")}
               className="min-w-[100px] bg-red-500 hover:bg-red-600 text-white px-4 py-1.5 rounded text-sm text-center"

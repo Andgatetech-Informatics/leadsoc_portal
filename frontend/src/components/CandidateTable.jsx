@@ -70,7 +70,7 @@ const CandidateTable = ({
     };
 
     const normalizedStatus = status || "Pending";
-    const navigableStatuses = new Set(["Assigned", "Shortlisted"]);
+    const navigableStatuses = new Set(["Assigned", "Shortlisted","Approved"]);
     const isTeamsPage = redirect === "/teams";
     const hasId = Boolean(candidate?._id);
     const isNavigableStatus = navigableStatuses.has(normalizedStatus);

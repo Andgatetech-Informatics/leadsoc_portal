@@ -274,14 +274,20 @@ const getEveryUser = async (req, res) => {
     let filter = {};
 
     // Apply role-based filters
-    if (userType === "hr") {
-      filter.role = "hr";
+    if (userType === "ta") {
+      filter.role = "ta";
     } else if (userType === "admin") {
       filter.role = { $in: ["admin", "superadmin"] };
-    } else if (userType === "delivery") {
-      filter.role = "delivery";
+    } else if (userType === "bu") {
+      filter.role = "bu";
+    } else if (userType === "sales") {
+      filter.role = "sales";
+    } else if (userType === "vendor") {
+      filter.role = "vendor";
     } else {
-      filter.role = { $nin: ["admin", "hr", "superadmin", "delivery"] };
+      filter.role = {
+        $nin: ["admin", "ta", "superadmin", "bu", "sales", "vendor"],
+      };
     }
 
     if (search) {

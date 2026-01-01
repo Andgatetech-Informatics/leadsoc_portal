@@ -202,7 +202,7 @@ const BUCandidateTable = ({
                   </td>
 
                   <td className="px-4 py-4">
-                    {c.jobDetails?.title || "N/A"}
+                    {c.jobTitle || "N/A"}
                   </td>
 
                   <td className="px-4 py-4">
@@ -305,7 +305,7 @@ const BUCandidateTable = ({
             <div className="text-sm">
               <p>
                 <strong>Job:</strong>{" "}
-                {c.jobDetails?.title || "N/A"}
+                {c.jobTitle || "N/A"}
               </p>
               <p>
                 <strong>Type:</strong> {c.candidateType || "-"}

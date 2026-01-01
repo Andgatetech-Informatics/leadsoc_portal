@@ -106,7 +106,7 @@ exports.getTeamLoad = async (req, res) => {
       },
       {
         $match: {
-          role: "hr",
+          role: "ta",
         },
       },
       {

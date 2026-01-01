@@ -18,17 +18,21 @@ const initialUserState = {
 };
 
 const roleOptions = [
-  { value: "hr", label: "HR" },
-  { value: "user", label: "User" },
+  { value: "ta", label: "TA" },
   { value: "admin", label: "Admin" },
-  { value: "delivery", label: "Delivery Manager" },
+  { value: "bu", label: "Business Unit" },
+  { key: "sales", label: "Sales" },
+  { key: "vendor", label: "Vendor" },
+  { value: "user", label: "User" },
 ];
 
 const tabOptions = [
   { key: "admin", label: "Admins" },
-  { key: "hr", label: "HR" },
-  { key: "delivery", label: "Delivery Managers" },
+  { key: "ta", label: "TA" },
+  { key: "bu", label: "Business Unit" },
+  { key: "sales", label: "Sales" },
   { key: "user", label: "Users" },
+  { key: "vendor", label: "Vendor" },
 ];
 
 const getToken = () => localStorage.getItem("token");
@@ -81,7 +85,7 @@ const UserPage = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        params: { userType: "hr" },
+        params: { userType: "ta" },
       });
 
       setReportingManagers(
@@ -243,7 +247,7 @@ const UserPage = () => {
                 + Add User
               </button>
             )}
-            {user?.role === "hr" && (
+            {user?.role === "ta" && (
               <>
                 <button
                   onClick={() => setShowModal(true)}
@@ -270,10 +274,11 @@ const UserPage = () => {
             <button
               key={key}
               onClick={() => setTab(key)}
-              className={`pb-2 px-4 font-medium whitespace-nowrap ${tab === key
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-600"
-                }`}
+              className={`pb-2 px-4 font-medium whitespace-nowrap ${
+                tab === key
+                  ? "border-b-2 border-blue-600 text-blue-600"
+                  : "text-gray-600"
+              }`}
             >
               {label}
             </button>
@@ -369,10 +374,11 @@ const UserPage = () => {
                       <input
                         id={key}
                         type={showPassword ? "text" : "password"}
-                        className={`mt-1 w-full pr-10 px-4 py-2 border text-sm rounded-md ${errors[key]
-                          ? "border-red-500"
-                          : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          }`}
+                        className={`mt-1 w-full pr-10 px-4 py-2 border text-sm rounded-md ${
+                          errors[key]
+                            ? "border-red-500"
+                            : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        }`}
                         value={newUser[key]}
                         placeholder={placeholder}
                         onChange={(e) => {
@@ -431,10 +437,11 @@ const UserPage = () => {
                       <input
                         id={key}
                         type={type}
-                        className={`mt-1 w-full px-4 py-2 border text-sm rounded-md ${errors[key]
-                          ? "border-red-500"
-                          : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          }`}
+                        className={`mt-1 w-full px-4 py-2 border text-sm rounded-md ${
+                          errors[key]
+                            ? "border-red-500"
+                            : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        }`}
                         value={newUser[key]}
                         placeholder={placeholder}
                         onChange={(e) => {
@@ -461,10 +468,11 @@ const UserPage = () => {
                   Role
                 </label>
                 <select
-                  className={`w-full px-4 py-2 rounded-md text-sm border ${errors.role
-                    ? "border-red-500"
-                    : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                    }`}
+                  className={`w-full px-4 py-2 rounded-md text-sm border ${
+                    errors.role
+                      ? "border-red-500"
+                      : "border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                  }`}
                   value={newUser.role}
                   onChange={(e) => {
                     setNewUser((prev) => ({ ...prev, role: e.target.value }));
@@ -522,10 +530,11 @@ const UserPage = () => {
               <button
                 onClick={() => setShowConfirm(true)}
                 disabled={btnLoading}
-                className={`px-6 py-2 text-sm font-semibold rounded-md text-white ${btnLoading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 transition"
-                  }`}
+                className={`px-6 py-2 text-sm font-semibold rounded-md text-white ${
+                  btnLoading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 transition"
+                }`}
               >
                 {btnLoading ? "Saving..." : "Save User"}
               </button>

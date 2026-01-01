@@ -6,12 +6,17 @@ import { FaRegUser } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import SearchResult from "../components/SearchResult";
 import AndGatePopup from "../andgateExtension/AndGatePopup";
-import { companyLogoText } from "../api";
+import { baseUrl, companyLogoText } from "../api";
+import axios from "axios";
+import Notifications from "../components/Notifications";
 
 const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const location = useLocation();
@@ -34,6 +39,29 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     setIsDropdownOpen(false);
     window.location.reload();
   };
+
+  const fetchNotifications = async () => {
+    try {
+      const { data } = await axios.get(
+        `${baseUrl}/api/notification/assigned_notifications`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            contentType: "application/json",
+          },
+        }
+      );
+      setNotifications(data.data || []);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -98,10 +126,27 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
       {user && (
         <div className="flex items-center gap-4 relative">
           {/* Notification Bell */}
-          <button className="relative text-black hover:text-blue-600 transition">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+
+          <div className="relative">
+            <button
+              onClick={() => setIsNotificationOpen((prev) => !prev)}
+              className="relative text-black hover:text-blue-600 transition mt-1"
+            >
+              <Bell className="w-5 h-5" />
+              {notifications && notifications.length > 0 && (
+                <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+
+            {isNotificationOpen && (
+              <Notifications
+                onClose={() => setIsNotificationOpen(false)}
+                loading={loading}
+                notifications={notifications}
+                setNotifications={setNotifications}
+              />
+            )}
+          </div>
 
           {/* User Button */}
           <button

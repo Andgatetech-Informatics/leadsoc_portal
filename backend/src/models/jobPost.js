@@ -11,7 +11,6 @@ const JobSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
-      required: true,
     },
     title: {
       type: String,
@@ -122,7 +121,7 @@ const JobSchema = new mongoose.Schema(
       type: String,
       enum: ["public", "bu"],
       default: "public",
-    }
+    },
   },
   { timestamps: true, versionKey: false }
 );

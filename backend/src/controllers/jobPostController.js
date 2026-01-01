@@ -716,8 +716,15 @@ exports.getReferredCandidatesForBujobId = async (req, res) => {
           hrName: "$candidateDetails.poc",
           resume: "$candidateDetails.resume",
           addedAt: "$candidateDetails.updatedAt",
-          candidateType: "$candidateDetails.candidateType"
-        }
+          candidateType: "$candidateDetails.candidateType",
+          jobTitle: "$title",
+          isFreelancer: "$candidateDetails.isFreelancer",
+          freelancerName: "$candidateDetails.freelancerName",
+          FreelancerId: {
+            firstName: "$freelancer.firstName",
+            lastName: "$freelancer.lastName",
+          },
+        },
       },
       {
         $facet: {
