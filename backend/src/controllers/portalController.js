@@ -1314,7 +1314,7 @@ exports.initiateOnboarding = async (req, res) => {
       senderId: user._id,
       receiverId: candidate.assignedTo,
       priority: "high",
-      entityType: "onboarding",
+      entityType: "notification",
       message: `Please initiate Onboarding for candidate ${candidate.name}.`,
       metadata: { candidateId: candidate._id },
     });
