@@ -32,8 +32,7 @@ exports.jobPost = async (req, res) => {
       !title?.trim() ||
       !organizationName?.trim() ||
       !location?.trim() ||
-      !description?.trim() ||
-      !visibility
+      !description?.trim() 
     ) {
       return res.status(400).json({
         success: false,
@@ -96,81 +95,52 @@ exports.jobPost = async (req, res) => {
     });
   }
 };
-
-exports.getJobs = async (req, res) => {
+exports.updateJobPost = async (req, res) => {
   try {
-    const {
-      searchTerm,
-      location,
-      organization,
-      experience,
-      page = 1,
-      limit = 10,
-    } = req.query;
+    const { jobId } = req.params;
+    const body = req.body;
 
-    let filter = {
-      visibility: "public"
-    };
-
-    if (location) {
-      filter.location = { $regex: location, $options: "i" };
+    if (!jobId) {
+      return res.status(400).json({
+        success: false,
+        message: "Job ID is required",
+      });
     }
 
-    if (organization) filter.organizationId = organization;
+    const job = await Job.findByIdAndUpdate(
+      jobId,
+      body,
+      {
+        new: true,          // return updated document
+        runValidators: true // validate schema
+      }
+    );
 
-    // Experience filter (minimum experience based on the selected option)
-    if (experience && experience !== "All") {
-      const minExp = parseInt(experience, 10);
-
-      // Adjust the filter to match jobs with experience greater than or equal to minExp
-      filter.experienceMin = { $gte: minExp };
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
     }
 
-    if (searchTerm) {
-      filter.$or = [
-        { title: { $regex: searchTerm, $options: "i" } },
-        { location: { $regex: searchTerm, $options: "i" } },
-        { priority: { $regex: searchTerm, $options: "i" } },
-        { status: { $regex: `^${searchTerm}$`, $options: "i" } },
-      ];
-    }
-
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
-    const skip = (pageNumber - 1) * limitNumber;
-
-    const totalJobs = await Job.countDocuments(filter);
-
-    const jobs = await Job.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limitNumber)
-      .populate(
-        "candidates.candidate",
-        "name email mobile skills experienceYears resume status"
-      )
-      .populate("candidates.addedByHR", "firstName lastName email role");
-
-    jobs.forEach((job) => {
-      job.candidates = job.candidates.filter(
-        (c) => c.candidate && c.candidate.status !== "rejected"
-      );
-    });
-
-    res.status(200).json({
-      totalJobs,
-      currentPage: pageNumber,
-      totalPages: Math.ceil(totalJobs / limitNumber),
-      count: jobs.length,
-      jobs,
+    return res.status(200).json({
+      success: true,
+      message: "Job updated successfully",
+      job,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Job Update Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
   }
 };
 
-exports.getJobsSales = async (req, res) => {
+
+exports.getJobs = async (req, res) => {
   try {
     const {
       searchTerm,
@@ -240,8 +210,7 @@ exports.getJobsSales = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
-
-exports.getJobsForBu = async (req, res) => {
+exports.getJobsTa = async (req, res) => {
   try {
     const {
       searchTerm,
@@ -253,7 +222,80 @@ exports.getJobsForBu = async (req, res) => {
     } = req.query;
 
     let filter = {
-      visibility: "bu"
+      visibility : "ta"
+    };
+
+    if (location) {
+      filter.location = { $regex: location, $options: "i" };
+    }
+
+    if (organization) filter.organizationId = organization;
+
+    // Experience filter (minimum experience based on the selected option)
+    if (experience && experience !== "All") {
+      const minExp = parseInt(experience, 10);
+
+      // Adjust the filter to match jobs with experience greater than or equal to minExp
+      filter.experienceMin = { $gte: minExp };
+    }
+
+    if (searchTerm) {
+      filter.$or = [
+        { title: { $regex: searchTerm, $options: "i" } },
+        { location: { $regex: searchTerm, $options: "i" } },
+        { priority: { $regex: searchTerm, $options: "i" } },
+        { status: { $regex: `^${searchTerm}$`, $options: "i" } },
+      ];
+    }
+
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const totalJobs = await Job.countDocuments(filter);
+
+    const jobs = await Job.find(filter)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNumber)
+      .populate(
+        "candidates.candidate",
+        "name email mobile skills experienceYears resume status"
+      )
+      .populate("candidates.addedByHR", "firstName lastName email role");
+
+    jobs.forEach((job) => {
+      job.candidates = job.candidates.filter(
+        (c) => c.candidate && c.candidate.status !== "rejected"
+      );
+    });
+
+    res.status(200).json({
+      totalJobs,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(totalJobs / limitNumber),
+      count: jobs.length,
+      jobs,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error", error: error.message });
+  }
+};
+
+exports.getJobsVm = async (req, res) => {
+  try {
+    const {
+      searchTerm,
+      location,
+      organization,
+      experience,
+      page = 1,
+      limit = 10,
+    } = req.query;
+
+    let filter = {
+      visibility : "vendor"
     };
 
     if (location) {
@@ -346,7 +388,7 @@ exports.addCandidatesToJob = async (req, res) => {
         // Add to job
         job.candidates.push({
           candidate: candidateId,
-          addedByHR: hrId,  
+          addedByHR: hrId,
         });
         added.push(candidateId);
       }
