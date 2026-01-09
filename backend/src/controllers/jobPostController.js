@@ -6,6 +6,7 @@ const generateJobId = require("../utils/generateJobId");
 const mongoose = require("mongoose");
 const NotificationModel = require("../models/notification");
 
+
 exports.jobPost = async (req, res) => {
   try {
     const {
@@ -13,17 +14,18 @@ exports.jobPost = async (req, res) => {
       location,
       organizationName,
       clientName,
+      skills,
+      priority,
       experienceMin,
       experienceMax,
       noOfPositions,
       description,
       postDate,
       endDate,
-      skills,
-      priority,
-      status,
-      referralAmount,
-      visibility,
+      workType,
+      jobType,
+      budgetMin,
+      budgetMax,
     } = req.body;
 
     if (
@@ -34,42 +36,50 @@ exports.jobPost = async (req, res) => {
       !visibility
     ) {
       return res.status(400).json({
-        message:
-          "Title, organization name, location, description and visibility are required.",
+        success: false,
+        message: `Missing required fields: ${missingFields.join(", ")}`,
       });
     }
 
+    /* ================= ORGANIZATION CHECK ================= */
     const org = await Organization.findOne({
       organization: organizationName.trim(),
     });
 
     if (!org) {
-      return res.status(404).json({ message: "Organization not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
     }
 
-    /* ✅ Year-Wise Auto-Increment Job ID */
+    /* ================= GENERATE JOB ID ================= */
     const jobId = await generateJobId();
 
-    const job = await Job.create({
+    /* ================= CREATE JOB ================= */
+    const jobPayload = {
       jobId,
       title: title.trim(),
       location: location.trim(),
       organization: org.organization,
       organizationId: org._id,
       clientName: clientName?.trim(),
+      skills,
+      priority,
       experienceMin,
       experienceMax,
       noOfPositions,
       description: description.trim(),
       postDate,
       endDate,
-      skills,
-      priority,
-      status,
-      referralAmount,
-      visibility: visibility.toLowerCase(),
+      workType,
+      jobType,
+      budgetMin,
+      budgetMax,
       createdBy: req.user._id,
-    });
+    };
+
+    const job = await Job.create(jobPayload);
 
     return res.status(201).json({
       success: true,
@@ -78,6 +88,7 @@ exports.jobPost = async (req, res) => {
     });
   } catch (error) {
     console.error("Job Post Error:", error);
+
     return res.status(500).json({
       success: false,
       message: "Server Error",
@@ -335,8 +346,7 @@ exports.addCandidatesToJob = async (req, res) => {
         // Add to job
         job.candidates.push({
           candidate: candidateId,
-          addedByHR: hrId,
-          
+          addedByHR: hrId,  
         });
         added.push(candidateId);
       }
@@ -510,7 +520,7 @@ exports.getshortlistedProfilesForBu = async (req, res) => {
 
   try {
     const query = {
-      assignedTo: user._id,
+      // assignedTo: user._id,
       status: { $in: ["shortlisted"] },
       candidateType: "internal",
       $or: [

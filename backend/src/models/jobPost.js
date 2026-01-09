@@ -55,9 +55,6 @@ const JobSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
-    referralAmount: {
-      type: Number,
-    },
     noOfPositions: {
       type: Number,
       required: true,
@@ -85,10 +82,6 @@ const JobSchema = new mongoose.Schema(
     endDate: {
       type: Date,
       required: true,
-    },
-    referralAmount: {
-      type: Number,
-      min: 0,
     },
     candidates: [
       {
@@ -119,9 +112,25 @@ const JobSchema = new mongoose.Schema(
     ],
     visibility: {
       type: String,
-      enum: ["public", "bu"],
-      default: "public",
+      enum: ["hr", "bu", "vendor", "public"],
+      default: "bu",
     },
+    workType: {
+      type: String,
+      enum: ["Hybrid", "Remote", "Onsite"],
+      default: "Onsite"
+    },
+    jobType: {
+      type: String,
+      enum: ["Full Time", "Contract"],
+      default: "Full Time"
+    },
+    budgetMin: {
+      type: Number,
+    },
+    budgetMax: {
+      type: Number,
+    }
   },
   { timestamps: true, versionKey: false }
 );

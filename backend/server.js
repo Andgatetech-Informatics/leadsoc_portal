@@ -15,6 +15,7 @@ const invoiceRoutes = require("./src/routes/invoiceRoutes");
 const cronJobs = require("./src/utils/cronJobs");
 const onboardingFormRoutes = require("./src/routes/onboardingFormRoutes");
 const incentiveRoutes = require("./src/routes/incentiveRoutes");
+const notificationRoutes = require("./src/routes/notification")
 
 dotenv.config();
 
@@ -52,7 +53,7 @@ app.use("/api", jobRoute);
 app.use("/api/invoices", invoiceRoutes);
 app.use("/api", onboardingFormRoutes);
 app.use("/api", incentiveRoutes);
-app.use("/api/notification", require("./src/routes/notification"));
+app.use("/api/notification", notificationRoutes);
 
 app.use("/src/uploads", express.static(path.join(__dirname, "src/uploads")));
 const PORT = process.env.PORT || 5000;
