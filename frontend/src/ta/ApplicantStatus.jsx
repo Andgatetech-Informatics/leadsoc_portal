@@ -252,24 +252,6 @@ const ApplicantStatus = () => {
                   "No Resume"
                 )}
               </div>
-
-              {/* Remarks */}
-              <div className="col-span-2">
-                <span className="font-semibold text-gray-700">Notes:</span>
-                {selectedCandidate?.remark?.length > 0 ? (
-                  selectedCandidate.remark.map((e) => (
-                    <div key={e._id} className="p-2 border-b border-gray-200">
-                      <p className="text-sm text-gray-600">{e.title}</p>
-                      <p className="text-xs text-gray-400">
-                        {moment(e.date).format("lll")}
-                      </p>
-                      <p className="text-xs text-gray-400">By: {e.name}</p>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-xs text-gray-400">No notes added.</p>
-                )}
-              </div>
             </div>
           </div>
         </div>

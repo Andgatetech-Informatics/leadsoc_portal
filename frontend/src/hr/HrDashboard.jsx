@@ -8,7 +8,7 @@ import JobDashboard from "../jobPost/JobDashboard";
 import DateFilter from "../components/DateFilter";
 import { getDateRange } from "../utils/getDateRange";
 
-const SalesDashboard = () => {
+const HrDashboard = () => {
   const [activeFilter, setActiveFilter] = useState("week");
   const [dateRange, setDateRange] = useState(null);
   const [loading, setLoading] = useState({
@@ -103,4 +103,4 @@ const Card = ({ children, className = "" }) => (
   </div>
 );
 
-export default SalesDashboard;
+export default HrDashboard;

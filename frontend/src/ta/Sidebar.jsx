@@ -17,7 +17,11 @@ import { IoMdCodeWorking, IoMdPeople } from "react-icons/io";
 
 const navItems = [
   { to: "/dashboard/ta", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/applicants-Status", label: "Applicants Status", icon: UsersRoundIcon },
+  {
+    to: "/applicants-Status",
+    label: "Applicants Status",
+    icon: UsersRoundIcon,
+  },
   { to: "/candidates-list", label: "New Candidates", icon: BriefcaseIcon },
   { to: "/assigned-candidates", label: "Assigned Candidates", icon: Users },
   {
@@ -26,12 +30,9 @@ const navItems = [
     icon: History,
   },
   { to: "/active-jobs", label: "Active Jobs", icon: CheckCircle },
-  { to: "/onboarding-candidates", label: "Onboardings", icon: ClipboardCheck },
-  { to: "/hired-candidates", label: "Hired", icon: ShieldCheck },
-  { to: "/user", label: "Teams", icon: User },
- { to: "/vendor-candidates", label: "Vendor's Candidates", icon: IoMdPeople  },
-{ to: "/assigned-vendor-candidates", label: "Assigned Talent", icon: IoMdCodeWorking }
-
+  // { to: "/onboarding-candidates", label: "Onboardings", icon: ClipboardCheck },
+  { to: "/hired-candidates-ta", label: "Hired", icon: ShieldCheck },
+  // { to: "/user", label: "Teams", icon: User },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {

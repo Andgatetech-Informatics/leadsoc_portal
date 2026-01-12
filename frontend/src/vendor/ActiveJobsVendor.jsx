@@ -7,6 +7,8 @@ import {
   Wrench,
   Flag,
   ArrowLeft,
+  Clock,
+  Wallet2,
 } from "lucide-react";
 import JobHeader from "../components/JobHeader";
 import axios from "axios";
@@ -52,7 +54,7 @@ const ActiveJobsVendor = ({ token, hrId }) => {
   const fetchJobs = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${baseUrl}/api/getjobs`, {
+      const response = await axios.get(`${baseUrl}/api/getjobVm`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -230,13 +232,6 @@ const ActiveJobsVendor = ({ token, hrId }) => {
                       <MapPin className="w-4 h-4 text-gray-400" />
                       {selectedJob.location}
                     </p>
-                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
-                      <FaMoneyBill className="w-4 h-4 text-gray-400" />
-                      <span>Referral Amount: Rs.</span>
-                      <span className="font-medium text-gray-600">
-                        {selectedJob?.referralAmount || "—"}
-                      </span>
-                    </p>
 
                     <button
                       onClick={() => setIsModalOpen(true)}
@@ -265,24 +260,20 @@ const ActiveJobsVendor = ({ token, hrId }) => {
               {/* Scrollable Content */}
               <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
                 {/* Skills & Info */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Experience */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                      <Wrench size={16} className="text-gray-400" />
-                      Skills Required
+                      <Briefcase size={16} className="text-gray-400" />
+                      Experience
                     </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedJob.skills?.map((skill, i) => (
-                        <span
-                          key={i}
-                          className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
+                    <p className="text-gray-800 font-medium">
+                      {selectedJob.experienceMin} - {selectedJob.experienceMax}{" "}
+                      years
+                    </p>
                   </div>
 
+                  {/* Priority */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
                       <Flag size={16} className="text-gray-400" />
@@ -298,17 +289,7 @@ const ActiveJobsVendor = ({ token, hrId }) => {
                     </p>
                   </div>
 
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                      <Briefcase size={16} className="text-gray-400" />
-                      Experience
-                    </h3>
-                    <p className="text-gray-800 font-medium">
-                      {selectedJob.experienceMin} - {selectedJob.experienceMax}{" "}
-                      years
-                    </p>
-                  </div>
-
+                  {/* Positions */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
                       <Users size={16} className="text-gray-400" />
@@ -317,6 +298,67 @@ const ActiveJobsVendor = ({ token, hrId }) => {
                     <p className="text-gray-800 font-medium">
                       {selectedJob.noOfPositions} Openings
                     </p>
+                  </div>
+                  
+                  {/* budget */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <Wallet2 size={16} className="text-gray-400" />
+                      Budget
+                    </h3>
+                    <p className="text-gray-800 font-medium">
+                      {selectedJob.modifiedBudgetMin
+                        ? selectedJob.modifiedBudgetMin
+                        : selectedJob.budgetMin}
+                      -
+                      {selectedJob.modifiedBudgetMax
+                        ? selectedJob.modifiedBudgetMax
+                        : selectedJob.budgetMax}{" "}
+                      LPA
+                    </p>
+                  </div>
+
+                  {/* Work Type */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <MapPin size={16} className="text-gray-400" />
+                      Work Type
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full border border-blue-200 hover:bg-blue-100 cursor-pointer transition">
+                        {selectedJob.workType || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Job Type */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <Clock size={16} className="text-gray-400" />
+                      Job Type
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full border border-green-200 hover:bg-green-100 cursor-pointer transition">
+                        {selectedJob.jobType || "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                {/* Skills */}
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                    <Wrench size={16} className="text-gray-400" />
+                    Skills Required
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedJob.skills?.map((skill, i) => (
+                      <span
+                        key={i}
+                        className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
+                      >
+                        {skill}
+                      </span>
+                    ))}
                   </div>
                 </div>
 

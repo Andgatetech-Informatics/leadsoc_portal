@@ -10,7 +10,7 @@ import moment from "moment";
 import Pagination from "../components/Pagination";
 import axios from "axios";
 import { baseUrl } from "../api";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FaEye } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import CandidateInformation from "../components/CandidateInformation";
@@ -27,9 +27,7 @@ const statusColors = {
 };
 
 const CandidateStatus = () => {
-  /* -----------------------------
-        SAFE LOCATION STATE
-  ------------------------------*/
+const navigate = useNavigate()
   const token = localStorage.getItem("token");
   const location = useLocation();
   const state = location.state ?? {};
@@ -264,7 +262,10 @@ const CandidateStatus = () => {
               {filteredCandidates.map((c) => (
                 <tr key={c._id} className="hover:bg-gray-50 transition">
                   {/* Name */}
-                  <td className="px-4 py-3 truncate max-w-[130px]">
+                   <td
+                    onClick={() => navigate(`/application-tracker/${c._id}`)}
+                    className="px-4 py-4 cursor-pointer align-top"
+                  >
                     <div className="flex flex-col items-start">
                       <span className="text-sm text-gray-800" title={c.name}>
                         {c.name}

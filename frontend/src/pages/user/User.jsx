@@ -18,16 +18,18 @@ const initialUserState = {
 };
 
 const roleOptions = [
-  { value: "ta", label: "TA" },
-  { value: "admin", label: "Admin" },
-  { value: "bu", label: "Business Unit" },
+  { key: "ta", label: "TA" },
+  { key: "hr", label: "HR" },
+  { key: "admin", label: "Admin" },
+  { key: "bu", label: "Business Unit" },
   { key: "sales", label: "Sales" },
   { key: "vendor", label: "Vendor" },
-  { value: "user", label: "User" },
+  { key: "user", label: "User" },
 ];
 
 const tabOptions = [
   { key: "admin", label: "Admins" },
+  { key: "hr", label: "HR" },
   { key: "ta", label: "TA" },
   { key: "bu", label: "Business Unit" },
   { key: "sales", label: "Sales" },
@@ -85,7 +87,7 @@ const UserPage = () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${getToken()}`,
         },
-        params: { userType: "ta" },
+        params: { userType: "hr" },
       });
 
       setReportingManagers(
@@ -247,7 +249,7 @@ const UserPage = () => {
                 + Add User
               </button>
             )}
-            {user?.role === "ta" && (
+            {user?.role === "hr" && (
               <>
                 <button
                   onClick={() => setShowModal(true)}

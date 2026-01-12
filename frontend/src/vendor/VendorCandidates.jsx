@@ -9,7 +9,7 @@ import { baseUrl } from "../api";
 import Pagination from "../components/Pagination";
 import FilterDateMonth from "../components/FilterDateMonth";
 import FreelancerCandidateTable from "../components/FreelancerCandidateTable";
-import CandidateDetails from "../vendor/CandidateDetails";
+import CandidateDetails from "./CandidateDetails";
 
 const VendorCandidates = () => {
   const token = localStorage.getItem("token");

@@ -45,7 +45,7 @@ const OpeningJobCard = () => {
 
     setLoading(true);
     try {
-      const { data } = await axios.get(`${baseUrl}/api/getjobsSales`, {
+      const { data } = await axios.get(`${baseUrl}/api/getjobs`, {
         params: {
           organization: organization._id,
           page: currentPage,

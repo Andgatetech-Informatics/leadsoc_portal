@@ -276,7 +276,9 @@ const getEveryUser = async (req, res) => {
     // Apply role-based filters
     if (userType === "ta") {
       filter.role = "ta";
-    } else if (userType === "admin") {
+    }else if (userType === "hr") {
+      filter.role = "hr";
+    }else if (userType === "admin") {
       filter.role = { $in: ["admin", "superadmin"] };
     } else if (userType === "bu") {
       filter.role = "bu";
@@ -286,7 +288,7 @@ const getEveryUser = async (req, res) => {
       filter.role = "vendor";
     } else {
       filter.role = {
-        $nin: ["admin", "ta", "superadmin", "bu", "sales", "vendor"],
+        $nin: ["admin","hr", "ta", "superadmin", "bu", "sales", "vendor"],
       };
     }
 

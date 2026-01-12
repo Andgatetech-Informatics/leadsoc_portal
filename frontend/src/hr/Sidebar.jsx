@@ -3,26 +3,31 @@ import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import {
   LayoutDashboard,
-  UserCircleIcon,
+  UsersRoundIcon,
+  BriefcaseIcon,
+  Users,
   CheckCircle,
-  BriefcaseBusiness,
+  User,
+  UserCircleIcon,
+  History,
+  ClipboardCheck,
+  ShieldCheck,
 } from "lucide-react";
-import { IoMdCodeWorking, IoMdPeople } from "react-icons/io";
 
 const navItems = [
-  { to: "/dashboard/vendor", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/applicants-list", label: "Applicants", icon: BriefcaseBusiness },
-  {
-    to: "/current-active-jobs-vendor",
-    label: "Active Jobs",
-    icon: CheckCircle,
-  },
-  { to: "/vendor-candidates", label: "Vendor's Candidates", icon: IoMdPeople },
-  {
-    to: "/assigned-vendor-candidates",
-    label: "Assigned Talent",
-    icon: IoMdCodeWorking,
-  },
+  { to: "/dashboard/hr", label: "Dashboard", icon: LayoutDashboard },
+  // { to: "/applicants-Status", label: "Applicants Status", icon: UsersRoundIcon },
+  // { to: "/candidates-list", label: "New Candidates", icon: BriefcaseIcon },
+  // { to: "/assigned-candidates", label: "Assigned Candidates", icon: Users },
+  // {
+  //   to: "/shortlisted-candidates",
+  //   label: "Shortlisted Candidates",
+  //   icon: History,
+  // },
+  // { to: "/active-jobs", label: "Active Jobs", icon: CheckCircle },
+  { to: "/onboarding-candidates", label: "Onboardings", icon: ClipboardCheck },
+  { to: "/hired-candidates-hr", label: "Hired", icon: ShieldCheck },
+  { to: "/user", label: "Teams", icon: User },
 ];
 
 const Sidebar = ({ isOpen, toggleSidebar }) => {
@@ -44,7 +49,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       <div className="flex flex-col h-full justify-between">
         {/* Top Section */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
-          <Link to="/dashboard/freelancer" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-2">
             <UserCircleIcon size={22} />
             {isOpen && (
               <span className="text-sm font-semibold text-white tracking-wide">
@@ -57,11 +62,11 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
         {/* Navigation Links */}
         <nav
           className={`flex-1 px-2 py-4 space-y-1 transition-all duration-300
-      ${
-        isOpen
-          ? "overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pr-1"
-          : "overflow-hidden"
-      }`}
+            ${
+              isOpen
+                ? "overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent pr-1"
+                : "overflow-hidden"
+            }`}
         >
           {navItems.map(({ to, label, icon: Icon }, index) => {
             const isActive = location.pathname.startsWith(to);
@@ -75,12 +80,14 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     : "hover:bg-gray-700 hover:text-white"
                 }`}
               >
+                {/* Left Indicator */}
                 <span
                   className={`absolute left-0 top-0 h-full w-1 rounded-r-full ${
                     isActive ? "bg-blue-400" : "bg-transparent"
                   }`}
                 ></span>
 
+                {/* Icon */}
                 <Icon
                   size={20}
                   className={`min-w-[20px] transition-transform duration-300 ${
@@ -101,8 +108,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             );
           })}
         </nav>
-
-        
       </div>
     </div>
   );

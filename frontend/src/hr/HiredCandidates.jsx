@@ -6,8 +6,10 @@ import moment from "moment";
 import Pagination from "../components/Pagination";
 import axios from "axios";
 import { baseUrl } from "../api";
+import { useNavigate } from "react-router-dom";
 
 const HiredCandidates = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [candidateData, setCandidateData] = useState([]);
   const [search, setSearch] = useState("");
@@ -149,7 +151,11 @@ const HiredCandidates = () => {
                 {candidateData.map((c, index) => (
                   <tr key={index} className="hover:bg-gray-50 transition">
                     {/* Name */}
-                    <td className="px-4 py-4">
+                    <td   onClick={() =>
+                          navigate(`/application-tracker_hr/${c._id}`)
+                        }
+                        className="px-4 py-4 cursor-pointer align-top"
+                      >
                       <div className="flex flex-col space-y-1">
                         <span className="text-sm text-gray-800">{c.name}</span>
                         <div className="flex items-center text-xs text-gray-500">

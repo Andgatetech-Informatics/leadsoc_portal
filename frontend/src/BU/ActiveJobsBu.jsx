@@ -7,6 +7,8 @@ import {
   Wrench,
   Flag,
   ArrowLeft,
+  Clock,
+  Wallet2,
 } from "lucide-react";
 import JobHeader from "../components/JobHeader";
 import SubmitProfileModal from "./SubmitProfileModelBu";
@@ -15,6 +17,7 @@ import { baseUrl } from "../api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Pagination from "../components/Pagination";
+import EditJobModal from "./EditJobModal";
 
 dayjs.extend(relativeTime);
 
@@ -45,6 +48,7 @@ const ActiveJobsBu = () => {
   const [page, setPage] = useState(1);
   const [experience, setExperience] = useState("All");
   const [location, setLocation] = useState("");
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   const toggleDescription = () => setIsExpanded(!isExpanded);
 
@@ -53,7 +57,7 @@ const ActiveJobsBu = () => {
     setLoading(true);
 
     try {
-      const response = await axios.get(`${baseUrl}/api/getjobsbu`, {
+      const response = await axios.get(`${baseUrl}/api/getjobs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -130,16 +134,18 @@ const ActiveJobsBu = () => {
                   key={job._id} // API jobs should have _id
                   onClick={() => setSelectedJob(job)}
                   className={`p-4 border rounded-xl shadow-sm cursor-pointer transition 
-                hover:shadow-lg hover:scale-[1.02] ${selectedJob?._id === job._id
-                      ? "border-blue-500"
-                      : "border-gray-200"
-                    }`}
+                hover:shadow-lg hover:scale-[1.02] ${
+                  selectedJob?._id === job._id
+                    ? "border-blue-500"
+                    : "border-gray-200"
+                }`}
                 >
                   <div className="flex justify-between items-start">
                     <h3 className="font-semibold text-lg">{job.title}</h3>
                     <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${statusColors[job.status] || "bg-gray-200 text-gray-600"
-                        }`}
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        statusColors[job.status] || "bg-gray-200 text-gray-600"
+                      }`}
                     >
                       {job.status}
                     </span>
@@ -159,9 +165,10 @@ const ActiveJobsBu = () => {
                     <MapPin className="w-4 h-4 text-gray-400" />
                     {job.location}
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs ${priorityColors[job.priority] ||
+                      className={`px-2 py-0.5 rounded-full text-xs ${
+                        priorityColors[job.priority] ||
                         "bg-gray-200 text-gray-600"
-                        }`}
+                      }`}
                     >
                       {job.priority}
                     </span>
@@ -201,61 +208,171 @@ const ActiveJobsBu = () => {
         </div>
 
         {/* ------------------ DETAILS VIEW ------------------ */}
-        <div
-          className={`w-full md:w-2/3 flex flex-col bg-white shadow-md overflow-hidden
+        {loading ? (
+          <div className="w-full md:w-2/3 flex items-center justify-center p-10">
+            <div className="h-10 w-10 border-4 border-blue-500 border-solid border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <div
+            className={`w-full md:w-2/3 flex flex-col bg-white shadow-md overflow-hidden
           ${!selectedJob ? "hidden md:flex" : "flex"}`}
-        >
-          {selectedJob ? (
-            <div className="flex flex-col h-full">
-              {/* Top Section */}
-              <div className="p-4 border-b flex-shrink-0 bg-white z-10">
-                <div className="flex justify-between items-start flex-wrap gap-2">
-                  <div>
-                    {/* Back button for mobile & tab */}
-                    <button
-                      className="flex items-center gap-1 text-blue-600 mb-3 md:hidden"
-                      onClick={() => setSelectedJob(null)}
-                    >
-                      <ArrowLeft size={18} /> Back to Jobs
-                    </button>
+          >
+            {selectedJob ? (
+              <div className="flex flex-col h-full">
+                {/* Top Section */}
+                <div className="p-4 border-b flex-shrink-0 bg-white z-10">
+                  <div className="flex justify-between items-start flex-wrap gap-2">
+                    <div>
+                      {/* Back button for mobile & tab */}
+                      <button
+                        className="flex items-center gap-1 text-blue-600 mb-3 md:hidden"
+                        onClick={() => setSelectedJob(null)}
+                      >
+                        <ArrowLeft size={18} /> Back to Jobs
+                      </button>
 
-                    <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
-                      {selectedJob.title}
-                    </h2>
-                    <p className="text-base md:text-lg text-gray-700">
-                      {selectedJob.organization}
-                    </p>
-                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
-                      <MapPin className="w-4 h-4 text-gray-400" />
-                      {selectedJob.location}
-                    </p>
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="mt-4 px-4 md:px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm md:text-base"
-                    >
-                      Submit Profile
-                    </button>
-                    <SubmitProfileModal
-                      isOpen={isModalOpen}
-                      onClose={() => setIsModalOpen(false)}
-                      token={token}
-                      jobId={selectedJob?._id}
-                    />
-                  </div>
-                  <span
-                    className={`px-3 py-1 text-sm font-medium rounded-full ${statusColors[selectedJob.status] ||
-                      "bg-gray-200 text-gray-600"
+                      <h2 className="text-2xl md:text-3xl font-semibold text-gray-900">
+                        {selectedJob.title}
+                      </h2>
+                      <p className="text-base md:text-lg text-gray-700">
+                        {selectedJob.organization}
+                      </p>
+                      <p className="text-sm text-gray-500 flex items-center gap-1 mt-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        {selectedJob.location}
+                      </p>
+                      <div className="flex gap-3 mt-4">
+                        <button
+                          onClick={() => setIsModalOpen(true)}
+                          className="px-4 md:px-5 py-2 rounded-lg text-sm md:text-base
+               bg-blue-600 text-white hover:bg-blue-700 
+               transition-all shadow-sm hover:shadow-md"
+                        >
+                          Submit Profile
+                        </button>
+
+                        <button
+                          onClick={() => setEditModalOpen(true)}
+                          className="px-4 md:px-5 py-2 rounded-lg text-sm md:text-base
+               bg-white border border-amber-500 text-amber-600
+               hover:bg-amber-50 hover:border-amber-600 
+               transition-all shadow-sm hover:shadow-md"
+                        >
+                          Edit Job
+                        </button>
+                      </div>
+
+                      <SubmitProfileModal
+                        isOpen={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                        token={token}
+                        jobId={selectedJob?._id}
+                      />
+
+                      <EditJobModal
+                        isOpen={editModalOpen}
+                        onClose={() => setEditModalOpen(false)}
+                        job={selectedJob}
+                        token={token}
+                        onUpdated={(updated) => {
+                          setSelectedJob(updated);
+                          // optionally refetch list
+                        }}
+                        fetchJobs={fetchJobs}
+                      />
+                    </div>
+                    <span
+                      className={`px-3 py-1 text-sm font-medium rounded-full ${
+                        statusColors[selectedJob.status] ||
+                        "bg-gray-200 text-gray-600"
                       } mt-2`}
-                  >
-                    {selectedJob.status}
-                  </span>
+                    >
+                      {selectedJob.status}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
-                {/* Skills & Info */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Scrollable Content */}
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6">
+                  {/* Skills & Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Experience */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <Briefcase size={16} className="text-gray-400" />
+                        Experience
+                      </h3>
+                      <p className="text-gray-800 font-medium">
+                        {selectedJob.experienceMin} -{" "}
+                        {selectedJob.experienceMax} years
+                      </p>
+                    </div>
+
+                    {/* Priority */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <Flag size={16} className="text-gray-400" />
+                        Priority
+                      </h3>
+                      <p
+                        className={`inline-block text-base font-semibold px-3 py-1 rounded-md ${
+                          priorityColors[selectedJob.priority] ||
+                          "bg-gray-200 text-gray-600"
+                        } bg-opacity-10`}
+                      >
+                        {selectedJob.priority}
+                      </p>
+                    </div>
+
+                    {/* Positions */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <Users size={16} className="text-gray-400" />
+                        Positions
+                      </h3>
+                      <p className="text-gray-800 font-medium">
+                        {selectedJob.noOfPositions} Openings
+                      </p>
+                    </div>
+
+                    {/* budget */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <Wallet2 size={16} className="text-gray-400" />
+                        Budget
+                      </h3>
+                      <p className="text-gray-800 font-medium">
+                        {selectedJob.budgetMin} - {selectedJob.budgetMax} LPA
+                      </p>
+                    </div>
+
+                    {/* Work Type */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <MapPin size={16} className="text-gray-400" />
+                        Work Type
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-blue-50 text-blue-700 text-sm px-3 py-1 rounded-full border border-blue-200 hover:bg-blue-100 cursor-pointer transition">
+                          {selectedJob.workType || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Job Type */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <Clock size={16} className="text-gray-400" />
+                        Job Type
+                      </h3>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full border border-green-200 hover:bg-green-100 cursor-pointer transition">
+                          {selectedJob.jobType || "N/A"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Skills */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
                       <Wrench size={16} className="text-gray-400" />
@@ -265,7 +382,7 @@ const ActiveJobsBu = () => {
                       {selectedJob.skills?.map((skill, i) => (
                         <span
                           key={i}
-                          className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200"
+                          className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
                         >
                           {skill}
                         </span>
@@ -273,69 +390,34 @@ const ActiveJobsBu = () => {
                     </div>
                   </div>
 
+                  {/* Description */}
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                      <Flag size={16} className="text-gray-400" />
-                      Priority
+                    <h3 className="text-lg md:text-xl font-semibold text-gray-900">
+                      Job Description
                     </h3>
-                    <p
-                      className={`inline-block text-base font-semibold px-3 py-1 rounded-md ${priorityColors[selectedJob.priority] ||
-                        "bg-gray-200 text-gray-600"
-                        } bg-opacity-10`}
-                    >
-                      {selectedJob.priority}
+                    <p className="mt-2 text-gray-600 leading-relaxed whitespace-pre-line text-sm md:text-base">
+                      {isExpanded
+                        ? selectedJob.description
+                        : `${selectedJob.description?.substring(0, 300)}...`}
                     </p>
+                    {selectedJob.description?.length > 300 && (
+                      <button
+                        className="text-blue-600 mt-2 hover:underline"
+                        onClick={toggleDescription}
+                      >
+                        {isExpanded ? "See Less" : "See More"}
+                      </button>
+                    )}
                   </div>
-
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                      <Briefcase size={16} className="text-gray-400" />
-                      Experience
-                    </h3>
-                    <p className="text-gray-800 font-medium">
-                      {selectedJob.experienceMin} - {selectedJob.experienceMax}{" "}
-                      years
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                      <Users size={16} className="text-gray-400" />
-                      Positions
-                    </h3>
-                    <p className="text-gray-800 font-medium">
-                      {selectedJob.noOfPositions} Openings
-                    </p>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <h3 className="text-lg md:text-xl font-semibold text-gray-900">
-                    Job Description
-                  </h3>
-                  <p className="mt-2 text-gray-600 leading-relaxed whitespace-pre-line text-sm md:text-base">
-                    {isExpanded
-                      ? selectedJob.description
-                      : `${selectedJob.description?.substring(0, 300)}...`}
-                  </p>
-                  {selectedJob.description?.length > 300 && (
-                    <button
-                      className="text-blue-600 mt-2 hover:underline"
-                      onClick={toggleDescription}
-                    >
-                      {isExpanded ? "See Less" : "See More"}
-                    </button>
-                  )}
                 </div>
               </div>
-            </div>
-          ) : (
-            <p className="text-gray-500 m-auto text-center p-6 hidden md:block">
-              Select a job to view details
-            </p>
-          )}
-        </div>
+            ) : (
+              <p className="text-gray-500 m-auto text-center p-6 hidden md:block">
+                Select a job to view details
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

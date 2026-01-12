@@ -161,9 +161,7 @@ const OnboardingCandidates = () => {
         }
       );
       if (response.status === 200) {
-        toast.success(
-          `Great! Status is now set to Hired.`
-        );
+        toast.success(`Great! Status is now set to Hired.`);
         setShowSidebar(false);
         fetchOnboardingCandidates();
       } else {
@@ -279,7 +277,6 @@ const OnboardingCandidates = () => {
               className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
         </div>
       </div>
 
@@ -314,7 +311,6 @@ const OnboardingCandidates = () => {
             </tbody>
           </table>
         ) : filteredCandidates.length === 0 ? (
-
           <table className="w-full text-sm text-left table-auto">
             <thead className="bg-gray-200 text-gray-700 uppercase text-xs border-b font-medium">
               <tr>
@@ -360,24 +356,28 @@ const OnboardingCandidates = () => {
                   const status = c.status || "Pending";
                   const normalizedStatus = status.toLowerCase();
 
+
                   const statusClasses =
                     normalizedStatus === "approved"
                       ? "bg-green-100 text-green-800 border-green-300"
                       : normalizedStatus === "review"
-                        ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                        : "bg-gray-100 text-gray-700 border-gray-300";
+                      ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                      : "bg-gray-100 text-gray-700 border-gray-300";
 
                   return (
                     <tr
                       key={index}
-                      className={`transition-colors ${normalizedStatus === "review"
-                        ? "bg-gray-50 hover:bg-gray-100"
-                        : "hover:bg-gray-50"
-                        }`}
+                      className={`transition-colors ${
+                        normalizedStatus === "review"
+                          ? "bg-gray-50 hover:bg-gray-100"
+                          : "hover:bg-gray-50"
+                      }`}
                     >
                       {/* Name */}
                       <td
-                        onClick={() => navigate(`/application-tracker_ta/${c._id}`)}
+                        onClick={() =>
+                          navigate(`/application-tracker_hr/${c._id}`)
+                        }
                         className="px-4 py-4 cursor-pointer align-top"
                       >
                         <div className="flex flex-col space-y-1">
@@ -449,13 +449,17 @@ const OnboardingCandidates = () => {
 
                       {/* Joining Date */}
                       <td className="px-4 py-4 align-top text-xs text-gray-700 whitespace-nowrap">
-                        {c.joiningDate ? moment(c.joiningDate).format("lll") : "N/A"}
+                        {c.joiningDate
+                          ? moment(c.joiningDate).format("lll")
+                          : "N/A"}
                       </td>
 
                       {/* Feedback */}
                       <td className="px-4 py-4 align-top text-xs text-gray-700 max-w-xs">
                         {c.joiningFeedback ? (
-                          <span className="line-clamp-2">{c.joiningFeedback}</span>
+                          <span className="line-clamp-2">
+                            {c.joiningFeedback}
+                          </span>
                         ) : (
                           <span className="text-gray-400">N/A</span>
                         )}
@@ -489,10 +493,11 @@ const OnboardingCandidates = () => {
                             setSelectedCandidateId(c._id);
                           }}
                           disabled={c.onboardingInitiated}
-                          className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${c.onboardingInitiated
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-green-600 hover:bg-green-700"
-                            }`}
+                          className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${
+                            c.onboardingInitiated
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-green-600 hover:bg-green-700"
+                          }`}
                         >
                           {c.onboardingInitiated ? (
                             <span>Offer Initiated</span>
@@ -531,12 +536,13 @@ const OnboardingCandidates = () => {
                       </div>
                     ) : (
                       <span
-                        className={`inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border ${c.status?.toLowerCase() === "approved"
+                        className={`inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border ${
+                          c.status?.toLowerCase() === "approved"
                             ? "bg-green-100 text-green-800 border-green-300"
                             : c.status?.toLowerCase() === "review"
-                              ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                              : "bg-gray-100 text-gray-700 border-gray-300"
-                          }`}
+                            ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                            : "bg-gray-100 text-gray-700 border-gray-300"
+                        }`}
                       >
                         <span>{c.status}</span>
 
@@ -554,7 +560,6 @@ const OnboardingCandidates = () => {
                   </div>
 
                   <div className="mt-3 text-sm text-gray-700 space-y-2 leading-relaxed">
-
                     {/* Email */}
                     <p className="flex items-center gap-2">
                       <span className="text-base">📧</span>
@@ -617,10 +622,11 @@ const OnboardingCandidates = () => {
                         setSelectedCandidateId(c._id);
                       }}
                       disabled={c.onboardingInitiated}
-                      className={`flex items-center justify-center gap-2 text-white text-sm px-3 py-2 rounded-md focus:outline-none transition ${c.onboardingInitiated
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700"
-                        }`}
+                      className={`flex items-center justify-center gap-2 text-white text-sm px-3 py-2 rounded-md focus:outline-none transition ${
+                        c.onboardingInitiated
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-green-600 hover:bg-green-700"
+                      }`}
                     >
                       {c.onboardingInitiated ? (
                         <span>Offer Initiated</span>

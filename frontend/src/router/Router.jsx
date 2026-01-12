@@ -8,7 +8,7 @@ import BULayout from "../layout/BULayout";
 
 // TA Components
 import CandidateList from "../ta/CandidateList";
-import HiredCandidates from "../ta/HiredCandidates";
+import HiredCandidates from "../hr/HiredCandidates";
 import CandidateStatus from "../ta/CandidateStatus";
 
 import AssignedCandidatePage from "../ta/AssignedPage";
@@ -28,17 +28,27 @@ import UserPage from "../pages/user/User";
 import Profile from "../pages/profile/Profile";
 import FresherOnboardingForm from "../pages/onboardingForm/FresherOnboardingForm";
 import ExperienceOnboardingForm from "../pages/onboardingForm/ExperienceOnboardingForm";
-import OnboardingCandidates from "../ta/OnboardingCandidates";
-
-// BU Components
-import BUDashboard from "../bu/BUDashboard";
 import ForgotPassword from "../components/ForgotPassword";
-import ActiveJobsBu from "../BU/ActiveJobsBu";
-// import Feeds from "../bu/Feeds";
 import CandidateRegistrationDummy from "../pages/registration/Registration-dummy";
 import JobDetailPage from "../components/JobDetailPage";
 import OpeningJobCard from "../jobPost/OpeningJobCard";
 import ViewCandidates from "../jobPost/ViewCandidates";
+import FeedbackForm from "../feedback/FeedbackForm";
+
+// HRComponents
+import OnboardingCandidates from "../hr/OnboardingCandidates";
+import HrLayout from "../layout/HRLayout";
+
+// TA Components
+import TaDashboard from "../ta/TaDashboard";
+import ApplicantStatus from "../ta/ApplicantStatus";
+
+// BU Components
+import BUDashboard from "../bu/BUDashboard";
+import ActiveJobsBu from "../BU/ActiveJobsBu";
+// import Feeds from "../bu/Feeds";
+import ApproveCandidates from "../BU/ApproveCandidates";
+import ReferredCandidates from "../BU/ReferredCandidates";
 
 // Account Manager Components
 import AccountDashboard from "../accounts/AccountDashboard";
@@ -47,7 +57,6 @@ import AccountLayout from "../layout/AccountLayout";
 import InvoiceList from "../accounts/InvoiceList";
 import Companies from "../accounts/Companies";
 import CompanyInvoiceList from "../accounts/CompanyInvoiceList";
-import FeedbackForm from "../feedback/FeedbackForm";
 
 // Vendor Components
 import VendorLayout from "../layout/VendorLayout";
@@ -55,6 +64,8 @@ import ApplicantsList from "../vendor/ApplicantsList";
 import VendorDashboard from "../vendor/VendorDashboard";
 import ActiveJobsVendor from "../vendor/ActiveJobsVendor";
 import ProfileSubmissionForm from "../vendor/ProfileSubmissionForm";
+import VendorCandidates from "../vendor/VendorCandidates";
+import AssignedVendorCandidates from "../vendor/AssignedVendorCandidates";
 
 // Sales Components
 import SalesLayout from "../layout/SalesLayout";
@@ -62,13 +73,7 @@ import SalesDashboard from "../sales/SalesDashboard";
 import CreatePostJob from "../sales/CreatePostJob";
 import CreateCompany from "../sales/CreateCompany";
 import Feeds from "../sales/Feeds";
-import TaDashboard from "../ta/TaDashboard";
-import ApplicantStatus from "../ta/ApplicantStatus";
-import VendorCandidates from "../ta/VendorCandidates";
-import AssignedVendorCandidates from "../ta/AssignedVendorCandidates";
 import ReferredTalent from "../sales/ReferredTalent";
-import ApproveCandidates from "../BU/ApproveCandidates";
-import ReferredCandidates from "../BU/ReferredCandidates";
 // import ShortlistedCandidateAllHR from "../hr/ShortlistedCandidateAllHR";
 
 // Route Wrappers
@@ -82,6 +87,10 @@ const AdminRoute = ({ user }) =>
   ) : (
     <Navigate to="/unauthorized" replace />
   );
+
+const HrRoute = ({ user }) =>
+  user?.role === "hr" ? <Outlet /> : <Navigate to="/unauthorized" replace />;
+
 const BURoute = ({ user }) =>
   user?.role === "bu" ? <Outlet /> : <Navigate to="/unauthorized" replace />;
 
@@ -144,7 +153,7 @@ const AppRouter = ({ isAuth }) => {
 
       {/* Private Routes */}
       <Route element={<PrivateRoute isAuth={isAuth} />}>
-        {/* HR/Admin Routes */}
+        {/* TA/Admin Routes */}
         <Route element={<AdminRoute user={user} />}>
           <Route element={<TaLayout />}>
             <Route path="/dashboard/ta" element={<TaDashboard />} />
@@ -171,18 +180,43 @@ const AppRouter = ({ isAuth }) => {
               element={<ShortlistedCandidateAllHR />}
             /> */}
 
+            {/* <Route
+              path="/onboarding-candidates"
+              element={<OnboardingCandidates />}
+            />*/}
+            <Route path="/hired-candidates-ta" element={<HiredCandidates />} /> 
+            <Route path="/candidates-status-ta" element={<CandidateStatus />} />
+            {/* <Route path="/user" element={<UserPage />} /> */}
+            {/* <Route path="/vendor-candidates" element={<VendorCandidates />} />
+            <Route
+              path="/assigned-vendor-candidates"
+              element={<AssignedVendorCandidates />}
+            /> */}
+          </Route>
+        </Route>
+        {/* HR Routes */}
+        <Route element={<HrRoute user={user} />}>
+          <Route element={<HrLayout />}>
+            <Route path="/dashboard/hr" element={<TaDashboard />} />
+
+            <Route path="/profile/hr" element={<Profile />} />
+            <Route
+              path="/application-tracker_hr/:candidateId"
+              element={<ApplicationTracker />}
+            />
+
+            {/* <Route
+              path="/shortlisted-candidate-all-hr"
+              element={<ShortlistedCandidateAllHR />}
+            /> */}
+
             <Route
               path="/onboarding-candidates"
               element={<OnboardingCandidates />}
             />
-            <Route path="/hired-candidates" element={<HiredCandidates />} />
-            <Route path="/candidates-status-ta" element={<CandidateStatus />} />
+            <Route path="/hired-candidates-hr" element={<HiredCandidates />} />
+            <Route path="/candidates-status-hr" element={<CandidateStatus />} />
             <Route path="/user" element={<UserPage />} />
-            <Route path="/vendor-candidates" element={<VendorCandidates />} />
-            <Route
-              path="/assigned-vendor-candidates"
-              element={<AssignedVendorCandidates />}
-            />
           </Route>
         </Route>
 
@@ -289,6 +323,11 @@ const AppRouter = ({ isAuth }) => {
               path="/application-tracker_vendor/:candidateId"
               element={<ApplicationTracker />}
             />
+            <Route path="/vendor-candidates" element={<VendorCandidates />} />
+            <Route
+              path="/assigned-vendor-candidates"
+              element={<AssignedVendorCandidates />}
+            />
           </Route>
         </Route>
       </Route>
@@ -303,6 +342,8 @@ const AppRouter = ({ isAuth }) => {
           isAuth ? (
             user?.role === "ta" || user?.role === "admin" ? (
               <Navigate to="/dashboard/ta" replace />
+            ) : user?.role === "hr" ? (
+              <Navigate to="/dashboard/hr" replace />
             ) : user?.role === "bu" ? (
               <Navigate to="/dashboard/bu" replace />
             ) : user?.role === "accounts" ? (
