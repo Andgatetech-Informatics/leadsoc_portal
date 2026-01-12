@@ -1,318 +1,271 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { Search } from "lucide-react";
 import Pagination from "../components/Pagination";
+import axios from "axios";
+import { baseUrl } from "../api";
+
+const TABS = [
+  { key: "internal", label: "Bench Candidates" },
+  { key: "external", label: "Pipeline Candidates" },
+  { key: "vendor", label: "Vendor Candidates" },
+];
+
+const LIMIT = 3;
 
 const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("bench"); // bench | pipeline | vendor
+  const [activeTab, setActiveTab] = useState("internal");
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCandidates, setSelectedCandidates] = useState([]);
-  const [submitLoading, setSubmitLoading] = useState(false);
+  const [candidates, setCandidates] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 3;
 
-  // 🔹 Candidate Data
-  const candidatesData = [
-    {
-      _id: "1",
-      name: "John Doe",
-      experience: "Fresher",
+  /* ---------------- FETCH CANDIDATES ---------------- */
+  const fetchCandidates = useCallback(async () => {
+    try {
+      setLoading(true);
 
-      email: "john@example.com",
-      mobile: "1234567890",
-      jobPosition: "Frontend Developer",
-      category: "bench",
-      taName: "Karan Singh",
-      role: "Vendor",
-    },
-    {
-      _id: "2",
-      name: "Jane Smith",
-      experience: "2 yrs",
+      const { data, status } = await axios.get(
+        `${baseUrl}/api/getshortlistedProfilesForBu`,
+        {
+          params: {
+            candidateType: activeTab,
+            page,
+            limit: LIMIT,
+            search: searchTerm,
+            jobId,
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-      email: "jane@example.com",
-      mobile: "0987654321",
-      jobPosition: "Backend Developer",
-      category: "pipeline",
-      taName: "Madhavi Singh",
-      role: "",
-    },
-    {
-      _id: "3",
-      name: "Bob Brown",
-      experience: "5 yrs",
+      if (![200, 201].includes(status)) {
+        throw new Error("Fetch failed");
+      }
 
-      email: "bob@example.com",
-      mobile: "1112223333",
-      jobPosition: "Fullstack Developer",
-      category: "vendor",
-      taName: "Karan Singh",
-      role: "Vendor",
-    },
-    {
-      _id: "4",
-      name: "Alice Green",
-      experience: "3 yrs",
+      console.log("Fetched Candidates:", data);
 
-      email: "alice.green@gmail.com",
-      mobile: "2223334444",
-      jobPosition: "UI/UX Designer",
-      category: "bench",
-      taName: "Madhavi Singh",
-      role: "",
-    },
-    {
-      _id: "5",
-      name: "Charlie Blue",
-      experience: "1 yr",
-
-      email: "charlie.blue@gmail.com",
-      mobile: "5556667777",
-      jobPosition: "QA Engineer",
-      category: "pipeline",
-      taName: "Karan Singh",
-      role: "Vendor",
-    },
-    {
-      _id: "6",
-      name: "Eve White",
-      experience: "4 yrs",
-
-      email: "eve.white@gmail.com",
-      mobile: "8889990000",
-      jobPosition: "DevOps Engineer",
-      category: "vendor",
-      taName: "Madhavi Singh",
-      role: "Vendor",
-    },
-  ];
-
-  // 🔹 Filter candidates by tab and search
-  const filteredCandidates = candidatesData
-    .filter((c) => c.category === activeTab)
-    .filter((c) => c.name.toLowerCase().includes(searchTerm.toLowerCase()));
-
-  // Pagination
-  const startIndex = (page - 1) * limit;
-  const paginatedCandidates = filteredCandidates.slice(
-    startIndex,
-    startIndex + limit
-  );
+      setCandidates(data.data || []);
+      setTotalPages(data.pagination.totalPages || 1);
+    } catch (err) {
+      console.error("Fetch Candidates Error:", err);
+      toast.error("Failed to fetch candidates");
+    } finally {
+      setLoading(false);
+    }
+  }, [activeTab, page, searchTerm, jobId]);
 
   useEffect(() => {
-    setTotalPages(Math.ceil(filteredCandidates.length / limit) || 1);
-  }, [filteredCandidates.length]);
+    if (isOpen) fetchCandidates();
+  }, [fetchCandidates, isOpen]);
 
-  // Checkbox logic
-  const handleCheckboxChange = (id) => {
-    setSelectedCandidates((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+  /* ---------------- SELECTION LOGIC ---------------- */
+  const toggleCandidate = (id) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     );
   };
 
-  const handleSelectAll = () => {
-    const currentPageIds = paginatedCandidates.map((c) => c._id);
-    const allSelected = currentPageIds.every((id) =>
-      selectedCandidates.includes(id)
-    );
+  const toggleSelectAll = () => {
+    const pageIds = candidates.map((c) => c._id);
+    const allSelected = pageIds.every((id) => selectedIds.includes(id));
 
-    if (allSelected) {
-      setSelectedCandidates((prev) =>
-        prev.filter((id) => !currentPageIds.includes(id))
-      );
-    } else {
-      setSelectedCandidates((prev) => [
-        ...new Set([...prev, ...currentPageIds]),
-      ]);
-    }
+    setSelectedIds((prev) =>
+      allSelected
+        ? prev.filter((id) => !pageIds.includes(id))
+        : [...new Set([...prev, ...pageIds])]
+    );
   };
 
-  const confirmSubmit = () => {
-    if (selectedCandidates.length === 0) {
-      toast.warn("Please select at least one candidate.");
+  const allSelected =
+    candidates.length > 0 &&
+    candidates.every((c) => selectedIds.includes(c._id));
+
+  /* ---------------- SUBMIT ---------------- */
+  const handleSubmit = async () => {
+    if (!selectedIds.length) {
+      toast.warn("Please select at least one candidate");
       return;
     }
-    handleSubmit();
-  };
 
-  const handleSubmit = () => {
-    setSubmitLoading(true);
-    setTimeout(() => {
-      toast.success("Candidates submitted successfully!");
-      setSelectedCandidates([]);
-      setSubmitLoading(false);
+    try {
+      setLoading(true);
+
+      // 🔹 API call can be placed here
+      await new Promise((res) => setTimeout(res, 1000));
+
+      toast.success("Candidates submitted successfully");
+      setSelectedIds([]);
       onClose();
-    }, 1000);
+    } catch (err) {
+      toast.error("Submission failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Reset selected candidates on tab change
-  useEffect(() => {
-    setSelectedCandidates([]);
+  /* ---------------- TAB CHANGE ---------------- */
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
     setPage(1);
-  }, [activeTab]);
+    setSelectedIds([]);
+  };
 
   if (!isOpen) return null;
 
-  const filteredIds = paginatedCandidates.map((c) => c._id);
-  const allSelected =
-    filteredIds.length > 0 &&
-    filteredIds.every((id) => selectedCandidates.includes(id));
-
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 relative flex flex-col min-h-[600px] animate-fadeIn">
-        {/* Close */}
-        {/* Close Button */}{" "}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="relative flex h-[80vh] max-h-[700px] min-h-[600px] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl">
+
+        {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500 rounded-full p-2 transition-colors duration-200"
+          aria-label="Close"
+          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          {" "}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            className="w-5 h-5"
-          >
-            {" "}
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M6 18L18 6M6 6l12 12"
-            />{" "}
-          </svg>{" "}
+          ✕
         </button>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          Submit Candidate Profiles
-        </h2>
-        {/* Tabs */}
-        <div className="flex gap-4 mb-4">
-          {["bench", "pipeline", "vendor"].map((tab) => (
-            <button
-              key={tab}
-              className={`px-4 py-2 rounded-lg ${
-                activeTab === tab
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </button>
-          ))}
-        </div>
-        {/* Search */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search candidates..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-        </div>
-        {/* Select All */}
-        {paginatedCandidates.length > 0 && (
-          <div className="flex items-center justify-between mb-2 px-1">
-            <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={allSelected}
-                onChange={handleSelectAll}
-                className="h-4 w-4 text-blue-600 accent-blue-600"
-              />
-              {allSelected ? "Deselect All" : "Select All"}
-            </label>
-            <span className="text-xs text-gray-500">
-              {selectedCandidates.length} selected
-            </span>
-          </div>
-        )}
-        {/* Candidate List */}
-        <div className="flex-1 max-h-72 overflow-y-auto space-y-2 pr-1 transition-all duration-200">
-          {paginatedCandidates.length > 0 ? (
-            paginatedCandidates.map((candidate) => (
-              <div
-                key={candidate._id}
-                onClick={() =>
-                  navigate(`/application-tracker_bu/${candidate._id}`)
-                }
-                className="flex items-center cursor-pointer justify-between bg-gray-50 border rounded-lg p-3 hover:shadow-md transition"
+
+        {/* ===== Header ===== */}
+        <div className="sticky top-0 z-10 rounded-t-2xl border-b bg-white px-6 pt-6">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            Submit Candidate Profiles
+          </h2>
+
+          {/* Tabs */}
+          <div className="mt-4 flex gap-2">
+            {TABS.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => handleTabChange(key)}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === key
+                    ? "bg-blue-600 text-white shadow"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
               >
-                {/* Checkbox + Name + Experience */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedCandidates.includes(candidate._id)}
-                    onChange={() => handleCheckboxChange(candidate._id)}
-                    className="h-5 w-5 text-blue-600 accent-blue-600"
-                  />
-                  <div>
-                    <p className="font-normal text-gray-800">
-                      {candidate.name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {candidate.experience || "Fresher"}
-                    </p>
-                  </div>
-                </div>
+                {label}
+              </button>
+            ))}
+          </div>
 
-                {/* Contact */}
-                <div className="flex flex-col text-sm text-gray-600 gap-1 w-40">
-                  <span title={candidate.email}>{candidate.email}</span>
-                  <span title={candidate.mobile}>{candidate.mobile}</span>
-                </div>
+          {/* Search */}
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            <input
+              className="w-full rounded-lg border border-gray-300 py-2 pl-10 pr-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="Search candidates..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setPage(1);
+              }}
+            />
+          </div>
 
-                {/* Job Position */}
-                <div className="text-sm text-gray-700 w-36">
-                  {candidate.jobPosition}
-                </div>
+          {/* Select All + Pagination */}
+          {candidates.length > 0 && (
+            <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={allSelected}
+                  onChange={toggleSelectAll}
+                  className="accent-blue-600"
+                />
+                {allSelected ? "Deselect All" : "Select All"}
+              </label>
 
-                {/* Category */}
-
-                {/* TA */}
-                <div className="text-sm text-gray-700 w-32">
-                  <p>{candidate.taName || "Unassigned"}</p>
-                  {candidate.vendor && (
-                    <p className="text-xs text-gray-500">{candidate.vendor}</p>
-                  )}
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500 text-sm">No candidates found.</p>
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPrevious={() => setPage((p) => Math.max(1, p - 1))}
+                onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
+              />
+            </div>
           )}
         </div>
-        {/* Pagination */}
-        <div className="mt-4">
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPrevious={() => setPage((p) => Math.max(1, p - 1))}
-            onNext={() => setPage((p) => Math.min(totalPages, p + 1))}
-          />
+
+        {/* ===== Candidate List ===== */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          {loading ? (
+            <p className="text-center text-sm text-gray-500">Loading...</p>
+          ) : candidates.length ? (
+            <div className="space-y-3">
+              {candidates.map((c) => (
+                <div
+                  key={c._id}
+                  className="grid grid-cols-[auto_1.5fr_1.5fr_1fr_1fr] items-center gap-4 rounded-xl border p-4 transition hover:bg-gray-50 hover:shadow-sm"
+                >
+                  {/* Checkbox */}
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.includes(c._id)}
+                    onChange={() => toggleCandidate(c._id)}
+                    onClick={(e) => e.stopPropagation()}
+                    className="accent-blue-600"
+                  />
+
+                  {/* Name */}
+                  <div
+                    onClick={() => navigate(`/application-tracker_bu/${c._id}`)}
+                    className="cursor-pointer"
+                  >
+                    <p className="font-medium text-gray-800">{c.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {c.experience || "Fresher"}
+                    </p>
+                  </div>
+
+                  {/* Contact */}
+                  <div className="text-sm text-gray-600">
+                    <p className="truncate">{c.email}</p>
+                    <p>{c.mobile}</p>
+                  </div>
+
+                  {/* Job */}
+                  <div className="text-sm text-gray-700">
+                    {c.jobPosition}
+                  </div>
+
+                  {/* TA */}
+                  <div className="text-sm text-gray-500">
+                    {c.taName || "Unassigned"}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center text-sm text-gray-500">
+              No candidates found
+            </p>
+          )}
         </div>
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={confirmSubmit}
-            className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-md transition disabled:opacity-50"
-            disabled={submitLoading}
-          >
-            {submitLoading ? "Approving..." : "Approve"}
-          </button>
+
+        {/* ===== Footer ===== */}
+        <div className="sticky bottom-0 rounded-b-2xl border-t bg-white px-6 py-4">
+          <div className="flex justify-end">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Approving..." : "Approve"}
+            </button>
+          </div>
         </div>
+
       </div>
     </div>
+
   );
 };
 

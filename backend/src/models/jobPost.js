@@ -18,6 +18,10 @@ const JobSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    domain: {
+      type: Array,
+      required: true,
+    },
     location: {
       type: String,
       required: true,
@@ -112,7 +116,7 @@ const JobSchema = new mongoose.Schema(
     ],
     visibility: {
       type: String,
-      enum: ["ta", "bu", "vendor", "all "],
+      enum: ["ta", "bu", "vendor", "all"],
       default: "bu",
     },
     workType: {
@@ -131,11 +135,11 @@ const JobSchema = new mongoose.Schema(
     budgetMax: {
       type: Number,
     },
-    modifiedBudgetMin : {
-      type : Number
+    modifiedBudgetMin: {
+      type: Number
     },
-    modifiedBudgetMax : {
-      type : Number
+    modifiedBudgetMax: {
+      type: Number
     },
   },
   { timestamps: true, versionKey: false }
