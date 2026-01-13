@@ -17,15 +17,15 @@ exports.getAllUnassignedCanditates = async (req, res) => {
 
   const searchConditions = search
     ? {
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-          { mobile: { $regex: search, $options: "i" } },
-          { domain: { $regex: search, $options: "i" } },
-          { status: { $regex: search, $options: "i" } },
-          { experienceYears: { $regex: search, $options: "i" } },
-        ],
-      }
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+        { mobile: { $regex: search, $options: "i" } },
+        { domain: { $regex: search, $options: "i" } },
+        { status: { $regex: search, $options: "i" } },
+        { experienceYears: { $regex: search, $options: "i" } },
+      ],
+    }
     : {};
 
   // Build date range filter if provided
@@ -46,7 +46,7 @@ exports.getAllUnassignedCanditates = async (req, res) => {
   const baseFilter = {
     isAssigned: false,
     status: "pending",
-    $or: [{ isFreelancer: false }, { isFreelancer: { $exists: false } }],
+    $or: [{ venderRefered: false }, { venderRefered: { $exists: false } }],
   };
 
   const filter = {
@@ -104,7 +104,7 @@ exports.getAssignedCanditatesToMe = async (req, res) => {
   try {
     const matchStage = {
       assignedTo: user._id,
-      isFreelancer: { $ne: true },
+      venderRefered: { $ne: true },
     };
 
     if (!status || status.toLowerCase() === "all") {
@@ -1144,16 +1144,6 @@ exports.getCandidateDetails = async (req, res) => {
       });
     }
 
-    if (candidate.isFreelancer && candidate.FreelancerId) {
-      const freelancerDetails = await User.findById(
-        candidate.FreelancerId
-      ).select("firstName lastName");
-
-      candidate.freelancerName = freelancerDetails
-        ? `${freelancerDetails.firstName} ${freelancerDetails.lastName}`
-        : null;
-    }
-
     if (candidate.isReferred) {
       const referrerJobs = await Job.find({
         _id: { $in: candidate.jobsReferred },
@@ -1427,24 +1417,25 @@ exports.getHiredCandidates = async (req, res) => {
 };
 
 // Freelance Recruiter - Get Candidates Assigned to Them
-exports.getCandidatesByFreelancer = async (req, res) => {
+exports.getVenderManagerCandidates = async (req, res) => {
   try {
-    const { freelancerId } = req.params;
+    const user = req.user;
+    const venderManagerId = user._id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    if (!freelancerId) {
+    if (!venderManagerId) {
       return res.status(400).json({ message: "Freelancer ID is required" });
     }
 
     const total = await CandidateModel.countDocuments({
-      FreelancerId: freelancerId,
+      venderManagerId: venderManagerId,
     });
 
-    const candidates = await CandidateModel.find({ FreelancerId: freelancerId })
+    const candidates = await CandidateModel.find({ venderRefered: true, venderManagerId: user._id })
       .select(
-        "name email mobile domain releventExp experienceYears currentLocation preferredLocation resume poc jobsReferred status availability createdAt"
+        "name email mobile domain releventExp experienceYears currentLocation preferredLocation resume poc jobsReferred status availability createdAt remark"
       )
       .sort({ createdAt: -1 })
       .skip(skip)
@@ -1472,7 +1463,7 @@ exports.getCandidatesByFreelancer = async (req, res) => {
 
 exports.freelancerProfileToBeRefered = async (req, res) => {
   try {
-    const { freelancerId, jobId } = req.params;
+    const { venderManagerId, jobId } = req.params;
 
     // Pagination
     const page = Number(req.query.page) || 1;
@@ -1480,7 +1471,7 @@ exports.freelancerProfileToBeRefered = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Basic validations
-    if (!freelancerId) {
+    if (!venderManagerId) {
       return res
         .status(400)
         .json({ success: false, message: "Freelancer ID is required" });
@@ -1497,7 +1488,7 @@ exports.freelancerProfileToBeRefered = async (req, res) => {
     // Only candidates of this freelancer that are NOT yet referred to this job
     // jobsReferred is assumed to be an array (or scalar) of job IDs.
     const filter = {
-      FreelancerId: freelancerId,
+      venderManagerId: venderManagerId,
       jobsReferred: { $nin: [jobIdStr] }, // exclude already referred to this job
     };
 
@@ -1541,7 +1532,6 @@ exports.freelancerProfileToBeRefered = async (req, res) => {
 };
 
 exports.freelancerRegistration = async (req, res) => {
-  const { user } = req;
   try {
     const {
       name,
@@ -1555,15 +1545,12 @@ exports.freelancerRegistration = async (req, res) => {
       currentLocation,
       preferredLocation,
       resume,
-      poc,
-      isReferred,
-      jobsReferred,
-      status,
       skills,
       availability,
-      isFreelancer,
-      isAssigned,
-      assignedTo,
+      vendorId,
+      jobId,
+      vendorName,
+      vendorEmail
     } = req.body;
 
     // Basic validation
@@ -1578,6 +1565,7 @@ exports.freelancerRegistration = async (req, res) => {
     const existingCandidate = await CandidateModel.findOne({
       $or: [{ email }, { mobile }],
     });
+
     if (existingCandidate) {
       return res.status(400).json({
         success: false,
@@ -1585,12 +1573,23 @@ exports.freelancerRegistration = async (req, res) => {
       });
     }
 
-    const freelancerName = [user.firstName, user.lastName]
-      .filter(Boolean)
-      .join(" ");
+    const user = await User.findById(vendorId);
+    if (!user || user.role !== "vendor") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid freelancer/vendor ID.",
+      });
+    }
 
-    // Create new candidate
-    const candidate = await CandidateModel.create({
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job ID.",
+      });
+    }
+
+    const createNewCandidate = new CandidateModel({
       name,
       email,
       mobile,
@@ -1602,24 +1601,23 @@ exports.freelancerRegistration = async (req, res) => {
       currentLocation,
       preferredLocation,
       resume,
-      poc,
-      isReferred,
-      jobsReferred,
-      status,
       skills,
       availability,
-      FreelancerId: user._id,
-      freelancerName,
-      isFreelancer,
-      isAssigned,
-      assignedTo,
-      createdAt: new Date(),
+      jobsReferred: [job._id],
+      isReferred: true,
+      candidateType: "vendor",
+      venderRefered: true,
+      vendorName,
+      vendorEmail,
+      vendorManagerName: user.firstName + " " + user.lastName,
+      venderManagerId: user._id,
     });
+
+    await createNewCandidate.save();
 
     res.status(201).json({
       success: true,
       message: "Candidate created successfully",
-      candidate,
     });
   } catch (error) {
     console.error("Error creating candidate:", error);
@@ -1665,9 +1663,9 @@ exports.getFreelanceCandidatesByHR = async (req, res) => {
     const [candidates, total] = await Promise.all([
       CandidateModel.find(
         query,
-        "name email mobile domain dob degree releventExp experienceYears currentLocation preferredLocation resume FreelancerId jobsReferred status availability createdAt"
+        "name email mobile domain dob degree releventExp experienceYears currentLocation preferredLocation resume venderManagerId jobsReferred status availability createdAt"
       )
-        .populate("FreelancerId", "firstName lastName email role")
+        .populate("venderManagerId", "firstName lastName email role")
         .populate("jobsReferred", "title jobCode location status")
         .sort({ createdAt: -1 }) // newest first
         .skip(skip)
@@ -1704,7 +1702,7 @@ exports.getAllFreelanceCandidates = async (req, res) => {
     limit = parseInt(limit);
 
     const filters = {
-      isFreelancer: true,
+      venderRefered: true,
       status: {
         $ne: "hired",
       },
@@ -1729,12 +1727,8 @@ exports.getAllFreelanceCandidates = async (req, res) => {
     // ✅ Fetch paginated results
     const candidates = await CandidateModel.find(filters)
       .select(
-        "name email mobile domain dob degree preferredLocation currentLocation availability resume assignedTo status jobsReferred createdAt poc experienceYears FreelancerId"
+        "name email mobile domain dob degree preferredLocation currentLocation availability resume assignedTo status jobsReferred createdAt poc releventExp experienceYears vendorManagerName remark"
       )
-      .populate({
-        path: "FreelancerId",
-        select: "firstName lastName email mobile",
-      })
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit);
@@ -1839,9 +1833,8 @@ exports.filterCandidatesStatusWise = async (req, res) => {
       filter.status = status;
     }
 
-    if (user.role === "freelancer" || user.role === "vendor") {
-      filter.isFreelancer = true;
-      filter.FreelancerId = user._id;
+    if (user.role === "vendor") {
+      filter.venderRefered = true;
     }
 
     // 🟡 Search Filter

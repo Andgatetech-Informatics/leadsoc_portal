@@ -9,8 +9,8 @@ const ConsentModel = ({
   fetchCandidateDetails,
 }) => {
   const [file, setFile] = useState(null);
-  const [candidateType, setCandidateType] = useState("");
   const [isUploading, setIsUploading] = useState(false);
+  // const [, setIsUploading] = useState(false);
 
   /* -------------------- DERIVED STATE -------------------- */
   const hasConsent = useMemo(
@@ -18,13 +18,12 @@ const ConsentModel = ({
     [candidate]
   );
 
-  const isFormInvalid = !file || !candidateType || isUploading;
+  const isFormInvalid = !file || isUploading;
 
   /* -------------------- HELPERS -------------------- */
   const closeModal = () => {
     setShowConsentModal(false);
     setFile(null);
-    setCandidateType("");
   };
 
   /* -------------------- HANDLERS -------------------- */
@@ -48,7 +47,6 @@ const ConsentModel = ({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("candidateType", candidateType);
 
       const res = await axios.post(
         `${baseUrl}/api/upload_consent/${candidate._id}`,
@@ -106,27 +104,25 @@ const ConsentModel = ({
             />
           </div>
         ) : (
-          <div className="space-y-5 px-6 py-5">
-            {/* Candidate Type */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">
-                Candidate Type <span className="text-red-500">*</span>
-              </label>
-
-              <select
-                value={candidateType}
-                onChange={(e) => setCandidateType(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm
-            focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
+          <div className="space-y-6 px-6 py-5">
+            {/* Consent Checkbox */}
+            <div className="flex items-center gap-3">
+              <input
+                id="consent"
+                type="checkbox"
+                onChange={e.target.value}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+              <label
+                htmlFor="consent"
+                className="text-sm font-medium text-gray-700"
               >
-                <option value="">Select type</option>
-                <option value="internal">On Bench</option>
-                <option value="external">On Pipeline</option>
-              </select>
+                Want to upload Consent Form <span className="text-red-500">*</span>
+              </label>
             </div>
 
             {/* File Upload */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
                 Upload PDF <span className="text-red-500">*</span>
               </label>
@@ -136,15 +132,17 @@ const ConsentModel = ({
                 accept="application/pdf"
                 onChange={handleFileChange}
                 disabled={isUploading}
-                className="w-full cursor-pointer text-sm
-            file:mr-4 file:rounded-lg file:border-0
-            file:bg-blue-600 file:px-4 file:py-2
-            file:text-white transition hover:file:bg-blue-700"
+                className="block w-full text-sm text-gray-600
+        file:mr-4 file:rounded-md file:border-0
+        file:bg-blue-600 file:px-4 file:py-2
+        file:text-white file:text-sm
+        hover:file:bg-blue-700
+        disabled:cursor-not-allowed disabled:opacity-60"
               />
 
               {file && (
                 <p className="text-xs text-gray-500 truncate">
-                  Selected: {file.name}
+                  Selected file: <span className="font-medium">{file.name}</span>
                 </p>
               )}
             </div>

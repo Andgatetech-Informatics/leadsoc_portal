@@ -6,6 +6,6 @@ const { getCandidateStats, getTeamLoad, getDomainStats, getEventChart } = requir
 router.get("/candidates", authMiddleware, getCandidateStats);
 router.get("/teamload", getTeamLoad);
 router.get("/domains", getDomainStats);
-router.get("/event_chart", getEventChart);
+router.get("/event_chart", authMiddleware, getEventChart);
 
 module.exports = router;

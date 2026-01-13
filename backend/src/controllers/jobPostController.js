@@ -5,6 +5,8 @@ const { ObjectId } = require("mongoose").Types;
 const generateJobId = require("../utils/generateJobId");
 const mongoose = require("mongoose");
 const NotificationModel = require("../models/notification");
+const { jobRequirementEmailHtml } = require("../utils/emailTemplates");
+const transporter = require("../utils/mailer");
 
 
 exports.jobPost = async (req, res) => {
@@ -961,4 +963,58 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
     });
   }
 };
+
+exports.sendJobEmailToVendor = async (req, res) => {
+  const user = req.user;
+  const { jobId, vendorEmails } = req.body;
+  try {
+
+    if (!jobId || !Array.isArray(vendorEmails) || vendorEmails.length === 0) {
+      return res.status(400).json({
+        status: false,
+        message: "jobId and vendorEmails are required.",
+      });
+    }
+
+    // Fetch job details
+    const job = await Job.findById(jobId);
+    if (!job) {
+      return res.status(404).json({
+        status: false,
+        message: "Job not found.",
+      });
+    }
+
+    const publicLink = `${process.env.FRONTEND_URL}/profile-submission-form/${user._id}/${job._id}`;
+
+    const html = jobRequirementEmailHtml(job, user, publicLink, process.env.CompanyName);
+
+    const info = await transporter.sendMail({
+      from: `${process.env.CompanyName} <${process.env.SMTP_USER}>`,
+      to: vendorEmails.join(","),
+      subject: `Job Requirement | ${job.title} | ${job.location}`,
+      html
+    });
+
+    if (info.rejected.length > 0) {
+      return res.status(500).json({
+        status: false,
+        message: "Email rejected. Please provide a valid email.",
+        error: `Rejected for: ${info.rejected.join(", ")}`,
+      });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: "Job email sent to vendors successfully."
+    });
+  } catch (error) {
+    console.error("Error sending job email to vendor:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to send job email to vendor.",
+      error: error.message,
+    });
+  }
+}
 

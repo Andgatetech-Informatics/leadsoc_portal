@@ -19,9 +19,8 @@ exports.getCandidateStats = async (req, res) => {
     };
   }
 
-  if (role && (role === "freelancer" || role === "vendor")) {
-    query.isFreelancer = true;
-    query.FreelancerId = user._id;
+  if (role && (role === "vendor")) {
+    query.venderRefered = true;
   }
   try {
     const stats = await Candidate.aggregate([
@@ -140,8 +139,8 @@ exports.getDomainStats = async (req, res) => {
     };
   }
 
-  if (role && role === "freelancer") {
-    query.isFreelancer = true;
+  if (role && role === "vendor") {
+    query.venderRefered = true;
   }
 
   try {
@@ -182,154 +181,178 @@ exports.getDomainStats = async (req, res) => {
 
 exports.getEventChart = async (req, res) => {
   try {
+    const { role } = req.user;
     const { type } = req.query;
-    if (!type)
+
+    if (!type) {
       return res.status(400).json({ error: "type parameter required" });
-
-    let startDate, endDate, groupFormat, momentFormat, labelFormat;
-
-    switch (type) {
-      case "today":
-        startDate = moment().startOf("day");
-        endDate = moment().endOf("day");
-        groupFormat = "%H"; // hour 00–23
-        momentFormat = "H"; // 0–23
-        labelFormat = "HH:mm"; // label format
-        break;
-
-      case "week":
-        startDate = moment().startOf("week");
-        endDate = moment().endOf("week");
-        groupFormat = "%Y-%m-%d";
-        momentFormat = "YYYY-MM-DD";
-        labelFormat = "dddd";
-        break;
-
-      case "month":
-        startDate = moment().startOf("month");
-        endDate = moment().endOf("day");
-        groupFormat = "%Y-%m-%d";
-        momentFormat = "YYYY-MM-DD";
-        labelFormat = "D";
-        break;
-
-      case "6months":
-        startDate = moment().subtract(5, "months").startOf("month");
-        endDate = moment().endOf("month");
-        groupFormat = "%Y-%m";
-        momentFormat = "YYYY-MM";
-        labelFormat = "MMMM";
-        break;
-
-      case "year":
-        startDate = moment().subtract(11, "months").startOf("month");
-        endDate = moment().endOf("month");
-        groupFormat = "%Y-%m";
-        momentFormat = "YYYY-MM";
-        labelFormat = "MMMM";
-        break;
-
-      default:
-        return res.status(400).json({ error: "Invalid type" });
     }
 
-    // Fetch aggregated events
-    const events = await Event.aggregate([
-      {
-        $match: {
-          updatedAt: { $gte: new Date(startDate), $lte: new Date(endDate) },
-        },
+    /**
+     * -----------------------------
+     * 📌 Chart Configurations
+     * -----------------------------
+     */
+    const CHART_CONFIG = {
+      today: {
+        start: moment().startOf("day"),
+        end: moment().endOf("day"),
+        groupFormat: "%H",
+        momentFormat: "H",
       },
+      week: {
+        start: moment().startOf("week"),
+        end: moment().endOf("week"),
+        groupFormat: "%Y-%m-%d",
+        momentFormat: "YYYY-MM-DD",
+        labelFormat: "dddd",
+      },
+      month: {
+        start: moment().startOf("month"),
+        end: moment().endOf("day"),
+        groupFormat: "%Y-%m-%d",
+        momentFormat: "YYYY-MM-DD",
+      },
+      "6months": {
+        start: moment().subtract(5, "months").startOf("month"),
+        end: moment().endOf("month"),
+        groupFormat: "%Y-%m",
+        momentFormat: "YYYY-MM",
+        months: 6,
+      },
+      year: {
+        start: moment().subtract(11, "months").startOf("month"),
+        end: moment().endOf("month"),
+        groupFormat: "%Y-%m",
+        momentFormat: "YYYY-MM",
+        months: 12,
+      },
+    };
+
+    const config = CHART_CONFIG[type];
+    if (!config) {
+      return res.status(400).json({ error: "Invalid type" });
+    }
+
+    /**
+     * -----------------------------
+     * 📌 Mongo Filter
+     * -----------------------------
+     */
+    const filter = {
+      updatedAt: {
+        $gte: config.start.toDate(),
+        $lte: config.end.toDate(),
+      },
+    };
+
+    if (role === "vendor") {
+      filter.venderRefered = true;
+    }
+
+    /**
+     * -----------------------------
+     * 📌 Aggregation
+     * -----------------------------
+     */
+    const events = await Event.aggregate([
+      { $match: filter },
       {
         $group: {
-          _id: { $dateToString: { format: groupFormat, date: "$updatedAt" } },
+          _id: {
+            $dateToString: {
+              format: config.groupFormat,
+              date: "$updatedAt",
+            },
+          },
           count: { $sum: 1 },
         },
       },
       { $sort: { _id: 1 } },
     ]);
 
-    // ------------------------------------------
-    // 📌 TYPE = TODAY → Hour-wise (0–23)
-    // ------------------------------------------
+    /**
+     * -----------------------------
+     * 📌 TODAY → Hour-wise (0–23)
+     * -----------------------------
+     */
     if (type === "today") {
       const hourMap = {};
-      events.forEach((item) => {
-        const hr = moment(item._id, momentFormat).hour(); // 0–23
-        hourMap[hr] = item.count;
+
+      events.forEach(({ _id, count }) => {
+        const hour = moment(_id, config.momentFormat).hour();
+        hourMap[hour] = count;
       });
 
-      const fullData = [];
-      for (let h = 0; h <= 23; h++) {
-        fullData.push({
-          label: `${String(h).padStart(2, "0")}:00`, // 00:00 → 23:00
-          count: hourMap[h] || 0,
-        });
-      }
+      const data = Array.from({ length: 24 }, (_, h) => ({
+        label: `${String(h).padStart(2, "0")}:00`,
+        count: hourMap[h] || 0,
+      }));
 
-      return res.status(200).json({ type, data: fullData });
+      return res.status(200).json({ type, data });
     }
 
-    // ------------------------------------------
-    // 📌 MONTH → Day-wise (1 → today)
-    // ------------------------------------------
+    /**
+     * -----------------------------
+     * 📌 MONTH → Day-wise
+     * -----------------------------
+     */
     if (type === "month") {
-      const eventMap = {};
-      events.forEach((item) => {
-        const day = moment(item._id, momentFormat).format("D");
-        eventMap[day] = item.count;
+      const dayMap = {};
+
+      events.forEach(({ _id, count }) => {
+        const day = moment(_id, config.momentFormat).date();
+        dayMap[day] = count;
       });
 
       const today = moment().date();
-      const fullData = [];
+      const data = Array.from({ length: today }, (_, i) => ({
+        label: `${i + 1}`,
+        count: dayMap[i + 1] || 0,
+      }));
 
-      for (let d = 1; d <= today; d++) {
-        fullData.push({
-          label: `${d}`,
-          count: eventMap[d] || 0,
-        });
-      }
-
-      return res.status(200).json({ type, data: fullData });
+      return res.status(200).json({ type, data });
     }
 
-    // ------------------------------------------
-    // 📌 6months & YEAR → Month-wise
-    // ------------------------------------------
-    if (type === "6months" || type === "year") {
-      const monthCountMap = {};
-      events.forEach((item) => {
-        const key = moment(item._id, momentFormat).format("YYYY-MM");
-        monthCountMap[key] = item.count;
+    /**
+     * -----------------------------
+     * 📌 6 MONTHS / YEAR → Month-wise
+     * -----------------------------
+     */
+    if (config.months) {
+      const monthMap = {};
+
+      events.forEach(({ _id, count }) => {
+        monthMap[_id] = count;
       });
 
-      const totalMonths = type === "6months" ? 6 : 12;
-      const fullData = [];
-
-      for (let i = totalMonths - 1; i >= 0; i--) {
-        const m = moment().subtract(i, "months");
+      const data = Array.from({ length: config.months }, (_, i) => {
+        const m = moment().subtract(config.months - 1 - i, "months");
         const key = m.format("YYYY-MM");
 
-        fullData.push({
+        return {
           label: m.format("MMMM"),
-          count: monthCountMap[key] || 0,
-        });
-      }
+          count: monthMap[key] || 0,
+        };
+      });
 
-      return res.status(200).json({ type, data: fullData });
+      return res.status(200).json({ type, data });
     }
 
-    // ------------------------------------------
-    // 📌 WEEK → Just map labels
-    // ------------------------------------------
-    const formatted = events.map((item) => ({
-      label: moment(item._id, momentFormat).format(labelFormat),
-      count: item.count,
+    /**
+     * -----------------------------
+     * 📌 WEEK → Label mapping
+     * -----------------------------
+     */
+    const data = events.map(({ _id, count }) => ({
+      label: moment(_id, config.momentFormat).format(config.labelFormat),
+      count,
     }));
 
-    return res.status(200).json({ type, data: formatted });
+    return res.status(200).json({ type, data });
   } catch (error) {
     console.error("Error fetching event chart data:", error);
-    res.status(500).json({ error: "Server error" });
+    return res.status(500).json({ error: "Server error" });
   }
 };
+

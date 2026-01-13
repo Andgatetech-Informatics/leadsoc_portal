@@ -10,7 +10,8 @@ const {
   sendOtp,
   verifyOtp,
   resetPassword,
-  changeUserRole
+  changeUserRole,
+  getAllTas
 } = require("../controllers/authController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 const router = express.Router();
@@ -19,7 +20,7 @@ router.post("/register", authMiddleware, registerUser);
 router.post("/login", loginUser);
 router.get("/getUserById/:id", authMiddleware, getUserDetailsById);
 router.get("/getAllAdminAndHrs", authMiddleware, getAllAdminAndHrs);
-router.get("/get_all_hr", getAllHrs);
+router.get("/get_all_ta", getAllTas);
 router.get("/get_every_user", authMiddleware, getEveryUser);
 router.patch("/update_profile", authMiddleware, updateProfile);
 

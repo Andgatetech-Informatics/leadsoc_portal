@@ -208,12 +208,12 @@ const getUserDetailsById = async (req, res) => {
   }
 };
 
-const getAllHrs = async (req, res) => {
+const getAllTas = async (req, res) => {
   try {
-    const getAllHr = await User.find(
+    const getAllTa = await User.find(
       {
         role: {
-          $in: ["hr", "ta"],
+          $in: ["ta"],
         },
       },
       {
@@ -223,7 +223,7 @@ const getAllHrs = async (req, res) => {
       }
     );
 
-    if (!getAllHr) {
+    if (!getAllTa) {
       return res.status(404).json({
         status: false,
         message: "User not found.",
@@ -232,14 +232,14 @@ const getAllHrs = async (req, res) => {
 
     return res.status(200).json({
       status: true,
-      data: getAllHr,
+      data: getAllTa,
     });
   } catch (error) {
-    console.error("Error fetching Hr list:", error);
+    console.error("Error fetching Ta list:", error);
 
     return res.status(500).json({
       status: false,
-      message: "Error fetching Hr list.",
+      message: "Error fetching Ta list.",
       error: error.message,
     });
   }
@@ -540,7 +540,7 @@ module.exports = {
   registerUser,
   loginUser,
   getUserDetailsById,
-  getAllHrs,
+  getAllTas,
   getAllAdminAndHrs,
   getEveryUser,
   updateProfile,

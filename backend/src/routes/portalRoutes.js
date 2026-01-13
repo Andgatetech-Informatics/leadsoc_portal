@@ -14,7 +14,6 @@ router.post("/dummy_registration", portalController.dummyRegistration);
 router.post("/fresher_registration", portalController.fresherRegistration);
 router.post(
   "/freelancer_registration",
-  authMiddleware,
   portalController.freelancerRegistration
 );
 router.post(
@@ -101,8 +100,9 @@ router.get(
 
 //Freelance Recruiter Routes
 router.get(
-  "/candidates/freelancer/:freelancerId",
-  portalController.getCandidatesByFreelancer
+  "/candidates/vendor_manager",
+  authMiddleware,
+  portalController.getVenderManagerCandidates
 );
 
 router.get(

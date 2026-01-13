@@ -1017,6 +1017,123 @@ const ReviewRequestEmailTemplate = (
 `;
 };
 
+const jobRequirementEmailHtml = (job, user, publicSubmissionLink, company) => {
+  return `
+    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+
+      <h2 style="color:#2563EB; margin-top:0;">
+        Job Requirement – ${job?.title || "Open Position"}
+      </h2>
+
+      <p>
+        Greetings from <strong>${company || "AndGate Informatics"}</strong>,
+      </p>
+
+      <p>
+        We are currently hiring for the below position and request you to share
+        <strong>relevant and matching candidate profiles</strong>.
+      </p>
+
+      <table style="border-collapse: collapse; width: 100%; margin: 20px 0;">
+        <tbody>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Job ID</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.jobId || "N/A"}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Position</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.title || "N/A"}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Location</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.location || "N/A"}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Work Type</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.workType || "N/A"}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Employment Type</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.jobType || "N/A"}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Experience</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">
+              ${job?.experienceMin ?? "N/A"} – ${job?.experienceMax ?? "N/A"} Years
+            </td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>No. of Openings</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.noOfPositions || 0}</td>
+          </tr>
+          <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Priority</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.priority || "N/A"}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3 style="margin-bottom: 8px;">Key Skills Required</h3>
+      <p>
+        ${job?.skills?.length
+      ? job.skills.map(skill => `
+                <span style="
+                  display:inline-block;
+                  background:#DBEAFE;
+                  color:#1D4ED8;
+                  padding:4px 10px;
+                  border-radius:12px;
+                  font-size:12px;
+                  margin:4px 4px 0 0;">
+                  ${skill}
+                </span>
+              `).join("")
+      : "N/A"
+    }
+      </p>
+
+      <h3 style="margin-top: 20px;">Job Description</h3>
+      <p>${job?.description || "N/A"}</p>
+
+      <h3 style="margin-top: 20px;">Candidate Submission</h3>
+      <p>Please submit candidate profiles using the link below:</p>
+
+      <p>
+        <a href="${publicSubmissionLink}"
+           style="
+            background:#2563EB;
+            color:#fff;
+            padding:10px 16px;
+            text-decoration:none;
+            border-radius:4px;
+            display:inline-block;">
+          Submit Candidate Profiles
+        </a>
+      </p>
+
+      <p style="font-size:12px; color:#6B7280;">
+        • Only relevant profiles will be considered<br/>
+        • Duplicate profiles may be rejected<br/>
+        • Profiles must be submitted via the above link
+      </p>
+
+      <p style="margin-top: 30px;">
+        Regards,<br/>
+        <strong>${user?.firstName || ""} ${user?.lastName || ""}</strong><br/>
+        Talent Acquisition Team<br/>
+        ${company || "AndGate Informatics"}<br/>
+        📧 ${user?.email || ""}
+      </p>
+
+      <p style="font-size:11px; color:#9CA3AF;">
+        This is a system-generated email. Please do not reply.
+      </p>
+
+    </div>
+  `;
+};
+
+
 module.exports = {
   htmlTemplate,
   candidateHtml,
@@ -1030,5 +1147,6 @@ module.exports = {
   invoiceEmailHtml,
   rejectCandidate,
   OnboardingEmailTemplate,
-  ReviewRequestEmailTemplate
+  ReviewRequestEmailTemplate,
+  jobRequirementEmailHtml
 };
