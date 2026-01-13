@@ -28,8 +28,28 @@ const SKILL_OPTIONS = [
   "Software",
 ].map((s) => ({ label: s, value: s }));
 
+const domainOptions = [
+  { value: "DFT", label: "DFT" },
+  { value: "PD", label: "PD" },
+  { value: "DV", label: "DV" },
+  { value: "PDK", label: "PDK" },
+  { value: "Analog Mixed Signaling", label: "Analog Mixed Signaling" },
+  { value: "Analog Layout Design", label: "Analog Layout Design" },
+  { value: "Design Engineer", label: "Design Engineer" },
+  { value: "Synthesis", label: "Synthesis" },
+  { value: "Physical Verification", label: "Physical Verification" },
+  { value: "Embedded", label: "Embedded" },
+  { value: "FPGA", label: "FPGA" },
+  { value: "Design", label: "Design" },
+  { value: "Analog Design", label: "Analog Design" },
+  { value: "Formal Verification", label: "Formal Verification" },
+  { value: "Software", label: "Software" },
+  { value: "STA", label: "STA" },
+];
+
 const INITIAL_STATE = {
   title: "",
+  domain: [],
   location: "",
   organizationName: "",
   clientName: "",
@@ -81,12 +101,20 @@ const JobPostingForm = ({ organization, fetchJobs }) => {
     }));
   };
 
+  const handleDomainChange = (selectedOptions) => {
+    setFormData((prev) => ({
+      ...prev,
+      domain: selectedOptions || [],
+    }));
+  };
+
   /* -------------------- VALIDATION -------------------- */
   const validate = () => {
     const e = {};
     const d = formData;
 
     if (!d.title) e.title = "Job title is required";
+    if (!d.domain) e.domain = "Domain is required";
     if (!d.location) e.location = "Location is required";
     if (!d.organizationName) e.organizationName = "Organization is required";
     if (!d.priority) e.priority = "Priority is required";
@@ -175,15 +203,20 @@ const JobPostingForm = ({ organization, fetchJobs }) => {
             error={errors.location}
             required
           />
-          <Select
-            label="Priority"
-            name="priority"
-            value={formData.priority}
-            onChange={handleChange}
-            options={["Low", "Medium", "High"]}
-            error={errors.priority}
-            required
-          />
+          <div>
+            <label className="text-sm font-medium">
+              Domain <span className="text-red-500">*</span>
+            </label>
+            <CreatableSelect
+              isMulti
+              name="domain"
+              options={domainOptions}
+              value={formData.domain}
+              onChange={handleDomainChange}
+              error={errors.domain}
+              required
+            />
+          </div>
         </Grid>
 
         <Grid>
@@ -240,7 +273,6 @@ const JobPostingForm = ({ organization, fetchJobs }) => {
         </Grid>
 
         <Grid>
-        
           <Select
             label="Type"
             name="jobType"
@@ -250,7 +282,7 @@ const JobPostingForm = ({ organization, fetchJobs }) => {
             error={errors.jobType}
             required
           />
-           <Input
+          <Input
             type="number"
             label="Budget Min (LPA)"
             name="budgetMin"
@@ -271,7 +303,7 @@ const JobPostingForm = ({ organization, fetchJobs }) => {
         </Grid>
 
         <Grid>
-            <Input
+          <Input
             type="number"
             label="Positions"
             name="noOfPositions"
@@ -280,7 +312,7 @@ const JobPostingForm = ({ organization, fetchJobs }) => {
             error={errors.noOfPositions}
             required
           />
-           <Input
+          <Input
             type="date"
             label="Post Date"
             name="postDate"
@@ -299,6 +331,16 @@ const JobPostingForm = ({ organization, fetchJobs }) => {
             required
           />
         </Grid>
+
+        <Select
+          label="Priority"
+          name="priority"
+          value={formData.priority}
+          onChange={handleChange}
+          options={["Low", "Medium", "High"]}
+          error={errors.priority}
+          required
+        />
 
         <Textarea
           label="Description"
@@ -336,9 +378,11 @@ const Grid = ({ children }) => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{children}</div>
 );
 
-const Input = ({ label, error,required, ...props }) => (
+const Input = ({ label, error, required, ...props }) => (
   <div>
-    <label className="text-sm font-medium">{label} {required && <span className="text-red-500">*</span>}</label>
+    <label className="text-sm font-medium">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
     <input
       {...props}
       className={`w-full mt-1 p-2 border rounded focus:ring-2 ${
@@ -349,9 +393,11 @@ const Input = ({ label, error,required, ...props }) => (
   </div>
 );
 
-const Textarea = ({ label, error,required, ...props }) => (
+const Textarea = ({ label, error, required, ...props }) => (
   <div>
-    <label className="text-sm font-medium">{label} {required && <span className="text-red-500">*</span>}</label>
+    <label className="text-sm font-medium">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
     <textarea
       {...props}
       rows={3}
@@ -363,9 +409,11 @@ const Textarea = ({ label, error,required, ...props }) => (
   </div>
 );
 
-const Select = ({ label, options,required, error, ...props }) => (
+const Select = ({ label, options, required, error, ...props }) => (
   <div>
-    <label className="text-sm font-medium">{label} {required && <span className="text-red-500">*</span>}</label>
+    <label className="text-sm font-medium">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
     <select
       {...props}
       className={`w-full mt-1 p-2 border rounded focus:ring-2 ${

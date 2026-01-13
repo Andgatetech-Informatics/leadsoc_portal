@@ -90,15 +90,16 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             <PanelRightOpen size={25} />
           )}
         </button>
-
-        <div>
-          <h1 className="text-xl font-bold text-blue-600 leading-tight">
-            {companyLogoText}
-          </h1>
-          <p className="text-xs font-semibold text-gray-500  -mt-1">
-            BU Management Panel
-          </p>
-        </div>
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <div>
+            <h1 className="text-xl font-bold text-blue-600 leading-tight">
+              {companyLogoText}
+            </h1>
+            <p className="text-xs font-semibold text-gray-500  -mt-1">
+              BU Management Panel
+            </p>
+          </div>
+        </Link>
       </div>
 
       {/* Center: Search Bar */}

@@ -41,7 +41,7 @@ const AssignedVendorCandidates = () => {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        `${baseUrl}/api/freelance/hr/${userData._id}`,
+        `${baseUrl}/api/candidates/vendor_manager`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -185,7 +185,7 @@ const AssignedVendorCandidates = () => {
             isFreelancerAssignedTable={true}
             isFreelancerTable={true}
             onEdit={handleEditClick}
-            redirect="_ta"
+            redirect="_vendor"
           />
         </div>
 

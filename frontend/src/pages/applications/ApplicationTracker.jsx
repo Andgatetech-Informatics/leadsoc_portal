@@ -10,12 +10,19 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import moment from "moment";
 import EventDetails from "./Feedback";
-import { ArrowLeft, Edit, InfoIcon, MessageCircleMore, Pencil, Trash } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  InfoIcon,
+  MessageCircleMore,
+  Pencil,
+  Trash,
+} from "lucide-react";
 import RemarkModal from "../../components/RemarkModal";
 import "react-datepicker/dist/react-datepicker.css";
 import InitiateCandidateModel from "../../components/InitiateCandidateModel";
 import EventModal from "../../components/createEventModel";
-import { localDatetimeToISOString } from "../../utils/utils"
+import { localDatetimeToISOString } from "../../utils/utils";
 import ConsentModel from "../../components/consentModel";
 
 const initialFormData = {
@@ -50,7 +57,7 @@ const statusStyles = {
   default: "bg-gray-100 text-gray-700",
 };
 
-const hrEventOptions = [
+const eventOptions = [
   { value: "Screening", label: "Screening Round" },
   { value: "Technical 1", label: "Technical Round 1" },
   { value: "Technical 2", label: "Technical Round 2" },
@@ -58,12 +65,12 @@ const hrEventOptions = [
   { value: "HR Discussion", label: "HR Discussion" },
 ];
 
-const deliveryEventOptions = [
-  { value: "Orientation", label: "Orientation Round" },
-  { value: "Client 1", label: "Client Round 1" },
-  { value: "Client 2", label: "Client Round 2" },
-  { value: "Client 3", label: "Client Round 3" },
-];
+// const deliveryEventOptions = [
+//   { value: "Orientation", label: "Orientation Round" },
+//   { value: "Client 1", label: "Client Round 1" },
+//   { value: "Client 2", label: "Client Round 2" },
+//   { value: "Client 3", label: "Client Round 3" },
+// ];
 
 const ApplicationTracker = () => {
   const location = useLocation();
@@ -94,13 +101,13 @@ const ApplicationTracker = () => {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [eventLoading, setEventLoading] = useState(false);
-  const [deleteLoadingId, setDeleteLoadingId] = useState(null)
-  const [isEditModelOpen, setIsEditEventOpen] = useState(null)
+  const [deleteLoadingId, setDeleteLoadingId] = useState(null);
+  const [isEditModelOpen, setIsEditEventOpen] = useState(null);
 
   const navigate = useNavigate();
 
-  const eventOptions =
-    userRole === "ta" ? hrEventOptions : deliveryEventOptions;
+  // const eventOptions =
+  //   userRole === "ta" ? hrEventOptions : deliveryEventOptions;
 
   const headers = {
     authorization: `Bearer ${token}`,
@@ -141,7 +148,6 @@ const ApplicationTracker = () => {
         ? `${baseUrl}/api/event/edit/${eventId}`
         : `${baseUrl}/api/create_event`;
 
-
       const { status, data } = await axios[method](url, newEvent, { headers });
 
       if (![200, 201].includes(status)) {
@@ -150,19 +156,21 @@ const ApplicationTracker = () => {
       }
 
       setFormData(initialFormData);
-      setReferanceKey(prev => prev + 1);
+      setReferanceKey((prev) => prev + 1);
       eventId ? setIsEditEventOpen(false) : setShowModal(false);
-      toast.success(eventId ? "Event updated successfully!" : "Event added successfully!");
+      toast.success(
+        eventId ? "Event updated successfully!" : "Event added successfully!"
+      );
     } catch (error) {
       console.error("Error adding event:", error);
       const errorMessage =
-        error?.response?.data?.message || "Failed to add event. Please try again.";
+        error?.response?.data?.message ||
+        "Failed to add event. Please try again.";
       toast.error(errorMessage);
     } finally {
       setBtnLoading(false);
     }
   };
-
 
   const handleViewFeedback = async (event) => {
     try {
@@ -265,7 +273,6 @@ const ApplicationTracker = () => {
     }
   }, [candidateId, deleteLoadingId]);
 
-
   const handleRemarkSave = async (newRemark) => {
     try {
       const response = await axios.patch(
@@ -343,7 +350,7 @@ const ApplicationTracker = () => {
         }
       );
 
-      toast.success(response.data.message)
+      toast.success(response.data.message);
     } catch (error) {
       console.error("Error deleting event:", error);
     } finally {
@@ -352,13 +359,13 @@ const ApplicationTracker = () => {
   };
 
   const handleEditEvent = (event) => {
-    setIsEditEventOpen(event._id)
+    setIsEditEventOpen(event._id);
     try {
       setFormData(event);
     } catch (error) {
       console.error("Error deleting event:", error);
     }
-  }
+  };
 
   useEffect(() => {
     fetchCandidateDetails();
@@ -480,52 +487,49 @@ const ApplicationTracker = () => {
             <div>
               <strong>Skills:</strong> {candidate.skills}
             </div>
-            {
-              candidate.isAssigned && (
-                <div>
-                  <strong>Assigned TA:</strong> {candidate.poc}
-                </div>
-              )
-            }
-
-            {
-              candidate.FreelancerId && (
-                <div>
-                  <strong>Vendor Name:</strong> {candidate.freelancerName}
-                </div>
-              )
-            }
-
-            {candidate.isReferred && candidate.referredJobDetails?.length > 0 && (
-              <div className="relative group inline-block">
-                {/* Tooltip Trigger */}
-                <span className="cursor-pointer text-blue-600 text-sm font-medium underline">
-                  Referred Jobs ({candidate.referredJobDetails.length})
-                </span>
-
-                {/* Tooltip */}
-                <div className="absolute z-20 hidden group-hover:block w-80 max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg p-3 mt-2">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">
-                    Referred Job Details
-                  </p>
-
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {candidate.referredJobDetails.map((job) => (
-                      <div
-                        key={job._id}
-                        className="text-xs text-gray-800 border-b last:border-b-0 pb-1"
-                      >
-                        <p className="font-medium">
-                          {job.title}{" "}
-                          <span className="text-gray-500">({job.jobId})</span>
-                        </p>
-                        <p className="text-gray-500">{job.organization}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            {candidate.isAssigned && (
+              <div>
+                <strong>Assigned TA:</strong> {candidate.poc}
               </div>
             )}
+
+            {candidate.FreelancerId && (
+              <div>
+                <strong>Vendor Name:</strong> {candidate.freelancerName}
+              </div>
+            )}
+
+            {candidate.isReferred &&
+              candidate.referredJobDetails?.length > 0 && (
+                <div className="relative group inline-block">
+                  {/* Tooltip Trigger */}
+                  <span className="cursor-pointer text-blue-600 text-sm font-medium underline">
+                    Referred Jobs ({candidate.referredJobDetails.length})
+                  </span>
+
+                  {/* Tooltip */}
+                  <div className="absolute z-20 hidden group-hover:block w-80 max-w-xs bg-white border border-gray-200 rounded-lg shadow-lg p-3 mt-2">
+                    <p className="text-xs font-semibold text-gray-700 mb-2">
+                      Referred Job Details
+                    </p>
+
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {candidate.referredJobDetails.map((job) => (
+                        <div
+                          key={job._id}
+                          className="text-xs text-gray-800 border-b last:border-b-0 pb-1"
+                        >
+                          <p className="font-medium">
+                            {job.title}{" "}
+                            <span className="text-gray-500">({job.jobId})</span>
+                          </p>
+                          <p className="text-gray-500">{job.organization}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
           </div>
         </div>
       )}
@@ -577,9 +581,11 @@ const ApplicationTracker = () => {
       text-white cursor-pointer"
                     >
                       <FaFileUpload className="mr-2" />
-                      {
-                        candidate.consentForm && candidate.isConsentUploaded ? <p>View Consent PDF</p> : <p>Upload Consent PDF</p>
-                      }
+                      {candidate.consentForm && candidate.isConsentUploaded ? (
+                        <p>View Consent PDF</p>
+                      ) : (
+                        <p>Upload Consent PDF</p>
+                      )}
                     </label>
                   )}
 
@@ -590,14 +596,17 @@ const ApplicationTracker = () => {
                       fetchCandidateDetails={fetchCandidateDetails}
                     />
                   )}
-
                 </>
 
                 {!eventLoading &&
                   candidate?.status !== "rejected" &&
-                  user._id === candidate?.assignedTo && (
+                  (user._id === candidate?.assignedTo ||
+                    user?.role === "vendor") && (
                     <button
-                      onClick={() => { setShowModal(true); setFormData(initialFormData) }}
+                      onClick={() => {
+                        setShowModal(true);
+                        setFormData(initialFormData);
+                      }}
                       className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 
       bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium 
       rounded-lg shadow-md transition duration-200 ease-in-out"
@@ -653,26 +662,26 @@ const ApplicationTracker = () => {
                         >
                           {capitalizeStatus(event.status)}
                         </span>
-                        {
-                          user._id === event.scheduledBy ? (
-                            <>
-                              <button onClick={() => handleEditEvent(event)} className="p-1 rounded-full hover:bg-gray-100 transition">
-                                <Edit className="w-4 h-4 text-gray-600 hover:text-yellow-500 cursor-pointer" />
-                              </button>
-                              <button onClick={() => handleDeleteEvent(event._id)} className="p-1 rounded-full hover:bg-gray-100 transition">
-                                {
-                                  deleteLoadingId === event._id ? (
-                                    <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
-                                  ) : (
-                                    <Trash
-                                      className="w-4 h-4 text-gray-600 hover:text-red-500 cursor-pointer"
-                                    />
-                                  )
-                                }
-                              </button>
-                            </>
-                          ) : null
-                        }
+                        {user._id === event.scheduledBy ? (
+                          <>
+                            <button
+                              onClick={() => handleEditEvent(event)}
+                              className="p-1 rounded-full hover:bg-gray-100 transition"
+                            >
+                              <Edit className="w-4 h-4 text-gray-600 hover:text-yellow-500 cursor-pointer" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteEvent(event._id)}
+                              className="p-1 rounded-full hover:bg-gray-100 transition"
+                            >
+                              {deleteLoadingId === event._id ? (
+                                <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                              ) : (
+                                <Trash className="w-4 h-4 text-gray-600 hover:text-red-500 cursor-pointer" />
+                              )}
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     </div>
 
@@ -684,7 +693,9 @@ const ApplicationTracker = () => {
                       </p>
                       <p>
                         <span className="font-medium">📅 Date:</span>{" "}
-                        {moment(event.interviewDate).format("MMMM Do YYYY, h:mm A")}
+                        {moment(event.interviewDate).format(
+                          "MMMM Do YYYY, h:mm A"
+                        )}
                       </p>
                       <p>
                         <span className="font-medium">🏢 Client:</span>{" "}
@@ -694,16 +705,17 @@ const ApplicationTracker = () => {
 
                     {/* Feedback Textarea */}
                     {(event.status === "submitted" ||
-                      event.status === "approved" || event.status === "rejected") && (
-                        <div className="mt-4">
-                          <label
-                            onClick={() => handleViewFeedback(event)}
-                            className="cursor-pointer block text-sm font-medium text-gray-600 mb-1"
-                          >
-                            View Feedback
-                          </label>
-                        </div>
-                      )}
+                      event.status === "approved" ||
+                      event.status === "rejected") && (
+                      <div className="mt-4">
+                        <label
+                          onClick={() => handleViewFeedback(event)}
+                          className="cursor-pointer block text-sm font-medium text-gray-600 mb-1"
+                        >
+                          View Feedback
+                        </label>
+                      </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-5">
@@ -723,12 +735,13 @@ const ApplicationTracker = () => {
                                 (loading.id === event._id && loading.approved)
                               }
                               className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold 
-        ${event.status.toLowerCase() !== "submitted"
-                                  ? "bg-green-400 text-white cursor-not-allowed"
-                                  : loading.approved
-                                    ? "bg-green-600 text-white cursor-wait"
-                                    : "bg-green-600 hover:bg-green-700 text-white transition"
-                                }`}
+        ${
+          event.status.toLowerCase() !== "submitted"
+            ? "bg-green-400 text-white cursor-not-allowed"
+            : loading.approved
+            ? "bg-green-600 text-white cursor-wait"
+            : "bg-green-600 hover:bg-green-700 text-white transition"
+        }`}
                             >
                               {loading.id === event._id && loading.approved ? (
                                 <span
@@ -757,12 +770,13 @@ const ApplicationTracker = () => {
                                 (loading.id === event._id && loading.rejected)
                               }
                               className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold 
-        ${event.status.toLowerCase() !== "submitted"
-                                  ? "bg-red-400 text-white cursor-not-allowed"
-                                  : loading.rejected
-                                    ? "bg-red-600 text-white cursor-wait"
-                                    : "bg-red-600 hover:bg-red-700 text-white transition"
-                                }`}
+        ${
+          event.status.toLowerCase() !== "submitted"
+            ? "bg-red-400 text-white cursor-not-allowed"
+            : loading.rejected
+            ? "bg-red-600 text-white cursor-wait"
+            : "bg-red-600 hover:bg-red-700 text-white transition"
+        }`}
                             >
                               {loading.id === event._id && loading.rejected ? (
                                 <span
@@ -810,23 +824,21 @@ const ApplicationTracker = () => {
         />
       )}
 
-      {
-        isEditModelOpen && (
-          <EventModal
-            title="Edit"
-            isOpen={isEditModelOpen}
-            onClose={() => setIsEditEventOpen(false)}
-            onSubmit={handleSubmit}
-            eventOptions={eventOptions}
-            interviewers={interviewers}
-            companies={companies}
-            btnLoading={btnLoading}
-            formData={formData}
-            setFormData={setFormData}
-            handleChange={handleChange}
-          />
-        )
-      }
+      {isEditModelOpen && (
+        <EventModal
+          title="Edit"
+          isOpen={isEditModelOpen}
+          onClose={() => setIsEditEventOpen(false)}
+          onSubmit={handleSubmit}
+          eventOptions={eventOptions}
+          interviewers={interviewers}
+          companies={companies}
+          btnLoading={btnLoading}
+          formData={formData}
+          setFormData={setFormData}
+          handleChange={handleChange}
+        />
+      )}
 
       {/* Initiate Candidate Model */}
       <InitiateCandidateModel

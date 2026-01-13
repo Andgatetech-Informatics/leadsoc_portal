@@ -51,6 +51,10 @@ const ProgressBar = ({ status, candidate, redirect }) => {
       setRedirectTo("_bu");
     } else if (path.includes("referred-all-candidates")) {
       setRedirectTo("_sales");
+    } else if (path.includes("assigned-vendor-candidates")) {
+      setRedirectTo("_vendor");
+    } else if (path.includes("vendor-candidates")) {
+      setRedirectTo("_vendor");
     } else {
       setRedirectTo("_ta");
     }

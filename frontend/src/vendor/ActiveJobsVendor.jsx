@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Clock,
   Wallet2,
+  WrenchIcon,
 } from "lucide-react";
 import JobHeader from "../components/JobHeader";
 import axios from "axios";
@@ -16,8 +17,9 @@ import { baseUrl } from "../api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Pagination from "../components/Pagination";
-import SubmitProfileModal from "./SubmitProfileModal";
-import { FaMoneyBill } from "react-icons/fa6";
+import { FaScrewdriverWrench } from "react-icons/fa6";
+
+import ShareModal from "./ShareModel";
 
 dayjs.extend(relativeTime);
 
@@ -39,7 +41,7 @@ const ActiveJobsVendor = ({ token, hrId }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   const [jobOpenings, setJobOpenings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -232,17 +234,20 @@ const ActiveJobsVendor = ({ token, hrId }) => {
                       <MapPin className="w-4 h-4 text-gray-400" />
                       {selectedJob.location}
                     </p>
-
-                    <button
-                      onClick={() => setIsModalOpen(true)}
-                      className="mt-4 px-4 md:px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm md:text-base"
-                    >
-                      Submit Profile
-                    </button>
-                    <SubmitProfileModal
-                      isOpen={isModalOpen}
-                      onClose={() => setIsModalOpen(false)}
-                      token={token}
+                    <div className="flex gap-3 mt-4">
+                      <button
+                        onClick={() => setIsShareOpen(true)}
+                        className="px-4 md:px-5 py-2 rounded-lg text-sm md:text-base
+               bg-white border border-amber-500 text-amber-600
+               hover:bg-amber-50 hover:border-amber-600 
+               transition-all shadow-sm hover:shadow-md"
+                      >
+                        Share
+                      </button>
+                    </div>
+                    <ShareModal
+                      isOpen={isShareOpen}
+                      onClose={() => setIsShareOpen(false)}
                       jobId={selectedJob?._id}
                     />
                   </div>
@@ -299,7 +304,7 @@ const ActiveJobsVendor = ({ token, hrId }) => {
                       {selectedJob.noOfPositions} Openings
                     </p>
                   </div>
-                  
+
                   {/* budget */}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
@@ -343,22 +348,45 @@ const ActiveJobsVendor = ({ token, hrId }) => {
                       </span>
                     </div>
                   </div>
-                </div>
-                {/* Skills */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                    <Wrench size={16} className="text-gray-400" />
-                    Skills Required
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedJob.skills?.map((skill, i) => (
-                      <span
-                        key={i}
-                        className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
-                      >
-                        {skill}
-                      </span>
-                    ))}
+                  {/* Skills */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <Wrench size={16} className="text-gray-400" />
+                      Skills Required
+                    </h3>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedJob.skills?.map((skill, i) => (
+                        <span
+                          key={i}
+                          className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Domain */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <FaScrewdriverWrench
+                        size={16}
+                        className="text-gray-400"
+                      />
+                      Domain
+                    </h3>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedJob.domain?.map((domain, i) => (
+                        <span
+                          key={i}
+                          className="bg-red-50 text-red-700 text-sm px-3 py-1 rounded-full border border-red-200 hover:bg-red-100 transition"
+                        >
+                          {domain.label || domain}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

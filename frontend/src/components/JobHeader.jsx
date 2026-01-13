@@ -5,7 +5,7 @@ const JobHeader = ({
   title,
   search,
   setSearch,
-  filterStatus,
+
   setFilterStatus,
   experience,
   setExperience,
@@ -44,19 +44,6 @@ const JobHeader = ({
               className="w-full pl-9 pr-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
             />
           </div>
-
-          {/* Status Filter */}
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none w-full sm:w-auto"
-          >
-            <option value="All">All Status</option>
-            <option value="Active">Active</option>
-            <option value="Filled">Filled</option>
-            <option value="On Hold">On Hold</option>
-            <option value="Inactive">Inactive</option>
-          </select>
 
           {/* Experience Filter */}
           <div>

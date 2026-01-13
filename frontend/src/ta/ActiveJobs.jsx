@@ -17,6 +17,7 @@ import { baseUrl } from "../api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Pagination from "../components/Pagination";
+import { FaScrewdriverWrench } from "react-icons/fa6";
 
 dayjs.extend(relativeTime);
 
@@ -343,22 +344,45 @@ const ActiveJobs = () => {
                       </span>
                     </div>
                   </div>
-                </div>
-                {/* Skills */}
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                    <Wrench size={16} className="text-gray-400" />
-                    Skills Required
-                  </h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedJob.skills?.map((skill, i) => (
-                      <span
-                        key={i}
-                        className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
-                      >
-                        {skill}
-                      </span>
-                    ))}
+                  {/* Skills */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <Wrench size={16} className="text-gray-400" />
+                      Skills Required
+                    </h3>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedJob.skills?.map((skill, i) => (
+                        <span
+                          key={i}
+                          className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Domain */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                      <FaScrewdriverWrench
+                        size={16}
+                        className="text-gray-400"
+                      />
+                      Domain
+                    </h3>
+
+                    <div className="flex flex-wrap gap-2">
+                      {selectedJob.domain?.map((domain, i) => (
+                        <span
+                          key={i}
+                          className="bg-red-50 text-red-700 text-sm px-3 py-1 rounded-full border border-red-200 hover:bg-red-100 transition"
+                        >
+                          {domain.label || domain}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { baseUrl } from "../api";
 import { FaArrowLeft } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import CreatableSelect from "react-select/creatable";
@@ -62,33 +62,21 @@ const initialState = {
   experienceYears: "",
   preferredLocation: "",
   currentLocation: "",
-  isAssigned: true,
   skills: [],
-  poc: "",
-  isReferred: true,
-  jobsReferred: [],
   availability: "",
   resume: null,
-  FreelancerId: "",
-  isFreelancer: true,
+  vendorName: "",
+  vendorEmail: "",
 };
 
 const ProfileSubmissionForm = () => {
+  const { vendorId, jobId } = useParams();
+
   const fileInputRef = useRef(null);
   const [formData, setFormData] = useState(initialState);
-
   const [errors, setErrors] = useState({});
-  const [hrList, setHrList] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [jobList, setJobList] = useState([]);
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
   const [selectedJobs, setSelectedJobs] = useState([]);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
-
-  const inputBase =
-    "mt-1 w-full h-[42px] px-3 text-sm bg-white border border-gray-300 rounded-md flex items-center justify-between ";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -203,14 +191,11 @@ const ProfileSubmissionForm = () => {
       newErrors.preferredLocation = "Preferred location is required";
     if (!formData.currentLocation.trim())
       newErrors.currentLocation = "Current location is required";
-    if (!formData.poc.trim()) newErrors.poc = "Select a POC";
+
     if (!formData.availability)
       newErrors.availability = "Availability in days is required";
     if (!formData.resume) newErrors.resume = "Upload your resume";
     if (!formData.skills) newErrors.resume = "Skills is required";
-    if (!selectedJobs || selectedJobs.length === 0) {
-      newErrors.jobsReferred = "Please select at least one job";
-    }
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
@@ -236,20 +221,13 @@ const ProfileSubmissionForm = () => {
       jobsReferred: selectedJobs,
     };
 
-    const hrDetails = hrList.find((hr) => hr._id === formData.poc);
-    cleanedData.isAssigned = true;
-    cleanedData.assignedTo = hrDetails?._id;
-    cleanedData.poc = `${hrDetails?.firstName} ${hrDetails?.lastName}`;
+    cleanedData.vendorId = vendorId;
+    cleanedData.jobId = jobId;
 
     try {
       const res = await axios.post(
         `${baseUrl}/api/freelancer_registration`,
-        cleanedData,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+        cleanedData
       );
 
       toast.success("Application submitted successfully");
@@ -265,82 +243,21 @@ const ProfileSubmissionForm = () => {
     }
   };
 
-  const handleSelect = (jobId) => {
-    setSelectedJobs((prev) =>
-      prev.includes(jobId)
-        ? prev.filter((id) => id !== jobId)
-        : [...prev, jobId]
-    );
-  };
-
-  const getAllTAs = async () => {
-    try {
-      const res = await axios.get(`${baseUrl}/api/auth/get_all_hr`);
-      if (res.status === 200) setHrList(res.data.data);
-    } catch (error) {
-      console.log("Error fetching HR list:", error.message);
-    }
-  };
-
-  const getAllJobs = async (search = "") => {
-    try {
-      const res = await axios.get(`${baseUrl}/api/getjobs`, {
-        params: {
-          searchTerm: search,
-          limit: 4,
-        },
-      });
-
-      if (res.status === 200) {
-        setJobList(res.data.jobs);
-      }
-    } catch (error) {
-      console.log("Error fetching jobs:", error.message);
-    }
-  };
-
-  useEffect(() => {
-    if (open) {
-      getAllJobs(search);
-    }
-    getAllTAs();
-  }, [search, open]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   return (
-    <div className="h-full bg-gray-100 px-3 py-4 sm:px-6">
-      <div className="mt-5 px-3 py-4">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-gray-600 hover:text-indigo-600 mb-1 transition"
-        >
-          <FaArrowLeft className="text-base" />
-          <span className="text-sm">Back</span>
-        </button>
-
-        {/* Card */}
-
-        <h2 className="text-xl sm:text-2xl text-center font-semibold mb-4 text-gray-800">
-          Profile Submission Form
+    <div className="min-h-screen bg-gray-50 flex justify-center px-3 py-6">
+      {" "}
+      <div className="w-full max-w-5xl bg-white rounded-xl shadow-md px-6 sm:px-10 py-6">
+        {/* Title */}{" "}
+        <h2 className="text-2xl text-center font-semibold mt-4 mb-6 text-gray-800 border-b pb-2">
+          {" "}
+          Candidate Profile Submission{" "}
         </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-10">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Full Name */}
             <div>
-              <label className="text-sm">
-                Full Name <span className="text-red-500">*</span>
+              <label className="text-sm font-medium">
+                Candidate Full Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -358,8 +275,8 @@ const ProfileSubmissionForm = () => {
 
             {/* Email */}
             <div>
-              <label className="text-sm">
-                Email <span className="text-red-500">*</span>
+              <label className="text-sm font-medium">
+                Candidate Email <span className="text-red-500">*</span>
               </label>
               <input
                 type="email"
@@ -377,7 +294,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Mobile */}
             <div>
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Mobile <span className="text-red-500">*</span>
               </label>
               <input
@@ -395,7 +312,7 @@ const ProfileSubmissionForm = () => {
             </div>
 
             <div className="flex flex-col">
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Date of Birth
                 <span className="text-red-500">*</span>
               </label>
@@ -410,7 +327,7 @@ const ProfileSubmissionForm = () => {
               />
             </div>
             <div className="flex flex-col">
-              <label>
+              <label className="text-sm font-medium">
                 Degree <span className="text-red-500">*</span>
               </label>
               <select
@@ -429,7 +346,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Domain */}
             <div>
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Domain <span className="text-red-500">*</span>
               </label>
               <CreatableSelect
@@ -437,7 +354,7 @@ const ProfileSubmissionForm = () => {
                 options={domainOptions}
                 value={formData.domain}
                 onChange={handleDomainChange}
-                className="mt-1 text-sm"
+                className="mt-1 text-sm font-medium"
                 placeholder="Select one or more domains"
               />
               {errors.domain && (
@@ -445,7 +362,7 @@ const ProfileSubmissionForm = () => {
               )}
             </div>
             <div className="flex flex-col">
-              <label>
+              <label className="text-sm font-medium">
                 Technical skills <span className="text-red-500">*</span>
               </label>
               <CreatableSelect
@@ -456,13 +373,13 @@ const ProfileSubmissionForm = () => {
                   value: s,
                 }))}
                 onChange={handleSkillsChange}
-                className="mt-1 text-sm"
+                className="mt-1 text-sm font-medium"
               />
             </div>
 
             {/* Experience */}
             <div>
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Total Experience (Years) <span className="text-red-500">*</span>
               </label>
               <input
@@ -483,7 +400,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Relevant Experience */}
             <div>
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Relevant Experience (Years){" "}
                 <span className="text-red-500">*</span>
               </label>
@@ -505,7 +422,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Preferred Location */}
             <div>
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Preferred Location <span className="text-red-500">*</span>
               </label>
               <input
@@ -528,7 +445,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Current Location */}
             <div>
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Current Location <span className="text-red-500">*</span>
               </label>
               <input
@@ -549,7 +466,7 @@ const ProfileSubmissionForm = () => {
 
             {/* Availability */}
             <div>
-              <label className="text-sm">
+              <label className="text-sm font-medium">
                 Availability (Days) <span className="text-red-500">*</span>
               </label>
               <input
@@ -560,101 +477,51 @@ const ProfileSubmissionForm = () => {
                 className="mt-1 block w-full rounded-md border p-2"
               />
             </div>
-            {/* POC */}
+
+            {/* Resume Upload */}
+
+            {/* Full Name */}
             <div>
-              <label className="text-sm">
-                POC (TA’s Name) <span className="text-red-500">*</span>
+              <label className="text-sm font-medium">
+                Vendor Name <span className="text-red-500">*</span>
               </label>
-
-              <select
-                name="poc"
-                value={formData.poc}
+              <input
+                type="text"
+                name="vendorName"
+                value={formData.vendorName}
                 onChange={handleChange}
-                className={`${inputBase} appearance-none`}
-              >
-                <option value="">Select</option>
-                {hrList.map((hr) => (
-                  <option key={hr._id} value={hr._id}>
-                    {hr.firstName} {hr.lastName}
-                  </option>
-                ))}
-              </select>
-
-              {errors.poc && (
-                <p className="text-xs text-red-500 mt-1">{errors.poc}</p>
+                className={`mt-1 block w-full rounded-md border p-2 ${
+                  errors.vendorName ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.vendorName && (
+                <p className="text-xs text-red-500 mt-1">{errors.vendorName}</p>
               )}
             </div>
 
-            {/* jobs */}
-            <div ref={dropdownRef} className="relative w-full">
-              <label className="text-sm">
-                Refer Jobs <span className="text-red-500">*</span>
+            {/* Email */}
+            <div>
+              <label className="text-sm font-medium">
+                Vendor Email <span className="text-red-500">*</span>
               </label>
-
-              <button
-                type="button"
-                onClick={() => setOpen((prev) => !prev)}
-                className={inputBase}
-              >
-                <span className="truncate">
-                  {selectedJobs.length
-                    ? `${selectedJobs.length} job(s) selected`
-                    : "Select jobs"}
-                </span>
-                <ChevronDown className="text-gray-400 text-lg" />
-              </button>
-
-              {open && (
-                <div className="absolute z-30 mt-1 w-full bg-white border border-gray-300 rounded-md shadow-lg">
-                  <input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search job..."
-                    className="w-full px-3 py-2 text-sm border-b outline-none"
-                    required
-                  />
-
-                  <div className="max-h-56 overflow-y-auto">
-                    {jobList.length ? (
-                      jobList.map((job) => (
-                        <label
-                          key={job._id}
-                          className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={selectedJobs.includes(job._id)}
-                            onChange={() => handleSelect(job._id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="accent-indigo-600"
-                          />
-                          <span className="text-sm">
-                            {job.title}
-                            <span className="text-gray-500 ml-1">
-                              ({job.jobId})
-                            </span>
-                          </span>
-                        </label>
-                      ))
-                    ) : (
-                      <p className="px-3 py-2 text-sm text-gray-500">
-                        No jobs found
-                      </p>
-                    )}
-                  </div>
-                </div>
-              )}
-              {errors.jobsReferred && (
+              <input
+                type="email"
+                name="vendorEmail"
+                value={formData.vendorEmail}
+                onChange={handleChange}
+                className={`mt-1 block w-full rounded-md border p-2 ${
+                  errors.vendorEmail ? "border-red-500" : "border-gray-300"
+                }`}
+              />
+              {errors.vendorEmail && (
                 <p className="text-xs text-red-500 mt-1">
-                  {errors.jobsReferred}
+                  {errors.vendorEmail}
                 </p>
               )}
             </div>
 
-            {/* Resume Upload */}
-
             <div>
-              <label className="text-sm font-medium">
+              <label className="text-sm font-medium font-medium">
                 Upload Resume (PDF / DOCX){" "}
                 <span className="text-red-500">*</span>
               </label>
@@ -664,7 +531,7 @@ const ProfileSubmissionForm = () => {
                 name="resume"
                 accept=".pdf,.doc,.docx"
                 onChange={handleFileChange}
-                className="mt-1 block w-full text-sm"
+                className="mt-1 block w-full text-sm font-medium"
               />
               {errors.resume && (
                 <p className="text-xs text-red-500 mt-1">{errors.resume}</p>

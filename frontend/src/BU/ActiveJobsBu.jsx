@@ -18,6 +18,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import Pagination from "../components/Pagination";
 import EditJobModal from "./EditJobModal";
+import { FaScrewdriverWrench } from "react-icons/fa6";
 
 dayjs.extend(relativeTime);
 
@@ -335,17 +336,6 @@ const ActiveJobsBu = () => {
                       </p>
                     </div>
 
-                    {/* budget */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                        <Wallet2 size={16} className="text-gray-400" />
-                        Budget
-                      </h3>
-                      <p className="text-gray-800 font-medium">
-                        {selectedJob.budgetMin} - {selectedJob.budgetMax} LPA
-                      </p>
-                    </div>
-
                     {/* Work Type */}
                     <div>
                       <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
@@ -371,22 +361,76 @@ const ActiveJobsBu = () => {
                         </span>
                       </div>
                     </div>
-                  </div>
-                  {/* Skills */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
-                      <Wrench size={16} className="text-gray-400" />
-                      Skills Required
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedJob.skills?.map((skill, i) => (
-                        <span
-                          key={i}
-                          className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                    {/* budget */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <Wallet2 size={16} className="text-gray-400" />
+                        Budget
+                      </h3>
+                      <div className="space-y-1">
+                        {/* Actual Budget */}
+                        <p className="text-gray-700 font-semibold">
+                          Actual:
+                          <span className="text-gray-900 font-medium">
+                            {" "}
+                            {selectedJob.budgetMin} - {selectedJob.budgetMax}{" "}
+                            LPA
+                          </span>
+                        </p>
+
+                        {/* Modified Budget (optional) */}
+                        {selectedJob.modifiedBudgetMin &&
+                          selectedJob.modifiedBudgetMax && (
+                            <p className="text-gray-700 font-semibold">
+                              Revised:
+                              <span className="text-gray-900 font-medium">
+                                {" "}
+                                {selectedJob.modifiedBudgetMin} -{" "}
+                                {selectedJob.modifiedBudgetMax} LPA
+                              </span>
+                            </p>
+                          )}
+                      </div>
+                    </div>
+                    {/* Skills */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <Wrench size={16} className="text-gray-400" />
+                        Skills Required
+                      </h3>
+
+                      <div className="flex flex-wrap gap-2">
+                        {selectedJob.skills?.map((skill, i) => (
+                          <span
+                            key={i}
+                            className="bg-yellow-50 text-yellow-700 text-sm px-3 py-1 rounded-full border border-yellow-200 hover:bg-yellow-100 transition"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Domain */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-2 flex items-center gap-2">
+                        <FaScrewdriverWrench
+                          size={16}
+                          className="text-gray-400"
+                        />
+                        Domain
+                      </h3>
+
+                      <div className="flex flex-wrap gap-2">
+                        {selectedJob.domain?.map((domain, i) => (
+                          <span
+                            key={i}
+                            className="bg-red-50 text-red-700 text-sm px-3 py-1 rounded-full border border-red-200 hover:bg-red-100 transition"
+                          >
+                            {domain.label || domain}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
 

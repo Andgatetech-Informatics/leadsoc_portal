@@ -11,7 +11,7 @@ import { IoMdCodeWorking, IoMdPeople } from "react-icons/io";
 
 const navItems = [
   { to: "/dashboard/vendor", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/applicants-list", label: "Applicants", icon: BriefcaseBusiness },
+
   {
     to: "/current-active-jobs-vendor",
     label: "Active Jobs",
@@ -101,8 +101,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
             );
           })}
         </nav>
-
-        
       </div>
     </div>
   );
