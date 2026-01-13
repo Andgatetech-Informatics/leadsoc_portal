@@ -60,7 +60,6 @@ import CompanyInvoiceList from "../accounts/CompanyInvoiceList";
 
 // Vendor Components
 import VendorLayout from "../layout/VendorLayout";
-import ApplicantsList from "../vendor/ApplicantsList";
 import VendorDashboard from "../vendor/VendorDashboard";
 import ActiveJobsVendor from "../vendor/ActiveJobsVendor";
 import ProfileSubmissionForm from "../vendor/ProfileSubmissionForm";
@@ -130,6 +129,11 @@ const AppRouter = ({ isAuth }) => {
           path="/candidate-registration/form"
           element={<CandidateRegistrationDummy />}
         />
+        {/* vendor form */}
+        <Route
+          path="/profile-submission-form/:vendorId/:jobId"
+          element={<ProfileSubmissionForm />}
+        />
         <Route
           path="/fresher-onboarding-form/:candidateId"
           element={<FresherOnboardingForm />}
@@ -184,7 +188,7 @@ const AppRouter = ({ isAuth }) => {
               path="/onboarding-candidates"
               element={<OnboardingCandidates />}
             />*/}
-            <Route path="/hired-candidates-ta" element={<HiredCandidates />} /> 
+            <Route path="/hired-candidates-ta" element={<HiredCandidates />} />
             <Route path="/candidates-status-ta" element={<CandidateStatus />} />
             {/* <Route path="/user" element={<UserPage />} /> */}
             {/* <Route path="/vendor-candidates" element={<VendorCandidates />} />
@@ -306,15 +310,15 @@ const AppRouter = ({ isAuth }) => {
           <Route element={<VendorLayout />}>
             <Route path="/dashboard/vendor" element={<VendorDashboard />} />
             <Route path="/profile/vendor" element={<Profile />} />
-            <Route path="/applicants-list" element={<ApplicantsList />} />
+
             <Route
               path="/current-active-jobs-vendor"
               element={<ActiveJobsVendor />}
             />
-            <Route
+            {/* <Route
               path="/profile-submission-form"
               element={<ProfileSubmissionForm />}
-            />
+            /> */}
             <Route
               path="/candidates-status-vendor"
               element={<CandidateStatus />}

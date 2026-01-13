@@ -132,7 +132,7 @@ const FreelancerCandidateTable = ({
                 <th className="px-4 py-3">DOMAIN</th>
                 <th className="px-8 py-3">STATUS</th>
                 {!isFreelancerAssignedTable && (
-                  <th className="px-4 py-3">HR NAME</th>
+                  <th className="px-4 py-3">Vendor NAME</th>
                 )}
                 <th className="px-4 py-3">CONTACT</th>
                 <th className="px-4 py-3">AVAILABILITY</th>
@@ -145,116 +145,119 @@ const FreelancerCandidateTable = ({
             <tbody className="divide-y text-sm">
               {loading
                 ? renderSkeletonLoader()
-                : candidateData.map((c) => (
-                    <tr key={c._id} className="hover:bg-gray-100 transition">
-                      <td className="px-4 py-3 truncate max-w-[120px]">
-                        <div className="flex flex-col items-start space-y-1">
-                          <span
-                            title={c.name}
-                            className="text-sm text-gray-800 mb-1"
-                          >
-                            {c.name}
-                          </span>
-                          <div
-                            className="flex gap-1 items-center"
-                            title={c._id}
-                          >
-                            <FaUserAlt className="mr-2 text-gray-500" />
-                            <span>{c._id.slice(-5)}</span>{" "}
+                : candidateData.map((c) => {
+                    console.log("name", c);
+                    return (
+                      <tr key={c._id} className="hover:bg-gray-100 transition">
+                        <td className="px-4 py-3 truncate max-w-[120px]">
+                          <div className="flex flex-col items-start space-y-1">
                             <span
-                              title={moment(c.createdAt).format("ll")}
-                              className="text-gray-500 text-[10px]"
+                              title={c.name}
+                              className="text-sm text-gray-800 mb-1"
                             >
-                              {" "}
-                              {moment(c.createdAt).format("ll")}
+                              {c.name}
                             </span>
+                            <div
+                              className="flex gap-1 items-center"
+                              title={c._id}
+                            >
+                              <FaUserAlt className="mr-2 text-gray-500" />
+                              <span>{c._id.slice(-5)}</span>{" "}
+                              <span
+                                title={moment(c.createdAt).format("ll")}
+                                className="text-gray-500 text-[10px]"
+                              >
+                                {" "}
+                                {moment(c.createdAt).format("ll")}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td className="px-4 py-3 text-center space-x-2">
-                        <button
-                          onClick={() => onView(c)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-full text-xs"
-                        >
-                          <FaEye />
-                        </button>
-                      </td>
-
-                      <td className="px-4 py-3 truncate max-w-[100px]">
-                        <p title={c.domain}>
-                          {Array.isArray(c.domain)
-                            ? c.domain.join(", ")
-                            : c.domain}
-                        </p>
-                        <div className="flex mt-1 items-center">
-                          <FaBriefcase className="mr-2 text-gray-500" />
-                          <p>{c.experienceYears || "Fresher"}</p>
-                        </div>
-                      </td>
-
-                      {/* <td className="px-4 py-3">
-                        {renderStatusBadge(capitalize(c.status), c)}
-                      </td> */}
-                      <td className="px-4 py-3 relative group">
-                        <ProgressBar status={c.status} candidate={c} />
-                      </td>
-                      {!isFreelancerAssignedTable && (
-                        <td className="px-4 py-3">{c.poc}</td>
-                      )}
-
-                      <td className="px-4 py-3">
-                        <p>
-                          <a
-                            href={`mailto:${c.email}`}
-                            className="hover:text-blue-500"
-                            title={c.email}
-                          >
-                            {c.email}
-                          </a>
-                        </p>
-                        <div className="flex items-center mt-2">
-                          <a
-                            href={`tel:${c.mobile}`}
-                            className="flex items-center text-gray-500 hover:text-blue-500"
-                          >
-                            <FaPhoneSquareAlt className="mr-2" />
-                            {c.mobile}
-                          </a>
-                          <a
-                            href={`https://wa.me/${c.mobile}`}
-                            className="ml-2 text-gray-500 hover:text-green-500"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            <FaWhatsapp className="text-lg" />
-                          </a>
-                        </div>
-                      </td>
-
-                      <td className="px-4 py-3">
-                        <p className="capitalize mb-1">{c.currentLocation}</p>
-                        <div className="flex items-center text-sm text-gray-600">
-                          <FaCalendarCheck className="mr-2 text-gray-500" />
-                          <span className="capitalize">
-                            {c.availability || "N/A"}
-                          </span>
-                        </div>
-                      </td>
-
-                      {isFreelancerAssignedTable && (
-                        <td className="px-2 py-2 ">
+                        <td className="px-4 py-3 text-center space-x-2">
                           <button
-                            key={c._id}
-                            onClick={() => onEdit(c)}
-                            className="text-gray-500 text-center hover:text-blue-600"
+                            onClick={() => onView(c)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1.5 rounded-full text-xs"
                           >
-                            <FaEdit />
+                            <FaEye />
                           </button>
                         </td>
-                      )}
-                    </tr>
-                  ))}
+
+                        <td className="px-4 py-3 truncate max-w-[100px]">
+                          <p title={c.domain}>
+                            {Array.isArray(c.domain)
+                              ? c.domain.join(", ")
+                              : c.domain}
+                          </p>
+                          <div className="flex mt-1 items-center">
+                            <FaBriefcase className="mr-2 text-gray-500" />
+                            <p>{c.experienceYears || "Fresher"}</p>
+                          </div>
+                        </td>
+
+                        {/* <td className="px-4 py-3">
+                        {renderStatusBadge(capitalize(c.status), c)}
+                      </td> */}
+                        <td className="px-4 py-3 relative group">
+                          <ProgressBar status={c.status} candidate={c} />
+                        </td>
+                        {!isFreelancerAssignedTable && (
+                          <td className="px-4 py-3">{c.vendorManagerName}</td>
+                        )}
+
+                        <td className="px-4 py-3">
+                          <p>
+                            <a
+                              href={`mailto:${c.email}`}
+                              className="hover:text-blue-500"
+                              title={c.email}
+                            >
+                              {c.email}
+                            </a>
+                          </p>
+                          <div className="flex items-center mt-2">
+                            <a
+                              href={`tel:${c.mobile}`}
+                              className="flex items-center text-gray-500 hover:text-blue-500"
+                            >
+                              <FaPhoneSquareAlt className="mr-2" />
+                              {c.mobile}
+                            </a>
+                            <a
+                              href={`https://wa.me/${c.mobile}`}
+                              className="ml-2 text-gray-500 hover:text-green-500"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <FaWhatsapp className="text-lg" />
+                            </a>
+                          </div>
+                        </td>
+
+                        <td className="px-4 py-3">
+                          <p className="capitalize mb-1">{c.currentLocation}</p>
+                          <div className="flex items-center text-sm text-gray-600">
+                            <FaCalendarCheck className="mr-2 text-gray-500" />
+                            <span className="capitalize">
+                              {c.availability || "N/A"}
+                            </span>
+                          </div>
+                        </td>
+
+                        {isFreelancerAssignedTable && (
+                          <td className="px-2 py-2 ">
+                            <button
+                              key={c._id}
+                              onClick={() => onEdit(c)}
+                              className="text-gray-500 text-center hover:text-blue-600"
+                            >
+                              <FaEdit />
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    );
+                  })}
             </tbody>
           </table>
         </div>
@@ -330,8 +333,8 @@ const FreelancerCandidateTable = ({
                         </a>
                       </p>
                       <p>
-                        <span className="font-medium">Assigned To:</span>{" "}
-                        <span>{c.hrName}</span>
+                        <span className="font-medium">Vendor Name:</span>{" "}
+                        <span>{c.vendorManagerName}</span>
                       </p>
 
                       {/* WhatsApp */}
@@ -389,14 +392,6 @@ const FreelancerCandidateTable = ({
                       >
                         <FaEye className="inline mr-1" /> View
                       </button>
-                      {showAssignButton && (
-                        <button
-                          onClick={() => onAssign(c._id)}
-                          className="w-full bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm"
-                        >
-                          <FaUserPlus className="inline mr-1" /> Assign
-                        </button>
-                      )}
                     </div>
                   </div>
                 );

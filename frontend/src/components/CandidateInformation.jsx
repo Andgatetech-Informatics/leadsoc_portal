@@ -29,7 +29,7 @@ const CandidateInformation = ({
   // Fetch HR List
   const getAllHrs = async () => {
     try {
-      const response = await axios.get(`${baseUrl}/api/auth/get_all_hr`);
+      const response = await axios.get(`${baseUrl}/api/auth/get_all_ta`);
       if (response.status === 200) {
         setHrList(response.data.data);
       }

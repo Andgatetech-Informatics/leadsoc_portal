@@ -322,7 +322,7 @@ const CandidateRegistration = () => {
   useEffect(() => {
     const getAllHrs = async () => {
       try {
-        let response = await axios.get(`${baseUrl}/api/auth/get_all_hr`);
+        let response = await axios.get(`${baseUrl}/api/auth/get_all_ta`);
 
         if (response.status === 200) {
           setHrList(response.data.data);

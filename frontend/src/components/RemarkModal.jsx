@@ -10,9 +10,6 @@ const RemarkModal = ({ isOpen, onClose, onSave, initialRemark }) => {
   const messagesEndRef = useRef(null);
   const user = useSelector((state) => state.user);
 
-  const capitalize = (str) =>
-    str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
-
   const currentUserId = user?.userData?._id;
 
   const getDateLabel = (date) => {

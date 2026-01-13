@@ -52,6 +52,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     <header className="w-full flex items-center justify-between bg-white px-4 sm:px-6 py-3 shadow-sm border-b">
       {/* Left: Logo + Toggle (for mobile) */}
       <div className="flex items-center gap-4">
+         
         <button
           onClick={onToggleSidebar}
           className="text-gray-500 hover:text-blue-600 transition"
@@ -62,7 +63,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             <PanelRightOpen size={25} />
           )}
         </button>
-
+ <Link to="/dashboard" className="flex items-center gap-2">
         <div>
           <h1 className="text-xl font-bold text-blue-600 leading-tight">
             {companyLogoText}
@@ -71,6 +72,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             Sales Management Panel
           </p>
         </div>
+         </Link>
       </div>
 
       {/* Center: Search Bar */}

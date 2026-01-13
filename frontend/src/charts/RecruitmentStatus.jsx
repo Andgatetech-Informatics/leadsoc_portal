@@ -12,8 +12,15 @@ import {
 } from "chart.js";
 import { baseUrl } from "../api";
 
-ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend, Title);
-
+ChartJS.register(
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend,
+  Title
+);
+const token = localStorage.getItem("token");
 const baseColors = [
   "#3B82F6",
   "#454B90",
@@ -23,7 +30,12 @@ const baseColors = [
   "#F97316",
 ];
 
-const RecruitmentStatus = ({ loading, activeFilter, setLoading, dateRange }) => {
+const RecruitmentStatus = ({
+  loading,
+  activeFilter,
+  setLoading,
+  dateRange,
+}) => {
   const [chartRaw, setChartRaw] = useState([]);
 
   useEffect(() => {
@@ -32,7 +44,13 @@ const RecruitmentStatus = ({ loading, activeFilter, setLoading, dateRange }) => 
 
       try {
         const res = await axios.get(
-          `${baseUrl}/api/stats/event_chart?type=${activeFilter}`
+          `${baseUrl}/api/stats/event_chart?type=${activeFilter}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
         );
 
         setChartRaw(res.data?.data || []);
@@ -64,8 +82,8 @@ const RecruitmentStatus = ({ loading, activeFilter, setLoading, dateRange }) => 
           maxBarThickness: 30,
           borderWidth: 1,
           hoverOffset: 10,
-        }
-      ]
+        },
+      ],
     }),
     [chartRaw, colors]
   );
@@ -113,7 +131,7 @@ const RecruitmentStatus = ({ loading, activeFilter, setLoading, dateRange }) => 
           },
           grid: { color: "#E5E7EB", drawBorder: false },
         },
-      }
+      },
     }),
     []
   );
