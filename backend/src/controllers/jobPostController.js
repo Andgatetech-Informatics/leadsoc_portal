@@ -26,13 +26,15 @@ exports.jobPost = async (req, res) => {
       jobType,
       budgetMin,
       budgetMax,
+      domain
     } = req.body;
 
     if (
       !title?.trim() ||
       !organizationName?.trim() ||
       !location?.trim() ||
-      !description?.trim() 
+      !description?.trim(),
+      !domain?.length
     ) {
       return res.status(400).json({
         success: false,
@@ -76,6 +78,7 @@ exports.jobPost = async (req, res) => {
       budgetMin,
       budgetMax,
       createdBy: req.user._id,
+      domain: domain,
     };
 
     const job = await Job.create(jobPayload);
@@ -98,7 +101,7 @@ exports.jobPost = async (req, res) => {
 exports.updateJobPost = async (req, res) => {
   try {
     const { jobId } = req.params;
-    const body = req.body;
+    const updates = req.body;
 
     if (!jobId) {
       return res.status(400).json({
@@ -107,30 +110,80 @@ exports.updateJobPost = async (req, res) => {
       });
     }
 
-    const job = await Job.findByIdAndUpdate(
-      jobId,
-      body,
-      {
-        new: true,          // return updated document
-        runValidators: true // validate schema
-      }
-    );
-
-    if (!job) {
+    const existingJob = await Job.findById(jobId);
+    if (!existingJob) {
       return res.status(404).json({
         success: false,
         message: "Job not found",
       });
     }
 
+    const payload = {};
+
+    /* -------- Budget Update Logic -------- */
+    const modifiedMin = Number(updates.modifiedBudgetMin);
+    const modifiedMax = Number(updates.modifiedBudgetMax);
+
+    if (modifiedMin < 0 || modifiedMax < 0 || (modifiedMax < modifiedMin)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid modified budget values",
+      });
+    }
+
+    if (
+      (!isNaN(modifiedMin) &&
+        modifiedMin !== existingJob.budgetMin) || (!isNaN(modifiedMax) &&
+          modifiedMax !== existingJob.budgetMax)
+    ) {
+      payload.modifiedBudgetMin = modifiedMin;
+      payload.modifiedBudgetMax = modifiedMax;
+    }
+
+    /* -------- Visibility Update -------- */
+    if (
+      updates.visibility !== undefined &&
+      updates.visibility !== existingJob.visibility
+    ) {
+      payload.visibility = updates.visibility;
+    }
+
+    /* -------- Generic Field Updates -------- */
+    const allowedFields = ["title", "description", "skills", "location"];
+
+    allowedFields.forEach((field) => {
+      if (
+        updates[field] !== undefined &&
+        updates[field] !== existingJob[field]
+      ) {
+        payload[field] = updates[field];
+      }
+    });
+
+    /* -------- No Changes -------- */
+    if (Object.keys(payload).length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No changes detected",
+      });
+    }
+
+    console.log("Update Payload:", payload);
+
+    const updatedJob = await Job.findByIdAndUpdate(
+      jobId,
+      payload,
+      { new: true, runValidators: true }
+    );
+
     return res.status(200).json({
       success: true,
       message: "Job updated successfully",
-      job,
+      job: updatedJob,
     });
+
   } catch (error) {
     console.error("Job Update Error:", error);
-
     return res.status(500).json({
       success: false,
       message: "Server Error",
@@ -183,7 +236,7 @@ exports.getJobs = async (req, res) => {
     const totalJobs = await Job.countDocuments(filter);
 
     const jobs = await Job.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limitNumber)
       .populate(
@@ -222,7 +275,9 @@ exports.getJobsTa = async (req, res) => {
     } = req.query;
 
     let filter = {
-      visibility : "ta"
+      visibility: {
+        $in: ["ta", "all"]
+      }
     };
 
     if (location) {
@@ -255,7 +310,7 @@ exports.getJobsTa = async (req, res) => {
     const totalJobs = await Job.countDocuments(filter);
 
     const jobs = await Job.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limitNumber)
       .populate(
@@ -295,7 +350,9 @@ exports.getJobsVm = async (req, res) => {
     } = req.query;
 
     let filter = {
-      visibility : "vendor"
+      visibility: {
+        $in: ["vendor", "all"]
+      }
     };
 
     if (location) {
@@ -328,7 +385,7 @@ exports.getJobsVm = async (req, res) => {
     const totalJobs = await Job.countDocuments(filter);
 
     const jobs = await Job.find(filter)
-      .sort({ createdAt: -1 })
+      .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limitNumber)
       .populate(
@@ -553,6 +610,7 @@ exports.getshortlistedProfilesToMe = async (req, res) => {
 };
 
 exports.getshortlistedProfilesForBu = async (req, res) => {
+  const candidateType = req.query.candidateType || "internal";
   const user = req.user;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 6;
@@ -564,7 +622,7 @@ exports.getshortlistedProfilesForBu = async (req, res) => {
     const query = {
       // assignedTo: user._id,
       status: { $in: ["shortlisted"] },
-      candidateType: "internal",
+      candidateType: candidateType,
       $or: [
         { name: { $regex: search, $options: "i" } },
         { email: { $regex: search, $options: "i" } },
