@@ -196,7 +196,7 @@ const OnboardingCandidates = () => {
     try {
       const response = await axios.patch(
         `${baseUrl}/api/change_candidate_status/${id}`,
-        { status: "hired" },
+        { status: "bench" },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

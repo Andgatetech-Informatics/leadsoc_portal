@@ -1077,13 +1077,13 @@ exports.statusChange = async (req, res) => {
       });
     }
 
-    if (status === "hired") {
+    if (status === "bench") {
       await NotificationModel.create({
-        title: `${user.firstName} Hired ${candidate.name}`,
+        title: `${user.firstName} Hired ${candidate.name} for Bench.`,
         senderId: user._id,
         priority: "high",
         entityType: "activity",
-        message: `Candidate ${candidate.name} has been hired by ${user.firstName} ${user.lastName}.`,
+        message: `New candidate ${candidate.name} has been hired by ${user.firstName} ${user.lastName}.`,
         metadata: { candidateId: candidate._id },
       });
     }
