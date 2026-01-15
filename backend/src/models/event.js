@@ -9,6 +9,7 @@ const EventSchema = new mongoose.Schema({
     email: { type: String, required: true },
     mobile: { type: String, required: true },
     candidateId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    candidateType: { type: String }
   },
   interviewer: {
     interviewerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

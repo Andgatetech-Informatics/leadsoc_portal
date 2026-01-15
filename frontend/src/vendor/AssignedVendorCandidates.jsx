@@ -71,7 +71,7 @@ const AssignedVendorCandidates = () => {
         "Candidate Fetch Error:",
         error?.response?.data || error.message
       );
-      toast.error(
+      toast.warn(
         error?.response?.data?.message || "Failed to fetch assigned candidates."
       );
     } finally {

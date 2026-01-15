@@ -30,92 +30,92 @@ module.exports = function () {
     }
   );
 
-  cron.schedule("*/1 * * * *", async () => {
-    // console.log("⏳ Running 15-min interview reminder cron...");
+  // cron.schedule("*/1 * * * *", async () => {
+  //   // console.log("⏳ Running 15-min interview reminder cron...");
 
-    try {
-      const now = new Date();
-      const after15 = new Date(now.getTime() + 15 * 60 * 1000);
+  //   try {
+  //     const now = new Date();
+  //     const after15 = new Date(now.getTime() + 15 * 60 * 1000);
 
-      const events = await Event.find({
-        interviewDate: { $gte: now, $lte: after15 },
-        reminderSent: { $ne: true },
-      }).lean();
+  //     const events = await Event.find({
+  //       interviewDate: { $gte: now, $lte: after15 },
+  //       reminderSent: { $ne: true },
+  //     }).lean();
 
-      if (!events.length) return;
+  //     if (!events.length) return;
 
-      // 2) PROCESS ALL EVENTS IN PARALLEL
-      await Promise.all(
-        events.map(async (ev) => {
-          try {
-            const candidate = ev.candidate || {};
-            const interviewer = ev.interviewer || {};
+  //     // 2) PROCESS ALL EVENTS IN PARALLEL
+  //     await Promise.all(
+  //       events.map(async (ev) => {
+  //         try {
+  //           const candidate = ev.candidate || {};
+  //           const interviewer = ev.interviewer || {};
 
-            // Skip if missing emails
-            if (!candidate.email || !interviewer.email) return;
+  //           // Skip if missing emails
+  //           if (!candidate.email || !interviewer.email) return;
 
-            // Prepare emails
-            const candidateMail = {
-              from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
-              to: candidate.email,
-              subject: `Reminder: Your interview starts soon - ${ev.eventName}`,
-              html: `
-              <p>Hi ${candidate.name},</p>
-              <p>Your interview for <b>${
-                ev.eventName
-              }</b> starts at <b>${new Date(
-                ev.interviewDate
-              ).toLocaleString()}</b>.</p>
-              ${
-                ev.meetingLink
-                  ? `<p>Meeting Link: <a href="${ev.meetingLink}">${ev.meetingLink}</a></p>`
-                  : ""
-              }
-              <p>Good luck!</p>
-            `,
-            };
+  //           // Prepare emails
+  //           const candidateMail = {
+  //             from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+  //             to: candidate.email,
+  //             subject: `Reminder: Your interview starts soon - ${ev.eventName}`,
+  //             html: `
+  //             <p>Hi ${candidate.name},</p>
+  //             <p>Your interview for <b>${
+  //               ev.eventName
+  //             }</b> starts at <b>${new Date(
+  //               ev.interviewDate
+  //             ).toLocaleString()}</b>.</p>
+  //             ${
+  //               ev.meetingLink
+  //                 ? `<p>Meeting Link: <a href="${ev.meetingLink}">${ev.meetingLink}</a></p>`
+  //                 : ""
+  //             }
+  //             <p>Good luck!</p>
+  //           `,
+  //           };
 
-            const interviewerMail = {
-              from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
-              to: interviewer.email,
-              subject: `Reminder: Interview scheduled in 15 minutes - ${candidate.name}`,
-              html: `
-              <p>Hi ${interviewer.name},</p>
-              <p>Your interview with <b>${
-                candidate.name
-              }</b> starts at <b>${new Date(
-                ev.interviewDate
-              ).toLocaleString()}</b>.</p>
-              ${
-                ev.meetingLink
-                  ? `<p>Meeting Link: <a href="${ev.meetingLink}">${ev.meetingLink}</a></p>`
-                  : ""
-              }
-            `,
-            };
+  //           const interviewerMail = {
+  //             from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+  //             to: interviewer.email,
+  //             subject: `Reminder: Interview scheduled in 15 minutes - ${candidate.name}`,
+  //             html: `
+  //             <p>Hi ${interviewer.name},</p>
+  //             <p>Your interview with <b>${
+  //               candidate.name
+  //             }</b> starts at <b>${new Date(
+  //               ev.interviewDate
+  //             ).toLocaleString()}</b>.</p>
+  //             ${
+  //               ev.meetingLink
+  //                 ? `<p>Meeting Link: <a href="${ev.meetingLink}">${ev.meetingLink}</a></p>`
+  //                 : ""
+  //             }
+  //           `,
+  //           };
 
-            // Send BOTH emails in parallel
-            await Promise.all([
-              transporter.sendMail(candidateMail),
-              transporter.sendMail(interviewerMail),
-            ]);
+  //           // Send BOTH emails in parallel
+  //           await Promise.all([
+  //             transporter.sendMail(candidateMail),
+  //             transporter.sendMail(interviewerMail),
+  //           ]);
 
-            // Update event (use updateOne = FASTER & NON-BLOCKING)
-            await Event.updateOne(
-              { _id: ev._id },
-              { $set: { reminderSent: true } }
-            );
+  //           // Update event (use updateOne = FASTER & NON-BLOCKING)
+  //           await Event.updateOne(
+  //             { _id: ev._id },
+  //             { $set: { reminderSent: true } }
+  //           );
 
-            // console.log(`✅ Reminder sent for event: ${ev._id}`);
-          } catch (innerErr) {
-            console.error(`❌ Error processing event ${ev._id}:`, innerErr);
-          }
-        })
-      );
+  //           // console.log(`✅ Reminder sent for event: ${ev._id}`);
+  //         } catch (innerErr) {
+  //           console.error(`❌ Error processing event ${ev._id}:`, innerErr);
+  //         }
+  //       })
+  //     );
 
-      console.log("🎉 All reminders processed successfully!");
-    } catch (err) {
-      console.error("❌ Global Cron Error:", err);
-    }
-  });
+  //     console.log("🎉 All reminders processed successfully!");
+  //   } catch (err) {
+  //     console.error("❌ Global Cron Error:", err);
+  //   }
+  // });
 };

@@ -103,11 +103,10 @@ exports.getOnboardingCandidateById = async (req, res) => {
 };
 
 exports.sendOfferLetter = async (req, res) => {
-  const {
-    user,
-    file,
-    params: { candidateId },
-  } = req;
+  const { user } = req;
+  const { candidateId } = req.params;
+  const { joiningDate, designation } = req.body;
+  const file = req.file;
 
   if (!file) {
     return res
@@ -115,12 +114,22 @@ exports.sendOfferLetter = async (req, res) => {
       .json({ success: false, message: "No file uploaded" });
   }
 
+  if (!joiningDate || !designation) {
+    return res.status(400).json({
+      success: false,
+      message: "Joining date and designation are required",
+    });
+  }
+
   try {
     const candidate = await Candidate.findByIdAndUpdate(
       candidateId,
       {
+        status: "pipeline",
         onboardingInitiated: true,
-        onboardingInitiateDate: new Date()
+        onboardingInitiateDate: new Date(),
+        joiningDate: joiningDate,
+        designation: designation
       },
       { new: true }
     );

@@ -1041,6 +1041,10 @@ const jobRequirementEmailHtml = (job, user, publicSubmissionLink, company) => {
             <td style="border:1px solid #ddd; padding: 8px;">${job?.jobId || "N/A"}</td>
           </tr>
           <tr>
+            <td style="border:1px solid #ddd; padding: 8px;"><strong>Annual CTC (in LPA)</strong></td>
+            <td style="border:1px solid #ddd; padding: 8px;">${job?.annualCTC || "N/A"}</td>
+          </tr>
+          <tr>
             <td style="border:1px solid #ddd; padding: 8px;"><strong>Position</strong></td>
             <td style="border:1px solid #ddd; padding: 8px;">${job?.title || "N/A"}</td>
           </tr>

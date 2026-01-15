@@ -206,7 +206,9 @@ exports.getJobs = async (req, res) => {
       limit = 10,
     } = req.query;
 
-    let filter = {};
+    let filter = {
+      status: "Active"
+    };
 
     if (location) {
       filter.location = { $regex: location, $options: "i" };
@@ -245,7 +247,7 @@ exports.getJobs = async (req, res) => {
         "candidates.candidate",
         "name email mobile skills experienceYears resume status"
       )
-      .populate("candidates.addedByHR", "firstName lastName email role");
+      .populate("candidates.addedBy", "firstName lastName email role");
 
     jobs.forEach((job) => {
       job.candidates = job.candidates.filter(
@@ -319,7 +321,7 @@ exports.getJobsTa = async (req, res) => {
         "candidates.candidate",
         "name email mobile skills experienceYears resume status"
       )
-      .populate("candidates.addedByHR", "firstName lastName email role");
+      .populate("candidates.addedBy", "firstName lastName email role");
 
     jobs.forEach((job) => {
       job.candidates = job.candidates.filter(
@@ -394,7 +396,7 @@ exports.getJobsVm = async (req, res) => {
         "candidates.candidate",
         "name email mobile skills experienceYears resume status"
       )
-      .populate("candidates.addedByHR", "firstName lastName email role");
+      .populate("candidates.addedBy", "firstName lastName email role");
 
     jobs.forEach((job) => {
       job.candidates = job.candidates.filter(
@@ -447,7 +449,7 @@ exports.addCandidatesToJob = async (req, res) => {
         // Add to job
         job.candidates.push({
           candidate: candidateId,
-          addedByHR: hrId,
+          addedBy: hrId,
         });
         added.push(candidateId);
       }
@@ -510,7 +512,7 @@ exports.addCandidatesToJobForBu = async (req, res) => {
         // Add to job
         job.candidates.push({
           candidate: candidateId,
-          addedByHR: hrId,
+          addedBy: hrId,
           approvedByBU: true,
           BuApprovalDate: new Date(),
           BuApprovedBy: req.user._id,
@@ -536,7 +538,7 @@ exports.addCandidatesToJobForBu = async (req, res) => {
       senderId: req.user._id,
       priority: "high",
       receiverId: job.createdBy,
-      entityType: "notification",
+      entityType: "bu_notification",
       message: `You have shortlisted new candidates for the job "${job.title}".`,
       metadata: { jobId: job._id, candidatesAdded: added.length },
     });
@@ -940,7 +942,7 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
       senderId: req.user._id,
       priority: "high",
       receiverId: job.createdBy,
-      entityType: "notification",
+      entityType: "sales_notification",
       message: `BU has approved selected candidates for the job "${job.title}".`,
       metadata: {
         jobId: job._id,
@@ -987,6 +989,15 @@ exports.sendJobEmailToVendor = async (req, res) => {
 
     const publicLink = `${process.env.FRONTEND_URL}/profile-submission-form/${user._id}/${job._id}`;
 
+    const annualCTC =
+      job.modifiedBudgetMin && job.modifiedBudgetMax
+        ? `${job.modifiedBudgetMin} - ${job.modifiedBudgetMax}`
+        : job.budgetMin && job.budgetMax
+          ? `${job.budgetMin} - ${job.budgetMax}`
+          : "N/A";
+
+    job.annualCTC = annualCTC;
+
     const html = jobRequirementEmailHtml(job, user, publicLink, process.env.CompanyName);
 
     const info = await transporter.sendMail({
@@ -1017,4 +1028,57 @@ exports.sendJobEmailToVendor = async (req, res) => {
     });
   }
 }
+
+
+exports.getReferredCandidatesByCandidateId = async (req, res) => {
+  try {
+    const { candidateId } = req.params;
+
+    if (!candidateId) {
+      return res.status(400).json({
+        status: false,
+        message: "candidateId is required",
+      });
+    }
+
+    const candidate = await Candidate.findById(candidateId)
+      .select("jobsReferred")
+      .lean();
+
+    if (!candidate) {
+      return res.status(404).json({
+        status: false,
+        message: "Candidate not found",
+      });
+    }
+
+    if (!candidate.jobsReferred || candidate.jobsReferred.length === 0) {
+      return res.status(200).json({
+        status: true,
+        message: "No referred jobs found",
+        data: [],
+      });
+    }
+
+    const jobs = await Job.find({
+      _id: { $in: candidate.jobsReferred },
+    })
+      .select("jobId title location organization status")
+      .lean();
+
+    return res.status(200).json({
+      status: true,
+      message: "Referred jobs fetched successfully",
+      data: jobs,
+    });
+  } catch (error) {
+    console.error("Error fetching referred jobs:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to fetch referred jobs",
+      error: error.message,
+    });
+  }
+};
+
 

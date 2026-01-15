@@ -63,6 +63,8 @@ const candidateSchema = new mongoose.Schema(
         "assigned",
         "onhold",
         "shortlisted",
+        "pipeline",
+        "bench",
         "approved",
         "review",
         "employee",
@@ -79,7 +81,7 @@ const candidateSchema = new mongoose.Schema(
     isConsentUploaded: { type: Boolean, default: false },
     isDummy: { type: Boolean, default: false },
     isReferred: { type: Boolean, default: false },
-    venderRefered: { type: Boolean, default: false },
+    vendorReferred: { type: Boolean, default: false },
     vendorName: { type: String },
     vendorEmail: {
       type: String,
@@ -89,7 +91,7 @@ const candidateSchema = new mongoose.Schema(
       trim: true
     },
     vendorManagerName: { type: String },
-    venderManagerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    vendorManagerId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     jobsReferred: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -97,12 +99,12 @@ const candidateSchema = new mongoose.Schema(
       },
     ],
     onboardingInitiated: { type: Boolean, default: false },
-    onboardingInitiateDate: { type: Date },
+    onboardingInitiateDate: { type: Date, default: null },
     joiningDate: { type: Date },
     organizarionId: { type: String },
     joiningFeedback: { type: String, default: "" },
     designation: { type: String },
-    candidateType: { type: String, enum: ["internal", "external", "vendor"], default: "external" },
+    candidateType: { type: String, enum: ["internal", "external", "vendor"], default: "internal" },
   },
   {
     versionKey: false,

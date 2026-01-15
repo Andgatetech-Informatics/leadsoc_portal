@@ -120,6 +120,7 @@ const ApplicationTracker = () => {
   const getStatusStyle = (status) =>
     statusStyles[status] || statusStyles.default;
 
+
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -138,6 +139,9 @@ const ApplicationTracker = () => {
         mobile: candidate.mobile,
         candidateId: candidate._id,
         resume: candidate.resume,
+        ...(candidate.candidateType === "vendor" && {
+          candidateType: "vendor",
+        }),
       },
       interviewDate: localDatetimeToISOString(formData.interviewDate),
     };
@@ -383,6 +387,25 @@ const ApplicationTracker = () => {
     return acc + (curr.status === "approved" ? 1 : 0);
   }, 0);
 
+  const isShortlisted = candidate?.status === "shortlisted";
+
+  const hasConsent =
+    Boolean(candidate?.consentForm) &&
+    Boolean(candidate?.isConsentUploaded);
+
+  // WHO CAN UPLOAD / SHORTLIST
+  const canModifyCandidate =
+    enableConsentButton >= 2 &&
+    RejectedEvents === 0 &&
+    (user?._id === candidate?.vendorManagerId || user?._id === candidate?.assignedTo)
+
+  // WHO CAN VIEW CONSENT
+  const canViewConsent =
+    enableConsentButton >= 2 &&
+    RejectedEvents === 0 &&
+    isShortlisted &&
+    hasConsent;
+
   return (
     <div className="max-w-7xl mx-auto py-2 px-2">
       {/* Header */}
@@ -572,20 +595,35 @@ const ApplicationTracker = () => {
 
                 {/* Upload Consent Button */}
                 <>
-                  {enableConsentButton >= 2 && RejectedEvents === 0 && (
+                  {/* 🔹 UPLOAD / SHORTLIST (ONLY VENDOR MANAGER) */}
+                  {canModifyCandidate && !isShortlisted && !hasConsent && (
                     <label
                       onClick={() => setShowConsentModal(true)}
-                      className="relative w-full sm:w-auto min-w-[200px] inline-flex items-center justify-center gap-2 px-5 py-2.5
-      text-sm font-medium rounded-lg shadow-md transition duration-200 ease-in-out
-      bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800
-      text-white cursor-pointer"
+                      className="relative w-full sm:w-auto min-w-[200px]
+        inline-flex items-center justify-center gap-2 px-5 py-2.5
+        text-sm font-medium rounded-lg shadow-md transition duration-200
+        bg-gradient-to-r from-blue-600 to-blue-700
+        hover:from-blue-700 hover:to-blue-800
+        text-white cursor-pointer"
                     >
-                      <FaFileUpload className="mr-2" />
-                      {candidate.consentForm && candidate.isConsentUploaded ? (
-                        <p>View Consent PDF</p>
-                      ) : (
-                        <p>Upload Consent PDF</p>
-                      )}
+                      <FaFileUpload />
+                      <p>Shortlist Candidate</p>
+                    </label>
+                  )}
+
+                  {/* 🔹 VIEW CONSENT (ANY AUTHORIZED USER) */}
+                  {canViewConsent && (
+                    <label
+                      onClick={() => setShowConsentModal(true)}
+                      className="relative w-full sm:w-auto min-w-[200px]
+        inline-flex items-center justify-center gap-2 px-5 py-2.5
+        text-sm font-medium rounded-lg shadow-md transition duration-200
+        bg-gradient-to-r from-green-600 to-green-700
+        hover:from-green-700 hover:to-green-800
+        text-white cursor-pointer"
+                    >
+                      <FaFileUpload />
+                      <p>View Consent Form</p>
                     </label>
                   )}
 
@@ -594,14 +632,14 @@ const ApplicationTracker = () => {
                       setShowConsentModal={setShowConsentModal}
                       candidate={candidate}
                       fetchCandidateDetails={fetchCandidateDetails}
+                      readOnly={!canModifyCandidate} // 🔥 KEY
                     />
                   )}
                 </>
 
                 {!eventLoading &&
                   candidate?.status !== "rejected" &&
-                  (user._id === candidate?.assignedTo ||
-                    user?.role === "vendor") && (
+                  (user._id === candidate?.vendorManagerId || user._id === candidate?.assignedTo) && (
                     <button
                       onClick={() => {
                         setShowModal(true);
@@ -707,15 +745,15 @@ const ApplicationTracker = () => {
                     {(event.status === "submitted" ||
                       event.status === "approved" ||
                       event.status === "rejected") && (
-                      <div className="mt-4">
-                        <label
-                          onClick={() => handleViewFeedback(event)}
-                          className="cursor-pointer block text-sm font-medium text-gray-600 mb-1"
-                        >
-                          View Feedback
-                        </label>
-                      </div>
-                    )}
+                        <div className="mt-4">
+                          <label
+                            onClick={() => handleViewFeedback(event)}
+                            className="cursor-pointer block text-sm font-medium text-gray-600 mb-1"
+                          >
+                            View Feedback
+                          </label>
+                        </div>
+                      )}
 
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-3 mt-5">
@@ -735,13 +773,12 @@ const ApplicationTracker = () => {
                                 (loading.id === event._id && loading.approved)
                               }
                               className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold 
-        ${
-          event.status.toLowerCase() !== "submitted"
-            ? "bg-green-400 text-white cursor-not-allowed"
-            : loading.approved
-            ? "bg-green-600 text-white cursor-wait"
-            : "bg-green-600 hover:bg-green-700 text-white transition"
-        }`}
+        ${event.status.toLowerCase() !== "submitted"
+                                  ? "bg-green-400 text-white cursor-not-allowed"
+                                  : loading.approved
+                                    ? "bg-green-600 text-white cursor-wait"
+                                    : "bg-green-600 hover:bg-green-700 text-white transition"
+                                }`}
                             >
                               {loading.id === event._id && loading.approved ? (
                                 <span
@@ -770,13 +807,12 @@ const ApplicationTracker = () => {
                                 (loading.id === event._id && loading.rejected)
                               }
                               className={`w-full sm:w-auto px-4 py-2 rounded-md text-sm font-semibold 
-        ${
-          event.status.toLowerCase() !== "submitted"
-            ? "bg-red-400 text-white cursor-not-allowed"
-            : loading.rejected
-            ? "bg-red-600 text-white cursor-wait"
-            : "bg-red-600 hover:bg-red-700 text-white transition"
-        }`}
+        ${event.status.toLowerCase() !== "submitted"
+                                  ? "bg-red-400 text-white cursor-not-allowed"
+                                  : loading.rejected
+                                    ? "bg-red-600 text-white cursor-wait"
+                                    : "bg-red-600 hover:bg-red-700 text-white transition"
+                                }`}
                             >
                               {loading.id === event._id && loading.rejected ? (
                                 <span

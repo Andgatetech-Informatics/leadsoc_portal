@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { baseUrl, companyName } from "../../api";
 import { useEffect } from "react";
@@ -343,11 +343,10 @@ const CandidateRegistration = () => {
             className="flex flex-col items-center flex-1 relative z-10"
           >
             <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${
-                experienceStep >= index
+              className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm ${experienceStep >= index
                   ? "bg-blue-600 text-white"
                   : "bg-gray-300 text-gray-600"
-              }`}
+                }`}
             >
               {index + 1}
             </div>
@@ -360,12 +359,10 @@ const CandidateRegistration = () => {
         {experienceSteps.map((_, index) => {
           if (index === experienceSteps.length - 1) return null;
 
-          const leftPos = `calc(${
-            (index / (experienceSteps.length - 1)) * 100
-          }% + 16px)`;
-          const segmentWidth = `calc(${
-            100 / (experienceSteps.length - 1)
-          }% - 32px)`;
+          const leftPos = `calc(${(index / (experienceSteps.length - 1)) * 100
+            }% + 16px)`;
+          const segmentWidth = `calc(${100 / (experienceSteps.length - 1)
+            }% - 32px)`;
 
           let background = "#d1d5db";
           if (experienceStep > index) {
@@ -477,9 +474,8 @@ const CandidateRegistration = () => {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className={`border px-3 py-2 rounded ${
-                        errors.email ? "border-red-500" : ""
-                      }`}
+                      className={`border px-3 py-2 rounded ${errors.email ? "border-red-500" : ""
+                        }`}
                       required
                     />
                     {errors.email && (
@@ -499,9 +495,8 @@ const CandidateRegistration = () => {
                       value={formData.mobile}
                       onChange={handleChange}
                       maxLength={10}
-                      className={`border px-3 py-2 rounded ${
-                        errors.mobile ? "border-red-500" : ""
-                      }`}
+                      className={`border px-3 py-2 rounded ${errors.mobile ? "border-red-500" : ""
+                        }`}
                       required
                     />
                     {errors.mobile && (
@@ -689,11 +684,10 @@ const CandidateRegistration = () => {
                         type="submit"
                         disabled={submitLoading}
                         onClick={fresherCandidateSubmit}
-                        className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 w-full sm:w-auto ${
-                          submitLoading
+                        className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 w-full sm:w-auto ${submitLoading
                             ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
                             : "bg-green-600 text-white hover:bg-green-700"
-                        }`}
+                          }`}
                       >
                         {submitLoading ? "Submitting..." : "Submit"}
                       </button>
@@ -957,11 +951,10 @@ const CandidateRegistration = () => {
                   type="submit"
                   disabled={submitLoading}
                   onClick={experienceCandidateSubmit}
-                  className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 ${
-                    submitLoading
+                  className={`text-white px-6 py-2 rounded-lg inline-flex items-center justify-center font-semibold text-sm transition-all duration-300 ${submitLoading
                       ? "bg-neutral-600 text-neutral-400 cursor-not-allowed"
                       : "bg-green-600 text-white hover:bg-green-700"
-                  }`}
+                    }`}
                 >
                   {submitLoading ? "Submitting..." : "Submit"}
                 </button>

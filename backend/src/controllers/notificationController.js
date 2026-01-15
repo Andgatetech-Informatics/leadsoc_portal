@@ -17,3 +17,17 @@ exports.getNotificationsByAssignedHrId = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 }
+
+exports.getBuNotifications = async (req, res) => {
+    try {
+        const bu_notifications = await Notifications.find({ entityType: 'bu_notification' }).sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: bu_notifications.length,
+            data: bu_notifications,
+        });
+    } catch (error) {
+        console.log("Error fetching BU notifications:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+}

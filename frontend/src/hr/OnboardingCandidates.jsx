@@ -1,5 +1,5 @@
 import { Search } from "lucide-react";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   FaEye,
   FaPhoneSquareAlt,
@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import Pagination from "../components/Pagination";
 import SidebarOnboardingCandidateDetails from "../components/SidebarOnboardingCandidateDetails";
 import _ from "lodash";
+import CreatableSelect from "react-select/creatable";
 
 const OnboardingCandidates = () => {
   const navigate = useNavigate();
@@ -29,26 +30,47 @@ const OnboardingCandidates = () => {
   const [limit] = useState(6);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("All");
   const [reviewLoading, setReviewLoading] = useState(false);
   // Sidebar
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
+  const [joiningDate, setJoiningDate] = useState(null);
+  const [referredJobDetails, setReferredJobDetails] = useState([])
+  const [selectedJob, setSelectedJob] = useState(null);
 
   const openModal = () => setShowModal(true);
-  const closeModal = () => setShowModal(false);
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedJob(null);
+    setJoiningDate(null);
+    setFile(null);
+    setError(null);
+  }
 
   const handleFileChange = (event) => setFile(event.target.files[0]);
 
   const handleUploadOffer = async (candidateId) => {
-    setUploading(true);
     if (!file) {
       setError("Please select a file to upload.");
       return;
     }
 
+    if (!joiningDate) {
+      setError("Please select a joining date.");
+      return;
+    }
+
+    if (!selectedJob) {
+      setError("Please select a designation.");
+      return;
+    }
+
+    setUploading(true);
+
     const formData = new FormData();
     formData.append("file", file);
+    formData.append("joiningDate", joiningDate);
+    formData.append("designation", selectedJob?.value || "");
 
     try {
       const res = await axios.post(
@@ -83,6 +105,7 @@ const OnboardingCandidates = () => {
     setLoading(true);
     try {
       const query = new URLSearchParams({
+        status: ["shortlisted", "pipeline", "review", "bench"],
         page: currentPage,
         limit,
         search: searchQuery,
@@ -108,6 +131,27 @@ const OnboardingCandidates = () => {
       setLoading(false);
     }
   };
+
+  const getReferredJobDetials = async (candidateId) => {
+    setSelectedCandidateId(candidateId);
+    setSelectedJob(null);
+    try {
+      const res = await axios.get(`${baseUrl}/api/get_referred_candidates/${candidateId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+      )
+      if (![200, 201].includes(res.status)) {
+        throw new Error("Failed to fetch referred jobs");
+      }
+
+      setReferredJobDetails(res.data.data);
+    } catch (error) {
+      console.log("Error fetching referred jobs:", error);
+
+    }
+  }
 
   // Debounced search
   const debouncedSearch = useCallback(
@@ -203,14 +247,19 @@ const OnboardingCandidates = () => {
   };
 
   const closeSidebar = () => {
-    setSelectedCandidate(null);
     setShowSidebar(false);
+    setSelectedCandidate(null);
   };
 
-  const filteredCandidates = candidateData.filter((c) => {
-    if (filterStatus === "All") return true;
-    return c.status.toLowerCase() === filterStatus.toLowerCase();
-  });
+  const jobOptions = useMemo(
+    () =>
+      referredJobDetails.map((job) => ({
+        value: job.title,
+        label: `${job.title} - (${job.organization})`,
+        isCustom: false,
+      })),
+    [referredJobDetails]
+  );
 
   useEffect(() => {
     fetchOnboardingCandidates();
@@ -254,18 +303,6 @@ const OnboardingCandidates = () => {
           </p>
         </div>
         <div className="flex flex-row sm:flex-row sm:items-center sm:justify-end gap-3 ">
-          {/* Status Filter */}
-          <div className="w-full sm:w-auto">
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full sm:w- border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
-            >
-              <option value="All">All Status</option>
-              <option value="approved">Approved</option>
-              <option value="review">Review</option>
-            </select>
-          </div>
           {/* Search Input */}
           <div className="relative w-full sm:w-72">
             <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
@@ -310,7 +347,7 @@ const OnboardingCandidates = () => {
               ))}
             </tbody>
           </table>
-        ) : filteredCandidates.length === 0 ? (
+        ) : candidateData.length === 0 ? (
           <table className="w-full text-sm text-left table-auto">
             <thead className="bg-gray-200 text-gray-700 uppercase text-xs border-b font-medium">
               <tr>
@@ -352,7 +389,7 @@ const OnboardingCandidates = () => {
               </thead>
 
               <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                {filteredCandidates.map((c, index) => {
+                {candidateData.map((c, index) => {
                   const status = c.status || "Pending";
                   const normalizedStatus = status.toLowerCase();
 
@@ -361,17 +398,16 @@ const OnboardingCandidates = () => {
                     normalizedStatus === "approved"
                       ? "bg-green-100 text-green-800 border-green-300"
                       : normalizedStatus === "review"
-                      ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                      : "bg-gray-100 text-gray-700 border-gray-300";
+                        ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                        : "bg-gray-100 text-gray-700 border-gray-300";
 
                   return (
                     <tr
                       key={index}
-                      className={`transition-colors ${
-                        normalizedStatus === "review"
-                          ? "bg-gray-50 hover:bg-gray-100"
-                          : "hover:bg-gray-50"
-                      }`}
+                      className={`transition-colors ${normalizedStatus === "review"
+                        ? "bg-gray-50 hover:bg-gray-100"
+                        : "hover:bg-gray-50"
+                        }`}
                     >
                       {/* Name */}
                       <td
@@ -480,8 +516,8 @@ const OnboardingCandidates = () => {
 
                       {/* Onboarding Initiated At */}
                       <td className="px-4 py-4 align-top text-xs text-gray-700 whitespace-nowrap">
-                        {c.onboardingInitiated && c.onboardingInitiatedAt
-                          ? moment(c.onboardingInitiatedAt).format("lll")
+                        {c.onboardingInitiateDate && c.onboardingInitiateDate
+                          ? moment(c.onboardingInitiateDate).format("lll")
                           : "N/A"}
                       </td>
 
@@ -490,14 +526,13 @@ const OnboardingCandidates = () => {
                         <button
                           onClick={() => {
                             openModal();
-                            setSelectedCandidateId(c._id);
+                            getReferredJobDetials(c._id)
                           }}
                           disabled={c.onboardingInitiated}
-                          className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${
-                            c.onboardingInitiated
-                              ? "bg-gray-400 cursor-not-allowed"
-                              : "bg-green-600 hover:bg-green-700"
-                          }`}
+                          className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${c.onboardingInitiated
+                            ? "bg-gray-400 cursor-not-allowed"
+                            : "bg-green-600 hover:bg-green-700"
+                            }`}
                         >
                           {c.onboardingInitiated ? (
                             <span>Offer Initiated</span>
@@ -517,7 +552,7 @@ const OnboardingCandidates = () => {
 
             {/* Mobile Cards */}
             <div className="block sm:hidden space-y-4">
-              {filteredCandidates.map((c, index) => (
+              {candidateData.map((c, index) => (
                 <div
                   key={index}
                   className="border border-gray-200 rounded-lg shadow-sm p-4 bg-white"
@@ -536,13 +571,12 @@ const OnboardingCandidates = () => {
                       </div>
                     ) : (
                       <span
-                        className={`inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border ${
-                          c.status?.toLowerCase() === "approved"
-                            ? "bg-green-100 text-green-800 border-green-300"
-                            : c.status?.toLowerCase() === "review"
+                        className={`inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border ${c.status?.toLowerCase() === "approved"
+                          ? "bg-green-100 text-green-800 border-green-300"
+                          : c.status?.toLowerCase() === "review"
                             ? "bg-yellow-100 text-yellow-800 border-yellow-300"
                             : "bg-gray-100 text-gray-700 border-gray-300"
-                        }`}
+                          }`}
                       >
                         <span>{c.status}</span>
 
@@ -594,8 +628,12 @@ const OnboardingCandidates = () => {
 
                     {/* Date */}
                     <p className="flex items-center gap-2">
-                      <span className="text-base">🗓</span>
+                      <span className="text-base">🗓 Joining: </span>
                       <span>{moment(c.joiningDate).format("lll")}</span>
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="text-base">🗓 CreatedAt:</span>
+                      <span>{moment(c.onboardingInitiateDate).format("lll")}</span>
                     </p>
 
                     {/* Feedback */}
@@ -619,14 +657,13 @@ const OnboardingCandidates = () => {
                     <button
                       onClick={() => {
                         openModal();
-                        setSelectedCandidateId(c._id);
+                        getReferredJobDetials(c._id)
                       }}
                       disabled={c.onboardingInitiated}
-                      className={`flex items-center justify-center gap-2 text-white text-sm px-3 py-2 rounded-md focus:outline-none transition ${
-                        c.onboardingInitiated
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-green-600 hover:bg-green-700"
-                      }`}
+                      className={`flex items-center justify-center gap-2 text-white text-sm px-3 py-2 rounded-md focus:outline-none transition ${c.onboardingInitiated
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-600 hover:bg-green-700"
+                        }`}
                     >
                       {c.onboardingInitiated ? (
                         <span>Offer Initiated</span>
@@ -646,32 +683,97 @@ const OnboardingCandidates = () => {
 
       {/* Upload Modal */}
       {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-75 z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-auto">
-            <h2 className="text-xl font-semibold mb-4">Upload Offer Letter</h2>
-            <div className="mb-4">
-              <label className="block text-gray-700 mb-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
+
+            {/* Header */}
+            <div className="flex items-center justify-between border-b px-6 py-4">
+              <h2 className="text-lg font-semibold text-gray-800">
                 Upload Offer Letter
-              </label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                className="w-full p-2 border border-gray-300 rounded"
-              />
-            </div>
-            {error && <p className="text-red-500">{error}</p>}
-            <div className="flex justify-end gap-3 mt-4">
+              </h2>
               <button
                 onClick={closeModal}
-                className="px-4 py-2 bg-gray-300 rounded-lg"
+                className="text-gray-400 hover:text-gray-600 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4">
+
+              {/* Job Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Job Position
+                </label>
+                <CreatableSelect
+                  options={jobOptions}
+                  value={selectedJob}
+                  onChange={setSelectedJob}
+                  placeholder="Select or add job"
+                  isClearable
+                  formatCreateLabel={(inputValue) =>
+                    `➕ Add custom job: "${inputValue}"`
+                  }
+                  classNamePrefix="react-select"
+                />
+              </div>
+
+              {/* Joining Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Joining Date
+                </label>
+                <input
+                  type="date"
+                  onChange={(e) => setJoiningDate(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                />
+              </div>
+
+              {/* Offer Letter Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Offer Letter (PDF only)
+                </label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm
+                       file:mr-3 file:rounded-md file:border-0
+                       file:bg-blue-50 file:px-4 file:py-1
+                       file:text-sm file:font-medium file:text-blue-600
+                       hover:file:bg-blue-100"
+                />
+              </div>
+
+              {/* Error */}
+              {error && (
+                <p className="text-sm text-red-600 bg-red-50 p-2 rounded-md">
+                  {error}
+                </p>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end gap-3 border-t px-6 py-4">
+              <button
+                onClick={closeModal}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm
+                     text-gray-700 hover:bg-gray-100 transition"
               >
                 Cancel
               </button>
+
               <button
                 onClick={() => handleUploadOffer(selectedCandidateId)}
                 disabled={uploading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium
+                     text-white hover:bg-blue-700 transition
+                     disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 {uploading ? "Submitting..." : "Submit"}
               </button>
@@ -679,6 +781,7 @@ const OnboardingCandidates = () => {
           </div>
         </div>
       )}
+
 
       {/* Sidebar Drawer */}
       {showSidebar && (

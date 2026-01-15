@@ -146,7 +146,6 @@ const FreelancerCandidateTable = ({
               {loading
                 ? renderSkeletonLoader()
                 : candidateData.map((c) => {
-                    console.log("name", c);
                     return (
                       <tr key={c._id} className="hover:bg-gray-100 transition">
                         <td className="px-4 py-3 truncate max-w-[120px]">

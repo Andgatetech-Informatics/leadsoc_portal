@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useSelector } from "react-redux";
 import { FaEdit, FaUserCircle } from "react-icons/fa";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import axios from "axios";
 import Select from "react-select";
 import { baseUrl } from "../../api";

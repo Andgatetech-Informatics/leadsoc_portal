@@ -10,6 +10,7 @@ const ConsentModel = ({
 }) => {
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [checked, setChecked] = useState(false);
   // const [, setIsUploading] = useState(false);
 
   /* -------------------- DERIVED STATE -------------------- */
@@ -18,7 +19,7 @@ const ConsentModel = ({
     [candidate]
   );
 
-  const isFormInvalid = !file || isUploading;
+  const isFormInvalid = checked && !file || isUploading;
 
   /* -------------------- HELPERS -------------------- */
   const closeModal = () => {
@@ -47,6 +48,7 @@ const ConsentModel = ({
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("consentRequired", checked);
 
       const res = await axios.post(
         `${baseUrl}/api/upload_consent/${candidate._id}`,
@@ -82,7 +84,7 @@ const ConsentModel = ({
         {/* Header */}
         <div className="flex items-center justify-between border-b px-6 py-4">
           <h3 className="text-lg font-semibold text-gray-900">
-            {hasConsent ? "Consent Preview" : "Upload Consent"}
+            {hasConsent ? "Consent Preview" : "Shortlist Candidate"}
           </h3>
 
           <button
@@ -110,42 +112,46 @@ const ConsentModel = ({
               <input
                 id="consent"
                 type="checkbox"
-                onChange={e.target.value}
+                onChange={(e) => setChecked(e.target.checked)}
                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
               />
               <label
                 htmlFor="consent"
                 className="text-sm font-medium text-gray-700"
               >
-                Want to upload Consent Form <span className="text-red-500">*</span>
+                Want to Shortlist with Consent Form <span className="text-red-500">*</span>
               </label>
             </div>
 
             {/* File Upload */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Upload PDF <span className="text-red-500">*</span>
-              </label>
+            {
+              checked && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">
+                    Upload PDF <span className="text-red-500">*</span>
+                  </label>
 
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={handleFileChange}
-                disabled={isUploading}
-                className="block w-full text-sm text-gray-600
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={handleFileChange}
+                    disabled={isUploading}
+                    className="block w-full text-sm text-gray-600
         file:mr-4 file:rounded-md file:border-0
         file:bg-blue-600 file:px-4 file:py-2
         file:text-white file:text-sm
         hover:file:bg-blue-700
         disabled:cursor-not-allowed disabled:opacity-60"
-              />
+                  />
 
-              {file && (
-                <p className="text-xs text-gray-500 truncate">
-                  Selected file: <span className="font-medium">{file.name}</span>
-                </p>
-              )}
-            </div>
+                  {file && (
+                    <p className="text-xs text-gray-500 truncate">
+                      Selected file: <span className="font-medium">{file.name}</span>
+                    </p>
+                  )}
+                </div>
+              )
+            }
           </div>
         )}
 
@@ -166,7 +172,7 @@ const ConsentModel = ({
               className="rounded-lg bg-blue-600 px-5 py-2 text-sm text-white transition
           hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isUploading ? "Uploading..." : "Upload"}
+              {isUploading ? "Wait..." : "Shortlist Candidate"}
             </button>
           </div>
         )}

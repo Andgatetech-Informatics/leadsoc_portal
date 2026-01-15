@@ -43,7 +43,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const fetchNotifications = async () => {
     try {
       const { data } = await axios.get(
-        `${baseUrl}/api/notification/assigned_notifications`,
+        `${baseUrl}/api/notification/bu_notifications`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

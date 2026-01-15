@@ -93,7 +93,7 @@ const JobSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           ref: "candidate",
         },
-        addedByHR: {
+        addedBy: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "User",
         },

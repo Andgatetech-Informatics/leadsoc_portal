@@ -1,6 +1,8 @@
 const Candidate = require("../models/candidate");
 const Event = require("../models/event");
-const moment = require("moment");
+const moment = require("moment-timezone");
+const IST = "Asia/Kolkata";
+
 
 exports.getCandidateStats = async (req, res) => {
   const params = req.query;
@@ -20,7 +22,7 @@ exports.getCandidateStats = async (req, res) => {
   }
 
   if (role && (role === "vendor")) {
-    query.venderRefered = true;
+    query.vendorReferred = true;
   }
   try {
     const stats = await Candidate.aggregate([
@@ -140,7 +142,7 @@ exports.getDomainStats = async (req, res) => {
   }
 
   if (role && role === "vendor") {
-    query.venderRefered = true;
+    query.vendorReferred = true;
   }
 
   try {
@@ -189,42 +191,43 @@ exports.getEventChart = async (req, res) => {
     }
 
     /**
-     * -----------------------------
-     * 📌 Chart Configurations
-     * -----------------------------
+     * ------------------------------------
+     * 📌 Chart Configuration (IST)
+     * ------------------------------------
      */
     const CHART_CONFIG = {
       today: {
-        start: moment().startOf("day"),
-        end: moment().endOf("day"),
-        groupFormat: "%H",
-        momentFormat: "H",
+        start: moment.tz(IST).startOf("day"),
+        end: moment.tz(IST).endOf("day"),
+        mongoFormat: "%H",
+        range: 24,
+        label: (h) => `${String(h).padStart(2, "0")}:00`,
       },
+
       week: {
-        start: moment().startOf("week"),
-        end: moment().endOf("week"),
-        groupFormat: "%Y-%m-%d",
-        momentFormat: "YYYY-MM-DD",
+        start: moment.tz(IST).startOf("week"),
+        end: moment.tz(IST).endOf("week"),
+        mongoFormat: "%Y-%m-%d",
         labelFormat: "dddd",
       },
+
       month: {
-        start: moment().startOf("month"),
-        end: moment().endOf("day"),
-        groupFormat: "%Y-%m-%d",
-        momentFormat: "YYYY-MM-DD",
+        start: moment.tz(IST).startOf("month"),
+        end: moment.tz(IST).endOf("day"),
+        mongoFormat: "%Y-%m-%d",
       },
+
       "6months": {
-        start: moment().subtract(5, "months").startOf("month"),
-        end: moment().endOf("month"),
-        groupFormat: "%Y-%m",
-        momentFormat: "YYYY-MM",
+        start: moment.tz(IST).subtract(5, "months").startOf("month"),
+        end: moment.tz(IST).endOf("month"),
+        mongoFormat: "%Y-%m",
         months: 6,
       },
+
       year: {
-        start: moment().subtract(11, "months").startOf("month"),
-        end: moment().endOf("month"),
-        groupFormat: "%Y-%m",
-        momentFormat: "YYYY-MM",
+        start: moment.tz(IST).subtract(11, "months").startOf("month"),
+        end: moment.tz(IST).endOf("month"),
+        mongoFormat: "%Y-%m",
         months: 12,
       },
     };
@@ -235,9 +238,9 @@ exports.getEventChart = async (req, res) => {
     }
 
     /**
-     * -----------------------------
+     * ------------------------------------
      * 📌 Mongo Filter
-     * -----------------------------
+     * ------------------------------------
      */
     const filter = {
       updatedAt: {
@@ -247,13 +250,13 @@ exports.getEventChart = async (req, res) => {
     };
 
     if (role === "vendor") {
-      filter.venderRefered = true;
+      filter["candidate.candidateType"] = "vendor";
     }
 
     /**
-     * -----------------------------
-     * 📌 Aggregation
-     * -----------------------------
+     * ------------------------------------
+     * 📌 Aggregation (IST Aware)
+     * ------------------------------------
      */
     const events = await Event.aggregate([
       { $match: filter },
@@ -261,8 +264,9 @@ exports.getEventChart = async (req, res) => {
         $group: {
           _id: {
             $dateToString: {
-              format: config.groupFormat,
+              format: config.mongoFormat,
               date: "$updatedAt",
+              timezone: IST,
             },
           },
           count: { $sum: 1 },
@@ -272,67 +276,64 @@ exports.getEventChart = async (req, res) => {
     ]);
 
     /**
-     * -----------------------------
+     * ------------------------------------
      * 📌 TODAY → Hour-wise (0–23)
-     * -----------------------------
+     * ------------------------------------
      */
     if (type === "today") {
-      const hourMap = {};
+      const map = Object.fromEntries(
+        events.map((e) => [Number(e._id), e.count])
+      );
 
-      events.forEach(({ _id, count }) => {
-        const hour = moment(_id, config.momentFormat).hour();
-        hourMap[hour] = count;
-      });
-
-      const data = Array.from({ length: 24 }, (_, h) => ({
-        label: `${String(h).padStart(2, "0")}:00`,
-        count: hourMap[h] || 0,
+      const data = Array.from({ length: config.range }, (_, h) => ({
+        label: config.label(h),
+        count: map[h] || 0,
       }));
 
       return res.status(200).json({ type, data });
     }
 
     /**
-     * -----------------------------
+     * ------------------------------------
      * 📌 MONTH → Day-wise
-     * -----------------------------
+     * ------------------------------------
      */
     if (type === "month") {
-      const dayMap = {};
-
+      const map = {};
       events.forEach(({ _id, count }) => {
-        const day = moment(_id, config.momentFormat).date();
-        dayMap[day] = count;
+        const day = moment.tz(_id, "YYYY-MM-DD", IST).date();
+        map[day] = count;
       });
 
-      const today = moment().date();
+      const today = moment.tz(IST).date();
       const data = Array.from({ length: today }, (_, i) => ({
-        label: `${i + 1}`,
-        count: dayMap[i + 1] || 0,
+        label: String(i + 1),
+        count: map[i + 1] || 0,
       }));
 
       return res.status(200).json({ type, data });
     }
 
     /**
-     * -----------------------------
+     * ------------------------------------
      * 📌 6 MONTHS / YEAR → Month-wise
-     * -----------------------------
+     * ------------------------------------
      */
     if (config.months) {
-      const monthMap = {};
-
-      events.forEach(({ _id, count }) => {
-        monthMap[_id] = count;
-      });
+      const map = Object.fromEntries(
+        events.map((e) => [e._id, e.count])
+      );
 
       const data = Array.from({ length: config.months }, (_, i) => {
-        const m = moment().subtract(config.months - 1 - i, "months");
+        const m = moment
+          .tz(IST)
+          .subtract(config.months - 1 - i, "months");
+
         const key = m.format("YYYY-MM");
 
         return {
           label: m.format("MMMM"),
-          count: monthMap[key] || 0,
+          count: map[key] || 0,
         };
       });
 
@@ -340,12 +341,12 @@ exports.getEventChart = async (req, res) => {
     }
 
     /**
-     * -----------------------------
-     * 📌 WEEK → Label mapping
-     * -----------------------------
+     * ------------------------------------
+     * 📌 WEEK → Day name mapping
+     * ------------------------------------
      */
     const data = events.map(({ _id, count }) => ({
-      label: moment(_id, config.momentFormat).format(config.labelFormat),
+      label: moment.tz(_id, "YYYY-MM-DD", IST).format(config.labelFormat),
       count,
     }));
 

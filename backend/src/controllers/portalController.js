@@ -46,7 +46,7 @@ exports.getAllUnassignedCanditates = async (req, res) => {
   const baseFilter = {
     isAssigned: false,
     status: "pending",
-    $or: [{ venderRefered: false }, { venderRefered: { $exists: false } }],
+    $or: [{ vendorReferred: false }, { vendorReferred: { $exists: false } }],
   };
 
   const filter = {
@@ -104,7 +104,7 @@ exports.getAssignedCanditatesToMe = async (req, res) => {
   try {
     const matchStage = {
       assignedTo: user._id,
-      venderRefered: { $ne: true },
+      vendorReferred: { $ne: true },
     };
 
     if (!status || status.toLowerCase() === "all") {
@@ -597,55 +597,83 @@ exports.uploadResume = async (req, res) => {
 };
 
 exports.uploadConsentForm = async (req, res) => {
-  const { candidateType } = req.body;
-
-  if (!candidateType) {
-    return res.status(400).json({ error: "Candidate type is required" });
-  }
-
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
-  }
-
-  const { candidateId } = req.params;
-
-  const ext = path
-    .extname(req.file.originalname)
-    .toLowerCase()
-    .replace(".", "");
-  const allowedTypes = ["pdf"];
-
-  if (!allowedTypes.includes(ext)) {
-    return res
-      .status(400)
-      .json({ error: "Invalid file type. Only PDF allowed." });
-  }
-
+  const user = req.user;
   try {
-    // Convert to base64
-    const base64 = req.file.buffer.toString("base64");
-    const base64Pdf = `data:application/pdf;base64,${base64}`;
+    const { candidateId } = req.params;
+    const { consentRequired } = req.body;
 
-    // Save to DB
+    if (!candidateId) {
+      return res.status(400).json({ error: "Candidate ID is required" });
+    }
+
+    // Normalize consentRequired value
+    const isConsentRequired =
+      consentRequired === true || consentRequired === "true";
+
+    // If consent is NOT required → just update status
+    if (!isConsentRequired) {
+      await CandidateModel.findByIdAndUpdate(
+        candidateId,
+        { status: "shortlisted" },
+        { new: true }
+      );
+
+      return res.status(200).json({
+        status: true,
+        message: "Candidate shortlisted successfully.",
+      });
+    }
+
+    // Consent is required → validate file
+    if (!req.file) {
+      return res.status(400).json({ error: "Consent form PDF is required" });
+    }
+
+    const fileExt = path.extname(req.file.originalname).toLowerCase();
+
+    if (fileExt !== ".pdf") {
+      return res.status(400).json({
+        error: "Invalid file type. Only PDF files are allowed",
+      });
+    }
+
+    // Convert file buffer to base64
+    const base64Pdf = `data:application/pdf;base64,${req.file.buffer.toString(
+      "base64"
+    )}`;
+
+    // Update candidate with consent form
     const updatedCandidate = await CandidateModel.findByIdAndUpdate(
       candidateId,
       {
         status: "shortlisted",
         consentForm: base64Pdf,
         isConsentUploaded: true,
-        candidateType: candidateType,
       },
       { new: true }
     );
 
-    res.status(200).json({
+    if (user.role === "vendor") {
+      await NotificationModel.create({
+        title: `New candidate shortlisted by the ${user.firstName} ${user.lastName}`,
+        senderId: user._id,
+        priority: "high",
+        // receiverId: job.createdBy,
+        entityType: "bu_notification",
+        message: `New vendor candidate is shortlisted by ${user.firstName} ${user.lastName}.`,
+        metadata: { candidateId: updatedCandidate._id },
+      });
+    }
+
+    return res.status(200).json({
       status: true,
       message: "Consent form uploaded successfully",
-      data: updatedCandidate,
     });
-  } catch (err) {
-    console.error("Upload error:", err);
-    res.status(500).json({ error: "Internal server error" });
+  } catch (error) {
+    console.error("Upload consent form error:", error);
+    return res.status(500).json({
+      error: "Internal server error",
+    });
   }
 };
 
@@ -1325,17 +1353,21 @@ exports.initiateOnboarding = async (req, res) => {
 };
 
 exports.getOnboardingCandidates = async (req, res) => {
-  const user = req.user;
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const search = req.query.search?.trim() || "";
     const skip = (page - 1) * limit;
+    const status = req.query.status;
+    const statusFilter = Array.isArray(status)
+      ? status
+      : typeof status === "string"
+        ? status.split(",")
+        : [];
 
     const query = {
-      assignedTo: user._id,
       status: {
-        $in: ["approved", "review"],
+        $in: statusFilter
       },
     };
 
@@ -1420,32 +1452,46 @@ exports.getHiredCandidates = async (req, res) => {
 exports.getVenderManagerCandidates = async (req, res) => {
   try {
     const user = req.user;
-    const venderManagerId = user._id;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
+    const vendorManagerId = user?._id;
+
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 10, 1);
     const skip = (page - 1) * limit;
 
-    if (!venderManagerId) {
-      return res.status(400).json({ message: "Freelancer ID is required" });
-    }
-
-    const total = await CandidateModel.countDocuments({
-      venderManagerId: venderManagerId,
-    });
-
-    const candidates = await CandidateModel.find({ venderRefered: true, venderManagerId: user._id })
-      .select(
-        "name email mobile domain releventExp experienceYears currentLocation preferredLocation resume poc jobsReferred status availability createdAt remark"
-      )
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
-
-    if (!candidates.length) {
-      return res.status(404).json({
-        message: "No candidates found for this freelancer",
+    if (!vendorManagerId) {
+      return res.status(400).json({
+        success: false,
+        message: "Vendor Manager ID is required",
       });
     }
+
+    const excludedStatuses = [
+      "shortlisted",
+      "approved",
+      "review",
+      "employee",
+      "trainee",
+      "deployed",
+      "rejected",
+      "hired",
+    ];
+
+    const filter = {
+      vendorReferred: true,
+      vendorManagerId,
+      status: { $nin: excludedStatuses },
+    };
+
+    const [total, candidates] = await Promise.all([
+      CandidateModel.countDocuments(filter),
+      CandidateModel.find(filter)
+        .select(
+          "name email mobile domain releventExp experienceYears currentLocation preferredLocation resume poc jobsReferred status availability createdAt remark"
+        )
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+    ]);
 
     res.status(200).json({
       success: true,
@@ -1456,14 +1502,19 @@ exports.getVenderManagerCandidates = async (req, res) => {
       candidates,
     });
   } catch (error) {
-    console.error("Error fetching candidates by freelancer:", error);
-    res.status(500).json({ message: "Server Error", error: error.message });
+    console.error("Error fetching vendor manager candidates:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
   }
 };
 
+
 exports.freelancerProfileToBeRefered = async (req, res) => {
   try {
-    const { venderManagerId, jobId } = req.params;
+    const { vendorManagerId, jobId } = req.params;
 
     // Pagination
     const page = Number(req.query.page) || 1;
@@ -1471,7 +1522,7 @@ exports.freelancerProfileToBeRefered = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Basic validations
-    if (!venderManagerId) {
+    if (!vendorManagerId) {
       return res
         .status(400)
         .json({ success: false, message: "Freelancer ID is required" });
@@ -1488,7 +1539,7 @@ exports.freelancerProfileToBeRefered = async (req, res) => {
     // Only candidates of this freelancer that are NOT yet referred to this job
     // jobsReferred is assumed to be an array (or scalar) of job IDs.
     const filter = {
-      venderManagerId: venderManagerId,
+      vendorManagerId: vendorManagerId,
       jobsReferred: { $nin: [jobIdStr] }, // exclude already referred to this job
     };
 
@@ -1547,33 +1598,23 @@ exports.freelancerRegistration = async (req, res) => {
       resume,
       skills,
       availability,
-      vendorId,
       jobId,
+      vendorId,
       vendorName,
       vendorEmail
     } = req.body;
 
-    // Basic validation
-    if (!name || !email || !mobile) {
+    /* -------------------- BASIC VALIDATION -------------------- */
+    if (!name || !email || !mobile || !jobId || !vendorId) {
       return res.status(400).json({
         success: false,
-        message: "Name, email, and mobile are required.",
+        message: "Name, email, mobile, jobId and vendorId are required",
       });
     }
 
-    // Check for duplicate email or mobile
-    const existingCandidate = await CandidateModel.findOne({
-      $or: [{ email }, { mobile }],
-    });
-
-    if (existingCandidate) {
-      return res.status(400).json({
-        success: false,
-        message: "Candidate with this email or mobile already exists.",
-      });
-    }
-
+    /* -------------------- VALIDATE VENDOR -------------------- */
     const user = await User.findById(vendorId);
+    console.log("user", user)
     if (!user || user.role !== "vendor") {
       return res.status(400).json({
         success: false,
@@ -1581,15 +1622,71 @@ exports.freelancerRegistration = async (req, res) => {
       });
     }
 
+    /* -------------------- VALIDATE JOB -------------------- */
     const job = await Job.findById(jobId);
     if (!job) {
       return res.status(400).json({
         success: false,
-        message: "Invalid job ID.",
+        message: "Invalid job ID",
       });
     }
 
-    const createNewCandidate = new CandidateModel({
+    /* -------------------- CHECK EXISTING CANDIDATE -------------------- */
+    const existingCandidate = await CandidateModel.findOne({
+      $or: [{ email }, { mobile }],
+    });
+
+    /* =========================================================
+       EXISTING CANDIDATE FLOW
+    ========================================================= */
+    if (existingCandidate) {
+      const alreadyReferred = existingCandidate.jobsReferred?.some(
+        (id) => id.toString() === job._id.toString()
+      );
+
+      if (alreadyReferred) {
+        return res.status(400).json({
+          success: false,
+          message: "Candidate already referred to this job",
+        });
+      }
+
+      // update candidate
+      await CandidateModel.findByIdAndUpdate(existingCandidate._id, {
+        $addToSet: { jobsReferred: job._id },
+        vendorReferred: true,
+        vendorManagerId: user._id,
+        vendorManagerName: `${user.firstName} ${user.lastName}`,
+      });
+
+      // prevent duplicate job entry
+      const alreadyInJob = job.candidates.some(
+        (c) => c.candidate.toString() === existingCandidate._id.toString()
+      );
+
+      if (!alreadyInJob) {
+        await Job.findByIdAndUpdate(job._id, {
+          $push: {
+            candidates: {
+              candidate: existingCandidate._id,
+              addedBy: user._id,
+              addedAt: new Date(),
+              approvedByBU: false,
+            },
+          },
+        });
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: "Candidate referred successfully",
+      });
+    }
+
+    /* =========================================================
+       NEW CANDIDATE FLOW
+    ========================================================= */
+    const newCandidate = new CandidateModel({
       name,
       email,
       mobile,
@@ -1606,26 +1703,42 @@ exports.freelancerRegistration = async (req, res) => {
       jobsReferred: [job._id],
       isReferred: true,
       candidateType: "vendor",
-      venderRefered: true,
+      vendorReferred: true,
       vendorName,
       vendorEmail,
-      vendorManagerName: user.firstName + " " + user.lastName,
-      venderManagerId: user._id,
+      vendorManagerId: user._id,
+      vendorManagerName: `${user.firstName} ${user.lastName}`,
     });
 
-    await createNewCandidate.save();
+    await newCandidate.save();
 
-    res.status(201).json({
+    await Job.findByIdAndUpdate(job._id, {
+      $push: {
+        candidates: {
+          candidate: newCandidate._id,
+          addedBy: user._id,
+          addedAt: new Date(),
+          approvedByBU: false,
+        },
+      },
+    });
+
+    return res.status(201).json({
       success: true,
-      message: "Candidate created successfully",
+      message: "Candidate created and referred successfully",
     });
+
   } catch (error) {
-    console.error("Error creating candidate:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server Error", error: error.message });
+    console.error("Freelancer Registration Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
   }
 };
+
+
 
 exports.getFreelanceCandidatesByHR = async (req, res) => {
   try {
@@ -1663,9 +1776,9 @@ exports.getFreelanceCandidatesByHR = async (req, res) => {
     const [candidates, total] = await Promise.all([
       CandidateModel.find(
         query,
-        "name email mobile domain dob degree releventExp experienceYears currentLocation preferredLocation resume venderManagerId jobsReferred status availability createdAt"
+        "name email mobile domain dob degree releventExp experienceYears currentLocation preferredLocation resume vendorManagerId jobsReferred status availability createdAt"
       )
-        .populate("venderManagerId", "firstName lastName email role")
+        .populate("vendorManagerId", "firstName lastName email role")
         .populate("jobsReferred", "title jobCode location status")
         .sort({ createdAt: -1 }) // newest first
         .skip(skip)
@@ -1702,7 +1815,7 @@ exports.getAllFreelanceCandidates = async (req, res) => {
     limit = parseInt(limit);
 
     const filters = {
-      venderRefered: true,
+      vendorReferred: true,
       status: {
         $ne: "hired",
       },
@@ -1834,7 +1947,7 @@ exports.filterCandidatesStatusWise = async (req, res) => {
     }
 
     if (user.role === "vendor") {
-      filter.venderRefered = true;
+      filter.vendorReferred = true;
     }
 
     // 🟡 Search Filter

@@ -7,7 +7,7 @@ import { baseUrl } from "../api";
 import { generatePDF, numberToWords } from "../utils/invoiceTemplate";
 import html2pdf from "html2pdf.js";
 import axios from "axios";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const Invoice = () => {

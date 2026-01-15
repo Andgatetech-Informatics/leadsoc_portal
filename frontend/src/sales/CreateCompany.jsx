@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { baseUrl } from "../api";
-import { toast, ToastContainer } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const CreateCompany = () => {
@@ -141,9 +141,8 @@ const CreateCompany = () => {
               value={organization}
               onChange={(e) => handleInputChange(e, "organization")}
               required
-              className={`mt-1 p-3 border ${
-                errors.organization ? "border-red-500" : "border-gray-300"
-              } rounded-md focus:ring-2 focus:ring-blue-500`}
+              className={`mt-1 p-3 border ${errors.organization ? "border-red-500" : "border-gray-300"
+                } rounded-md focus:ring-2 focus:ring-blue-500`}
             />
             {errors.organization && (
               <span className="text-sm text-red-500">
@@ -167,9 +166,8 @@ const CreateCompany = () => {
               value={email}
               onChange={(e) => handleInputChange(e, "email")}
               required
-              className={`mt-1 p-3 border ${
-                errors.email ? "border-red-500" : "border-gray-300"
-              } rounded-md focus:ring-2 focus:ring-blue-500`}
+              className={`mt-1 p-3 border ${errors.email ? "border-red-500" : "border-gray-300"
+                } rounded-md focus:ring-2 focus:ring-blue-500`}
             />
             {errors.email && (
               <span className="text-sm text-red-500">{errors.email}</span>
@@ -194,9 +192,8 @@ const CreateCompany = () => {
               onChange={(e) => handleInputChange(e, "phone")}
               required
               pattern="^[0-9]{10,15}$"
-              className={`mt-1 p-3 border ${
-                errors.phone ? "border-red-500" : "border-gray-300"
-              } rounded-md focus:ring-2 focus:ring-blue-500`}
+              className={`mt-1 p-3 border ${errors.phone ? "border-red-500" : "border-gray-300"
+                } rounded-md focus:ring-2 focus:ring-blue-500`}
             />
             {errors.phone && (
               <span className="text-sm text-red-500">{errors.phone}</span>
@@ -237,9 +234,8 @@ const CreateCompany = () => {
             onChange={(e) => handleInputChange(e, "address")}
             required
             rows="3"
-            className={`mt-1 p-3 border ${
-              errors.address ? "border-red-500" : "border-gray-300"
-            } rounded-md focus:ring-2 focus:ring-blue-500`}
+            className={`mt-1 p-3 border ${errors.address ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:ring-2 focus:ring-blue-500`}
           ></textarea>
           {errors.address && (
             <span className="text-sm text-red-500">{errors.address}</span>

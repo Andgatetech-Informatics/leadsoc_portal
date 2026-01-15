@@ -186,6 +186,7 @@ const VendorCandidates = () => {
           isFreelancerTable={true}
           onView={setSelectedCandidate}
           showAssignButton={true}
+          redirect={"_vendor"}
         />
       </div>
 

@@ -13,7 +13,8 @@ const {
   updateJobPost,
   getJobsTa,
   getJobsVm,
-  sendJobEmailToVendor
+  sendJobEmailToVendor,
+  getReferredCandidatesByCandidateId
 } = require("../controllers/jobPostController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 
@@ -30,5 +31,6 @@ router.get("/getshortlistedProfilesToMe", authMiddleware, getshortlistedProfiles
 router.get("/getshortlistedProfilesForBu", authMiddleware, getshortlistedProfilesForBu)
 router.put("/approve_candidates/:jobId", authMiddleware, approveSelectedCandidatesByBu);
 router.post("/send_job_email_to_vendor", authMiddleware, sendJobEmailToVendor);
+router.get("/get_referred_candidates/:candidateId", authMiddleware, getReferredCandidatesByCandidateId);
 
 module.exports = router;
