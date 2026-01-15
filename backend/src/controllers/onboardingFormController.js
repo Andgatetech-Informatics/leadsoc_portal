@@ -25,7 +25,7 @@ exports.createOnboarding = async (req, res) => {
       title: `Onboarding initiated for ${updatedCandidateStatus.name}`,
       receiverId: updatedCandidateStatus.assignedTo,
       priority: "high",
-      entityType: "onboarding-review",
+      entityType: "hr_notification",
       message: `Please review onboarding details for candidate ${updatedCandidateStatus.name}.`,
       metadata: { candidateId: updatedCandidateStatus._id },
     });

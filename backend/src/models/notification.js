@@ -6,7 +6,7 @@ const notificationSchema = new mongoose.Schema({
     receiverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     priority: { type: String, enum: ['low', 'normal', 'high'], default: 'normal' },
     isRead: { type: Boolean, default: false },
-    entityType: { type: String, enum: ['notification', 'activity', 'bu_notification', 'sales_notification'] },
+    entityType: { type: String, enum: ['notification', 'activity', 'bu_notification', 'sales_notification', 'hr_notification'] },
     AdditionalDate: { type: Date },
     message: { type: String },
     metadata: { type: mongoose.Schema.Types.Mixed },

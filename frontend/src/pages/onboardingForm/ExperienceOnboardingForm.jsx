@@ -27,7 +27,6 @@ const ExperienceOnboardingForm = () => {
       const { data } = await axios.get(
         `${baseUrl}/api/candidate_details/${candidateId}`
       );
-      console.log("res", data.data);
       setCandidate(data.data);
     } catch (error) {
       console.error("Candidate Fetch Error:", error);
