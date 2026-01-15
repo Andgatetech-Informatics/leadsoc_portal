@@ -82,7 +82,6 @@ const onboardingForm = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
       lowercase: true,
       trim: true,
-      unique: true,
     },
     immediateManagerContact: {
       type: String,
@@ -98,7 +97,6 @@ const onboardingForm = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"],
       lowercase: true,
       trim: true,
-      unique: true,
     },
     lastWorkingDay: { type: Date },
     joiningDate: { type: Date, required: true },
