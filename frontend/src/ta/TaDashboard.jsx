@@ -14,6 +14,7 @@ const TaDashboard = () => {
   const [loading, setLoading] = useState({
     status: true,
     domain: true,
+    activity: true,
     team: true,
     bars: true,
   });
@@ -86,7 +87,11 @@ const TaDashboard = () => {
             />
           </Card>
           <Card className="space-y-6">
-            <RecentActivity />
+            <RecentActivity
+              loading={loading.activity}
+              setLoading={(v) => updateLoading("activity", v)}
+              dateRange={dateRange}
+            />
           </Card>
         </div>
       </div>

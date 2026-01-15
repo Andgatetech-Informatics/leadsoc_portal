@@ -1,58 +1,62 @@
-export default function HrRecentActivity() {
-  const activities = [
-    {
-      id: 1,
-      name: "Reema Soni",
-      action: "sent an offer letter to",
-      candidate: "Rajeev Verma",
-      date: "2025-07-24T09:00:00Z",
-    },
-    {
-      id: 2,
-      name: "Shamna OV",
-      action: "marked",
-      candidate: "Neha Saxena as Hired",
-      date: "2025-07-23T14:30:00Z",
-    },
-    {
-      id: 3,
-      name: "Richa Sharma",
-      action: "deployed candidate",
-      candidate: "Aman Tiwari to Sales Team",
-      date: "2025-07-22T11:00:00Z",
-    },
-    {
-      id: 4,
-      name: "Saundarya",
-      action: "scheduled an interview with",
-      candidate: "Pratik Kulkarni",
-      date: "2025-07-21T10:15:00Z",
-    },
-    {
-      id: 5,
-      name: "Shubhi",
-      action: "rejected application of",
-      candidate: "Shraddha Singh",
-      date: "2025-07-20T16:45:00Z",
-    },
-    {
-      id: 6,
-      name: "Preeti Chauhan",
-      action: "on hold application of",
-      candidate: "Santosh",
-      date: "2025-07-20T16:45:00Z",
-    },
-    
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { baseUrl } from "../api";
+import moment from "moment";
 
-    {
-      id: 7,
-      name: "Shrashti Gupta",
-      action: "pending application of",
-      candidate: "Vivek Kumar",
-      date: "2025-07-20T16:45:00Z",
-    },
+/* -------------------- SKELETON COMPONENT -------------------- */
+const ActivitySkeleton = () => {
+  return (
+    <div className="space-y-4 animate-pulse">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="border-l-4 border-gray-200 pl-4">
+          <div className="h-4 w-[85%] bg-gray-200 rounded" />
+          <div className="h-3 w-[40%] bg-gray-200 rounded mt-2" />
+        </div>
+      ))}
+    </div>
+  );
+};
 
-  ];
+const RecentActivity = ({ loading, setLoading, dateRange }) => {
+  const [activities, setActivities] = useState([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!dateRange?.startDate || !dateRange?.endDate) return;
+
+    const fetchActivities = async () => {
+      setLoading(true);
+      setError("");
+
+      try {
+        const token = localStorage.getItem("token");
+
+        const res = await axios.get(`${baseUrl}/api/stats/get_activities`, {
+          params: {
+            startDate: dateRange.startDate,
+            endDate: dateRange.endDate,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (res.status !== 200) {
+          setError("Failed to fetch activities");
+          return;
+        }
+
+        setActivities(res.data?.data || []);
+      } catch (err) {
+        console.error("Error fetching activities:", err);
+        setError(err?.response?.data?.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, [dateRange]);
 
   return (
     <div className="h-[295px] flex flex-col">
@@ -62,29 +66,47 @@ export default function HrRecentActivity() {
 
       {/* Scrollable area */}
       <div className="overflow-y-auto pr-2 flex-1">
-        <ul className="space-y-4">
-          {activities.map((activity) => (
-            <li key={activity.id} className="border-l-4 border-blue-500 pl-4">
-              <div className="text-sm text-gray-700">
-                <span className="font-medium">{activity.name}</span>{" "}
-                {activity.action}{" "}
-                <span className="text-gray-900 font-medium">
-                  {activity.candidate}
-                </span>
-              </div>
-              <div className="text-xs text-gray-500 mt-1">
-                {new Date(activity.date).toLocaleDateString("en-IN", {
-                  year: "numeric",
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </div>
-            </li>
-          ))}
-        </ul>
+        {/* ✅ Loading Skeleton */}
+        {loading && <ActivitySkeleton />}
+
+        {/* ✅ Error State */}
+        {!loading && error && (
+          <div className="text-sm text-red-600 bg-red-50 p-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {/* ✅ Empty State */}
+        {!loading && !error && activities.length === 0 && (
+          <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
+            No recent activities found.
+          </div>
+        )}
+
+        {/* ✅ Activities */}
+        {!loading && !error && activities.length > 0 && (
+          <ul className="space-y-4">
+            {activities.map((activity, idx) => (
+              <li
+                key={activity?._id || activity?.id || idx}
+                className="border-l-4 border-blue-500 pl-4"
+              >
+                <div className="text-sm text-gray-700">
+                  <span className="font-medium">
+                    {activity?.message || "Untitled Activity"}
+                  </span>
+                </div>
+
+                <div className="text-xs text-gray-500 mt-1">
+                  {moment(activity?.createdAt).format("MMM DD, YYYY [at] hh:mm A")}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default RecentActivity;

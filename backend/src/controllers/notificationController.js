@@ -31,3 +31,24 @@ exports.getBuNotifications = async (req, res) => {
         res.status(500).json({ success: false, message: "Server error" });
     }
 }
+
+exports.getActivities = async (req, res) => {
+    const { startDate, endDate } = req.query;
+
+    try {
+        const activities = await Notifications.find({
+            entityType: 'activity', createdAt: {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate)
+            }
+        }).sort({ createdAt: -1 });
+        res.status(200).json({
+            success: true,
+            count: activities.length,
+            data: activities,
+        });
+    } catch (error) {
+        console.log("Error fetching activities:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+}
