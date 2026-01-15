@@ -1412,8 +1412,8 @@ exports.getHiredCandidates = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const query = {
-      assignedTo: user._id,
-      status: "hired",
+      // assignedTo: user._id,
+      status: "bench",
     };
 
     if (search) {

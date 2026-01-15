@@ -43,11 +43,13 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const fetchNotifications = async () => {
     try {
       const { data } = await axios.get(
-        `${baseUrl}/api/notification/assigned_notifications`,
+        `${baseUrl}/api/notification/notifications_by_entityType`,
         {
+          params: {
+            notificationType: "hr_notification",
+          },
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
-            contentType: "application/json",
           },
         }
       );
@@ -80,18 +82,18 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     <header className="w-full flex items-center justify-between bg-white px-4 sm:px-6 py-3 shadow-sm border-b">
       {/* Left: Logo + Toggle (for mobile) */}
       <div className="flex items-center gap-4">
-        
-          <button
-            onClick={onToggleSidebar}
-            className="text-gray-500 hover:text-blue-600 transition"
-          >
-            {isSidebarOpen ? (
-              <PanelLeftClose size={25} />
-            ) : (
-              <PanelRightOpen size={25} />
-            )}
-          </button>
- <Link to="/dashboard" className="flex items-center gap-2">
+
+        <button
+          onClick={onToggleSidebar}
+          className="text-gray-500 hover:text-blue-600 transition"
+        >
+          {isSidebarOpen ? (
+            <PanelLeftClose size={25} />
+          ) : (
+            <PanelRightOpen size={25} />
+          )}
+        </button>
+        <Link to="/dashboard" className="flex items-center gap-2">
           <div>
             <h1 className="text-xl font-bold text-blue-600 leading-tight">
               {companyLogoText}

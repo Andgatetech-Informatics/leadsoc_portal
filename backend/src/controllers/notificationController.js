@@ -1,11 +1,11 @@
 const Notifications = require("../models/notification");
 
 
-exports.getNotificationsByAssignedHrId = async (req, res) => {
-    const HrId = req.user._id;
+exports.getNotificationByEntityType = async (req, res) => {
+    const { notificationType } = req.query;
     try {
 
-        const notifications = await Notifications.find({ receiverId: HrId }).sort({ createdAt: -1 });
+        const notifications = await Notifications.find({ entityType: notificationType, isRead: false }).sort({ createdAt: -1 });
         res.status(200).json({
             success: true,
             count: notifications.length,
@@ -49,6 +49,21 @@ exports.getActivities = async (req, res) => {
         });
     } catch (error) {
         console.log("Error fetching activities:", error);
+        res.status(500).json({ success: false, message: "Server error" });
+    }
+}
+
+exports.deleteNotification = async (req, res) => {
+    const notificationId = req.params.id;
+    try {
+        const notification = await Notifications.findByIdAndDelete(notificationId);
+        if (!notification) {
+            return res.status(404).json({ success: false, message: "Notification not found" });
+        }
+
+        res.status(200).json({ success: true, data: "Notification deleted successfully." });
+    } catch (error) {
+        console.log("Error updating read status:", error);
         res.status(500).json({ success: false, message: "Server error" });
     }
 }

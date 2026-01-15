@@ -22,7 +22,7 @@ exports.createOnboarding = async (req, res) => {
     );
 
     await NotificationModel.create({
-      title: `Onboarding initiated for ${updatedCandidateStatus.name}`,
+      title: `Onboarding form submitted by ${updatedCandidateStatus.name}`,
       receiverId: updatedCandidateStatus.assignedTo,
       priority: "high",
       entityType: "hr_notification",

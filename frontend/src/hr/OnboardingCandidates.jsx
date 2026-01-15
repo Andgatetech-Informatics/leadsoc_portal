@@ -105,7 +105,7 @@ const OnboardingCandidates = () => {
     setLoading(true);
     try {
       const query = new URLSearchParams({
-        status: ["shortlisted", "pipeline", "review", "bench"],
+        status: ["shortlisted", "pipeline", "review"],
         page: currentPage,
         limit,
         search: searchQuery,

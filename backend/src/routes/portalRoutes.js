@@ -81,7 +81,7 @@ router.get(
   portalController.getAssignedHrToCandidate
 );
 router.get(
-  "/hired_candidates",
+  "/bench_candidates",
   authMiddleware,
   portalController.getHiredCandidates
 );

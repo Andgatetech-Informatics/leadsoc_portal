@@ -17,7 +17,7 @@ const HiredCandidates = () => {
   const getHiredCandidates = async () => {
     try {
       const res = await axios.get(
-        `${baseUrl}/api/hired_candidates?search=${search}`,
+        `${baseUrl}/api/bench_candidates?search=${search}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

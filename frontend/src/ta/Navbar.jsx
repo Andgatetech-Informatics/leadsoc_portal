@@ -48,12 +48,17 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
 
   const fetchNotifications = async () => {
     try {
-      const { data } = await axios.get(`${baseUrl}/api/notification/assigned_notifications`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          contentType: "application/json",
-        },
-      });
+      const { data } = await axios.get(
+        `${baseUrl}/api/notification/notifications_by_entityType`,
+        {
+          params: {
+            notificationType: "ta_notification",
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       setNotifications(data.data || []);
     } catch (err) {
       console.error("Error fetching notifications:", err);
@@ -83,7 +88,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     <header className="w-full flex items-center justify-between bg-white px-4 sm:px-6 py-3 shadow-sm border-b ">
       {/* Left: Logo + Toggle (for mobile) */}
       <div className="flex items-center gap-4">
-        
+
         <button
           onClick={onToggleSidebar}
           className="text-gray-500 hover:text-blue-600 transition"
@@ -94,16 +99,16 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             <PanelRightOpenIcon size={25} />
           )}
         </button>
- <Link to="/dashboard" className="flex items-center gap-2">
-        <div>
-          <h1 className="text-xl font-bold text-blue-600 leading-tight">
-            {companyLogoText}
-          </h1>
-          <p className="text-xs font-semibold text-gray-500  -mt-1">
-            TA Management Panel
-          </p>
-        </div>
-         </Link>
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <div>
+            <h1 className="text-xl font-bold text-blue-600 leading-tight">
+              {companyLogoText}
+            </h1>
+            <p className="text-xs font-semibold text-gray-500  -mt-1">
+              TA Management Panel
+            </p>
+          </div>
+        </Link>
       </div>
 
       {/* Center: Search Bar */}
@@ -140,7 +145,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             </button>
 
             {isNotificationOpen && (
-              <Notifications onClose={() => setIsNotificationOpen(false)} loading={loading} notifications={notifications} setNotifications={setNotifications} />
+              <Notifications onClose={() => setIsNotificationOpen(false)} loading={loading} fetchNotifications={fetchNotifications}  />
             )}
           </div>
 
