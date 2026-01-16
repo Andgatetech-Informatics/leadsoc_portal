@@ -528,19 +528,19 @@ const OnboardingCandidates = () => {
                             openModal();
                             getReferredJobDetials(c._id)
                           }}
-                          disabled={c.onboardingInitiated}
+                          disabled={!c.onboardingInitiated}
                           className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${c.onboardingInitiated
                             ? "bg-gray-400 cursor-not-allowed"
                             : "bg-green-600 hover:bg-green-700"
                             }`}
                         >
                           {c.onboardingInitiated ? (
-                            <span>Offer Initiated</span>
-                          ) : (
                             <>
                               <FaUpload className="text-sm" />
                               <span>Send Offer</span>
                             </>
+                          ) : (
+                            <span>Offer Initiated</span>
                           )}
                         </button>
                       </td>

@@ -126,7 +126,6 @@ exports.sendOfferLetter = async (req, res) => {
       candidateId,
       {
         status: "pipeline",
-        onboardingInitiated: true,
         onboardingInitiateDate: new Date(),
         joiningDate: joiningDate,
         designation: designation
