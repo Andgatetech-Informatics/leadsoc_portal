@@ -66,7 +66,7 @@ router.patch(
   portalController.addRemark
 );
 router.post(
-  "/upload_consent/:candidateId",
+  "/upload_consent/:candidateId/:type",
   obtainFile.single("file"),
   authMiddleware,
   portalController.uploadConsentForm

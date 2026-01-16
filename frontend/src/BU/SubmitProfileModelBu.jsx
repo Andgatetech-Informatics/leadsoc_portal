@@ -7,8 +7,8 @@ import axios from "axios";
 import { baseUrl } from "../api";
 
 const TABS = [
-  { key: "internal", label: "Bench Candidates" },
-  { key: "external", label: "Pipeline Candidates" },
+  { key: "bench", label: "Bench Candidates" },
+  { key: "pipeline", label: "Pipeline Candidates" },
   { key: "vendor", label: "Vendor Candidates" },
 ];
 
@@ -51,8 +51,6 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
       if (![200, 201].includes(status)) {
         throw new Error("Fetch failed");
       }
-
-      console.log("Fetched Candidates:", data);
 
       setCandidates(data.data || []);
       setTotalPages(data.pagination.totalPages || 1);
@@ -148,8 +146,8 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
                 key={key}
                 onClick={() => handleTabChange(key)}
                 className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === key
-                    ? "bg-blue-600 text-white shadow"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  ? "bg-blue-600 text-white shadow"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                   }`}
               >
                 {label}

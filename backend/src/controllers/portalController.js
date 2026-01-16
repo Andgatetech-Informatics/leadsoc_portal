@@ -597,24 +597,32 @@ exports.uploadResume = async (req, res) => {
 };
 
 exports.uploadConsentForm = async (req, res) => {
-  const user = req.user;
   try {
-    const { candidateId } = req.params;
+    const user = req.user;
+    const { candidateId, type } = req.params;
     const { consentRequired } = req.body;
 
     if (!candidateId) {
       return res.status(400).json({ error: "Candidate ID is required" });
     }
 
-    // Normalize consentRequired value
+    // normalize consentRequired
     const isConsentRequired =
       consentRequired === true || consentRequired === "true";
 
-    // If consent is NOT required → just update status
+    const isVendorType = type === "vendor";
+    let updatedCandidate = null;
+
+    /* ------------------ IF CONSENT NOT REQUIRED ------------------ */
     if (!isConsentRequired) {
-      await CandidateModel.findByIdAndUpdate(
+      const updatePayload = {
+        status: "shortlisted",
+        ...(isVendorType ? {} : { onboardingInitiated: true }),
+      };
+
+      updatedCandidate = await CandidateModel.findByIdAndUpdate(
         candidateId,
-        { status: "shortlisted" },
+        updatePayload,
         { new: true }
       );
 
@@ -624,41 +632,42 @@ exports.uploadConsentForm = async (req, res) => {
       });
     }
 
-    // Consent is required → validate file
+    /* ------------------ CONSENT REQUIRED: VALIDATE FILE ------------------ */
     if (!req.file) {
       return res.status(400).json({ error: "Consent form PDF is required" });
     }
 
     const fileExt = path.extname(req.file.originalname).toLowerCase();
-
     if (fileExt !== ".pdf") {
       return res.status(400).json({
         error: "Invalid file type. Only PDF files are allowed",
       });
     }
 
-    // Convert file buffer to base64
     const base64Pdf = `data:application/pdf;base64,${req.file.buffer.toString(
       "base64"
     )}`;
 
-    // Update candidate with consent form
-    const updatedCandidate = await CandidateModel.findByIdAndUpdate(
+    /* ------------------ UPDATE CANDIDATE WITH CONSENT ------------------ */
+    const updatePayload = {
+      status: "shortlisted",
+      consentForm: base64Pdf,
+      isConsentUploaded: true,
+      ...(isVendorType ? {} : { onboardingInitiated: true }),
+    };
+
+    updatedCandidate = await CandidateModel.findByIdAndUpdate(
       candidateId,
-      {
-        status: "shortlisted",
-        consentForm: base64Pdf,
-        isConsentUploaded: true,
-      },
+      updatePayload,
       { new: true }
     );
 
-    if (user.role === "vendor") {
+    /* ------------------ NOTIFICATION (ONLY IF USER IS VENDOR) ------------------ */
+    if (user?.role === "vendor" && updatedCandidate?._id) {
       await NotificationModel.create({
-        title: `New candidate shortlisted by the ${user.firstName} ${user.lastName}`,
+        title: `New candidate shortlisted by ${user.firstName} ${user.lastName}`,
         senderId: user._id,
         priority: "high",
-        // receiverId: job.createdBy,
         entityType: "bu_notification",
         message: `New vendor candidate is shortlisted by ${user.firstName} ${user.lastName}.`,
         metadata: { candidateId: updatedCandidate._id },
@@ -668,12 +677,11 @@ exports.uploadConsentForm = async (req, res) => {
     return res.status(200).json({
       status: true,
       message: "Consent form uploaded successfully",
+      data: updatedCandidate,
     });
   } catch (error) {
     console.error("Upload consent form error:", error);
-    return res.status(500).json({
-      error: "Internal server error",
-    });
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 
@@ -1366,9 +1374,11 @@ exports.getOnboardingCandidates = async (req, res) => {
         : [];
 
     const query = {
+
       status: {
         $in: statusFilter
       },
+      onboardingInitiated: true
     };
 
     if (search) {

@@ -614,7 +614,7 @@ exports.getshortlistedProfilesToMe = async (req, res) => {
 };
 
 exports.getshortlistedProfilesForBu = async (req, res) => {
-  const candidateType = req.query.candidateType || "internal";
+  const candidateType = req.query.candidateType || "bench";
   const user = req.user;
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 6;
@@ -623,16 +623,31 @@ exports.getshortlistedProfilesForBu = async (req, res) => {
   const jobId = req.query.jobId;
 
   try {
-    const query = {
-      // assignedTo: user._id,
-      status: { $in: ["shortlisted"] },
-      candidateType: candidateType,
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-        { phone: { $regex: search, $options: "i" } },
-      ],
-    };
+    let query = {};
+    if (candidateType === "vendor") {
+      query = {
+        // assignedTo: user._id,
+        status: {
+          $nin: ["bench", "pipeline"]
+        },
+        candidateType: candidateType,
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { phone: { $regex: search, $options: "i" } },
+        ],
+      };
+    } else {
+      query = {
+        // assignedTo: user._id,
+        status: candidateType,
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { phone: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
 
     const total = await Candidate.countDocuments(query);
 
