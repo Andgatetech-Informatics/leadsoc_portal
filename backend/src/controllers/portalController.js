@@ -108,7 +108,7 @@ exports.getAssignedCanditatesToMe = async (req, res) => {
     };
 
     if (!status || status.toLowerCase() === "all") {
-      matchStage.status = { $nin: ["rejected", "shortlisted"] };
+      matchStage.status = { $nin: ["rejected", "shortlisted", "bench", "pipeline"] };
     } else {
       matchStage.status = status;
     }
@@ -296,7 +296,7 @@ exports.getShortlistedCanditatesToParticularHr = async (req, res) => {
 
   const query = {
     assignedTo: user._id,
-    status: "shortlisted",
+    status: "pipeline",
     $or: [
       { name: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
