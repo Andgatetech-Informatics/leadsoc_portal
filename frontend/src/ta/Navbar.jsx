@@ -145,7 +145,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             </button>
 
             {isNotificationOpen && (
-              <Notifications onClose={() => setIsNotificationOpen(false)} loading={loading} fetchNotifications={fetchNotifications}  />
+              <Notifications onClose={() => setIsNotificationOpen(false)} loading={loading} fetchNotifications={fetchNotifications} notifications={notifications} />
             )}
           </div>
 

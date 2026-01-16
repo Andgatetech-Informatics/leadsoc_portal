@@ -74,7 +74,7 @@ const Notifications = ({ onClose, loading, fetchNotifications, notifications }) 
       <div className="max-h-[420px] overflow-y-auto">
         {loading ? (
           Array(4).fill().map((_, i) => <SkeletonNotification key={i} />)
-        ) : notifications.length === 0 ? (
+        ) : notifications.length <= 0 ? (
           <div className="text-center text-gray-500 p-6">No notifications</div>
         ) : (
           notifications.map(({ _id, title, message, isRead, priority, entityType, createdAt, metadata }) => (
