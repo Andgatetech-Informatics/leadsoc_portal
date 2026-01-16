@@ -17,6 +17,19 @@ import SidebarOnboardingCandidateDetails from "../components/SidebarOnboardingCa
 import _ from "lodash";
 import CreatableSelect from "react-select/creatable";
 
+const STATUS_COLORS = {
+  approved: "bg-green-100 text-green-800 border-green-300",
+  review: "bg-yellow-100 text-yellow-800 border-yellow-300",
+  shortlisted: "bg-blue-100 text-blue-800 border-blue-300",
+  pipeline: "bg-orange-100 text-orange-800 border-orange-300",
+  bench: "bg-violet-100 text-violet-800 border-violet-300",
+};
+
+const getStatusClass = (status = "") => {
+  const key = status.toLowerCase();
+  return STATUS_COLORS[key] || "bg-gray-100 text-gray-700 border-gray-300";
+};
+
 const OnboardingCandidates = () => {
   const navigate = useNavigate();
   const [candidateData, setCandidateData] = useState([]);
@@ -35,8 +48,10 @@ const OnboardingCandidates = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [joiningDate, setJoiningDate] = useState(null);
-  const [referredJobDetails, setReferredJobDetails] = useState([])
+  const [referredJobDetails, setReferredJobDetails] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("All");
+  const [reviewLoadingIds, setReviewLoadingIds] = useState(new Set());
 
   const openModal = () => setShowModal(true);
   const closeModal = () => {
@@ -45,9 +60,14 @@ const OnboardingCandidates = () => {
     setJoiningDate(null);
     setFile(null);
     setError(null);
-  }
+  };
 
   const handleFileChange = (event) => setFile(event.target.files[0]);
+
+  const filteredCandidates = candidateData.filter((c) => {
+    if (filterStatus === "All") return true;
+    return c.status.toLowerCase() === filterStatus.toLowerCase();
+  });
 
   const handleUploadOffer = async (candidateId) => {
     if (!file) {
@@ -136,12 +156,14 @@ const OnboardingCandidates = () => {
     setSelectedCandidateId(candidateId);
     setSelectedJob(null);
     try {
-      const res = await axios.get(`${baseUrl}/api/get_referred_candidates/${candidateId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      }
-      )
+      const res = await axios.get(
+        `${baseUrl}/api/get_referred_candidates/${candidateId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
       if (![200, 201].includes(res.status)) {
         throw new Error("Failed to fetch referred jobs");
       }
@@ -149,9 +171,8 @@ const OnboardingCandidates = () => {
       setReferredJobDetails(res.data.data);
     } catch (error) {
       console.log("Error fetching referred jobs:", error);
-
     }
-  }
+  };
 
   // Debounced search
   const debouncedSearch = useCallback(
@@ -221,7 +242,7 @@ const OnboardingCandidates = () => {
 
   const handleViewCandidate = async (candidate) => {
     try {
-      setReviewLoading(true);
+      setReviewLoadingIds((prev) => new Set(prev).add(candidate._id));
       const res = await axios.get(
         `${baseUrl}/api/onboarding-form/candidate/${candidate._id}`
       );
@@ -242,7 +263,11 @@ const OnboardingCandidates = () => {
         error.response?.data?.message || "Failed to load candidate details"
       );
     } finally {
-      setReviewLoading(false);
+      setReviewLoadingIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(candidate._id);
+        return newSet;
+      });
     }
   };
 
@@ -303,6 +328,20 @@ const OnboardingCandidates = () => {
           </p>
         </div>
         <div className="flex flex-row sm:flex-row sm:items-center sm:justify-end gap-3 ">
+          {/* Status Filter */}
+          <div className="w-full sm:w-auto">
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
+              className="w-full sm:w-auto border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
+            >
+              <option value="All">All Status</option>
+              <option value="shortlisted">Shortlisted</option>
+              <option value="pipeline">Pipeline</option>
+              {/* <option value="bench">Bench</option> */}
+              <option value="review">Review</option>
+            </select>
+          </div>
           {/* Search Input */}
           <div className="relative w-full sm:w-72">
             <Search className="w-5 h-5 absolute left-3 top-2.5 text-gray-400" />
@@ -347,7 +386,7 @@ const OnboardingCandidates = () => {
               ))}
             </tbody>
           </table>
-        ) : candidateData.length === 0 ? (
+        ) : filteredCandidates.length === 0 ? (
           <table className="w-full text-sm text-left table-auto">
             <thead className="bg-gray-200 text-gray-700 uppercase text-xs border-b font-medium">
               <tr>
@@ -355,7 +394,7 @@ const OnboardingCandidates = () => {
                 <th className="px-6 py-4">STATUS</th>
                 <th className="px-4 py-3">APPLICANT DETAILS</th>
                 <th className="px-6 py-4">Joining Date</th>
-                <th className="px-6 py-4">Feedback</th>
+
                 <th className="px-6 py-4">Upload</th>
               </tr>
             </thead>
@@ -381,7 +420,7 @@ const OnboardingCandidates = () => {
                   <th className="px-6 py-4">STATUS</th>
                   <th className="px-4 py-3">APPLICANT DETAILS</th>
                   <th className="px-6 py-4">Joining Date</th>
-                  <th className="px-6 py-4">Feedback</th>
+
                   <th className="px-6 py-4">Referred</th>
                   <th className="px-6 py-4">Initited Date</th>
                   <th className="px-6 py-4">Upload</th>
@@ -389,25 +428,19 @@ const OnboardingCandidates = () => {
               </thead>
 
               <tbody className="divide-y divide-gray-100 text-sm text-gray-700">
-                {candidateData.map((c, index) => {
+                {filteredCandidates.map((c, index) => {
                   const status = c.status || "Pending";
                   const normalizedStatus = status.toLowerCase();
-
-
-                  const statusClasses =
-                    normalizedStatus === "approved"
-                      ? "bg-green-100 text-green-800 border-green-300"
-                      : normalizedStatus === "review"
-                        ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                        : "bg-gray-100 text-gray-700 border-gray-300";
+                  const statusClasses = getStatusClass(status);
 
                   return (
                     <tr
                       key={index}
-                      className={`transition-colors ${normalizedStatus === "review"
-                        ? "bg-gray-50 hover:bg-gray-100"
-                        : "hover:bg-gray-50"
-                        }`}
+                      className={`transition-colors ${
+                        normalizedStatus === "review"
+                          ? "bg-gray-50 hover:bg-gray-100"
+                          : "hover:bg-gray-50"
+                      }`}
                     >
                       {/* Name */}
                       <td
@@ -422,24 +455,26 @@ const OnboardingCandidates = () => {
                           </span>
                           <div className="flex items-center text-xs text-gray-500">
                             <FaUserAlt className="mr-1" />
-                            <span>#{c._id.slice(-5)}</span>
+                            <span>{c._id.slice(-5)}</span>
                           </div>
                         </div>
                       </td>
 
                       {/* Status */}
                       <td className="px-6 py-4 align-top">
-                        {reviewLoading ? (
+                        {reviewLoadingIds.has(c._id) ? (
                           // Loading skeleton for status pill
                           <div className="inline-flex items-center px-2.5 py-1 rounded-full border bg-gray-100">
                             <span className="h-3 w-16 rounded-full bg-gray-300 animate-pulse" />
                           </div>
                         ) : (
                           <span
-                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold border ${statusClasses}`}
+                            className={`inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border ${getStatusClass(
+                              c.status
+                            )}`}
                           >
-                            {status}
-                            {normalizedStatus === "review" && (
+                            {c.status}
+                            {c.status?.toLowerCase() === "review" && (
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -491,7 +526,7 @@ const OnboardingCandidates = () => {
                       </td>
 
                       {/* Feedback */}
-                      <td className="px-4 py-4 align-top text-xs text-gray-700 max-w-xs">
+                      {/* <td className="px-4 py-4 align-top text-xs text-gray-700 max-w-xs">
                         {c.joiningFeedback ? (
                           <span className="line-clamp-2">
                             {c.joiningFeedback}
@@ -499,7 +534,7 @@ const OnboardingCandidates = () => {
                         ) : (
                           <span className="text-gray-400">N/A</span>
                         )}
-                      </td>
+                      </td> */}
 
                       {/* Referred */}
                       <td className="px-4 py-4 align-top text-xs text-gray-700">
@@ -526,21 +561,22 @@ const OnboardingCandidates = () => {
                         <button
                           onClick={() => {
                             openModal();
-                            getReferredJobDetials(c._id)
+                            getReferredJobDetials(c._id);
                           }}
-                          disabled={c.onboardingInitiated}
-                          className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${c.onboardingInitiated
-                            ? "bg-gray-400 cursor-not-allowed"
-                            : "bg-green-600 hover:bg-green-700"
-                            }`}
+                          disabled={c.status === "pipeline"}
+                          className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${
+                            c.status === "pipeline"
+                              ? "bg-gray-400 cursor-not-allowed"
+                              : "bg-green-600 hover:bg-green-700"
+                          }`}
                         >
                           {c.onboardingInitiated ? (
-                            <span>Offer Initiated</span>
-                          ) : (
                             <>
                               <FaUpload className="text-sm" />
                               <span>Send Offer</span>
                             </>
+                          ) : (
+                            <span>Offer Initiated</span>
                           )}
                         </button>
                       </td>
@@ -551,131 +587,169 @@ const OnboardingCandidates = () => {
             </table>
 
             {/* Mobile Cards */}
-            <div className="block sm:hidden space-y-4">
-              {candidateData.map((c, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-200 rounded-lg shadow-sm p-4 bg-white"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{c.name}</h3>
-                      <p className="text-xs text-gray-500">
-                        ID: {c._id.slice(-5)}
-                      </p>
-                    </div>
-                    {reviewLoading ? (
-                      <div className="inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border bg-gray-100">
-                        <span className="h-3 w-16 rounded-full bg-gray-300 animate-pulse" />
-                        <span className="h-4 w-4 rounded-full bg-gray-300 animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:hidden">
+              {filteredCandidates.map((c, index) => {
+                const statusClass = getStatusClass(c.status);
+
+                return (
+                  <div
+                    key={index}
+                    className="rounded-xl border border-gray-300 bg-white shadow p-5 flex flex-col gap-4"
+                  >
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-0.5">
+                        <h3 className="text-[16px] font-semibold text-gray-900">
+                          {c.name}
+                        </h3>
+                        <p className="text-[12px] text-gray-900">
+                          {c._id.slice(-5)}
+                        </p>
                       </div>
-                    ) : (
-                      <span
-                        className={`inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border ${c.status?.toLowerCase() === "approved"
-                          ? "bg-green-100 text-green-800 border-green-300"
-                          : c.status?.toLowerCase() === "review"
-                            ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                            : "bg-gray-100 text-gray-700 border-gray-300"
-                          }`}
-                      >
-                        <span>{c.status}</span>
 
-                        {c.status?.toLowerCase() === "review" && (
-                          <button
-                            onClick={() => handleViewCandidate(c)}
-                            className="text-blue-600 hover:text-blue-800 transition-colors duration-200 flex items-center justify-center"
-                            title="View Details"
+                      {reviewLoadingIds.has(c._id) ? (
+                        // Loading skeleton for status pill
+                        <div className="inline-flex items-center px-2.5 py-1 rounded-full border bg-gray-100">
+                          <span className="h-3 w-16 rounded-full bg-gray-300 animate-pulse" />
+                        </div>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center gap-2 text-xs font-medium px-2.5 py-1 rounded-full border ${getStatusClass(
+                            c.status
+                          )}`}
+                        >
+                          {c.status}
+                          {c.status?.toLowerCase() === "review" && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewCandidate(c);
+                              }}
+                              className="ml-2 text-blue-600 hover:text-blue-800 transition-colors"
+                              title="View Details"
+                            >
+                              <FaEye className="text-sm" />
+                            </button>
+                          )}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Details Section */}
+                    <div className="border-t border-gray-200 pt-3 space-y-3 text-[14px] text-gray-800">
+                      {/* EMAIL */}
+                      <div className="flex justify-between items-start">
+                        <span className="text-black font-medium w-32">
+                          Email
+                        </span>
+                        <a
+                          href={`mailto:${c.email}`}
+                          className="font-semibold text-gray-900 text-right hover:text-blue-600 break-all"
+                        >
+                          {c.email}
+                        </a>
+                      </div>
+
+                      {/* PHONE + WHATSAPP */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-black font-medium w-32">
+                          Phone
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={`tel:${c.mobile}`}
+                            className="font-semibold hover:text-blue-600"
                           >
-                            <FaEye className="text-sm" />
-                          </button>
+                            {c.mobile}
+                          </a>
+                          <a
+                            href={`https://wa.me/${c.mobile}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="WhatsApp"
+                          >
+                            <FaWhatsapp className="text-green-600 hover:text-green-700 text-[18px]" />
+                          </a>
+                        </div>
+                      </div>
+
+                      {/* JOINING DATE */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-black font-medium w-32">
+                          Joining Date
+                        </span>
+                        <span className="font-medium text-gray-900 text-right">
+                          {c.joiningDate
+                            ? moment(c.joiningDate).format("lll")
+                            : "N/A"}
+                        </span>
+                      </div>
+
+                      {/* INITIATED */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-black font-medium w-32">
+                          Initiated At
+                        </span>
+                        <span className="font-medium text-gray-900 text-right">
+                          {c.onboardingInitiateDate
+                            ? moment(c.onboardingInitiateDate).format("lll")
+                            : "N/A"}
+                        </span>
+                      </div>
+
+                      {/* FEEDBACK */}
+                      {/* <div className="flex justify-between items-start">
+                        <span className="text-black font-medium w-32">
+                          Feedback
+                        </span>
+                        <span className="font-medium text-gray-900 text-right line-clamp-2">
+                          {c.joiningFeedback || (
+                            <span className="text-gray-400 italic font-normal">
+                              N/A
+                            </span>
+                          )}
+                        </span>
+                      </div> */}
+
+                      {/* REFERRED */}
+                      <div className="flex justify-between items-center">
+                        <span className="text-black font-medium w-32">
+                          Referred
+                        </span>
+                        <span className="font-semibold text-gray-900 text-right">
+                          {c.isReferred ? "Yes" : "No"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action */}
+                    <div className="flex justify-end pt-2">
+                      <button
+                        onClick={() => {
+                          openModal();
+                          getReferredJobDetials(c._id);
+                        }}
+                        disabled={c.onboardingInitiated}
+                        className={`text-[14px] flex items-center gap-2 px-4 py-2 rounded-md text-white font-medium transition
+              ${
+                c.onboardingInitiated
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+                      >
+                        {c.onboardingInitiated ? (
+                          "Offer Sent"
+                        ) : (
+                          <>
+                            {" "}
+                            <FaUpload /> Send Offer{" "}
+                          </>
                         )}
-                      </span>
-                    )}
+                      </button>
+                    </div>
                   </div>
-
-                  <div className="mt-3 text-sm text-gray-700 space-y-2 leading-relaxed">
-                    {/* Email */}
-                    <p className="flex items-center gap-2">
-                      <span className="text-base">📧</span>
-                      <a
-                        href={`mailto:${c.email}`}
-                        className="text-gray-700 hover:text-blue-600 font-medium break-all"
-                      >
-                        {c.email}
-                      </a>
-                    </p>
-
-                    {/* Phone + WhatsApp */}
-                    <p className="flex items-center gap-2">
-                      <span className="text-base">📞</span>
-                      <a
-                        href={`tel:${c.mobile}`}
-                        className="text-gray-700 hover:text-blue-600 font-medium"
-                      >
-                        {c.mobile}
-                      </a>
-
-                      <a
-                        href={`https://wa.me/${c.mobile}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-600 hover:text-green-700"
-                        title="Chat on WhatsApp"
-                      >
-                        <FaWhatsapp className="text-lg" />
-                      </a>
-                    </p>
-
-                    {/* Date */}
-                    <p className="flex items-center gap-2">
-                      <span className="text-base">🗓 Joining: </span>
-                      <span>{moment(c.joiningDate).format("lll")}</span>
-                    </p>
-                    <p className="flex items-center gap-2">
-                      <span className="text-base">🗓 CreatedAt:</span>
-                      <span>{moment(c.onboardingInitiateDate).format("lll")}</span>
-                    </p>
-
-                    {/* Feedback */}
-                    <p className="flex items-center gap-2">
-                      <span className="text-base">💬</span>
-                      {c.joiningFeedback ? (
-                        <span>{c.joiningFeedback}</span>
-                      ) : (
-                        <span className="text-gray-400 italic">N/A</span>
-                      )}
-                    </p>
-
-                    {/* Referral */}
-                    <p className="flex items-center gap-2">
-                      <strong className="font-medium">Referral:</strong>
-                      <span>{c.isReferred ? "Yes" : "No"}</span>
-                    </p>
-                  </div>
-
-                  <div className="mt-4 flex justify-end">
-                    <button
-                      onClick={() => {
-                        openModal();
-                        getReferredJobDetials(c._id)
-                      }}
-                      disabled={c.onboardingInitiated}
-                      className={`flex items-center justify-center gap-2 text-white text-sm px-3 py-2 rounded-md focus:outline-none transition ${c.onboardingInitiated
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700"
-                        }`}
-                    >
-                      {c.onboardingInitiated ? (
-                        <span>Offer Initiated</span>
-                      ) : (
-                        <>
-                          <FaUpload /> <span>Send Offer</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </>
         )}
@@ -685,7 +759,6 @@ const OnboardingCandidates = () => {
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
           <div className="w-full max-w-lg rounded-xl bg-white shadow-2xl">
-
             {/* Header */}
             <div className="flex items-center justify-between border-b px-6 py-4">
               <h2 className="text-lg font-semibold text-gray-800">
@@ -701,7 +774,6 @@ const OnboardingCandidates = () => {
 
             {/* Body */}
             <div className="px-6 py-5 space-y-4">
-
               {/* Job Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -781,7 +853,6 @@ const OnboardingCandidates = () => {
           </div>
         </div>
       )}
-
 
       {/* Sidebar Drawer */}
       {showSidebar && (

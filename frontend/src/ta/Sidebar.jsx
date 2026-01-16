@@ -54,7 +54,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
       <div className="flex flex-col h-full justify-between">
         {/* Top Section */}
         <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
-          <Link to="/dashboard/hr" className="flex items-center gap-2">
+          <Link to="/dashboard/ta" className="flex items-center gap-2">
             <UserCircleIcon size={22} />
             {isOpen && (
               <span className="text-sm font-semibold text-white tracking-wide">

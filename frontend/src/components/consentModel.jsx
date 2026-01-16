@@ -19,7 +19,7 @@ const ConsentModel = ({
     [candidate]
   );
 
-  const isFormInvalid = checked && !file || isUploading;
+  const isFormInvalid = (checked && !file) || isUploading;
 
   /* -------------------- HELPERS -------------------- */
   const closeModal = () => {
@@ -51,7 +51,7 @@ const ConsentModel = ({
       formData.append("consentRequired", checked);
 
       const res = await axios.post(
-        `${baseUrl}/api/upload_consent/${candidate._id}`,
+        `${baseUrl}/api/upload_consent/${candidate._id}/${candidate.candidateType}`,
         formData,
         {
           headers: {
@@ -119,39 +119,39 @@ const ConsentModel = ({
                 htmlFor="consent"
                 className="text-sm font-medium text-gray-700"
               >
-                Want to Shortlist with Consent Form <span className="text-red-500">*</span>
+                Want to Shortlist with Consent Form{" "}
+              
               </label>
             </div>
 
             {/* File Upload */}
-            {
-              checked && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">
-                    Upload PDF <span className="text-red-500">*</span>
-                  </label>
+            {checked && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">
+                  Upload PDF <span className="text-red-500">*</span>
+                </label>
 
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={handleFileChange}
-                    disabled={isUploading}
-                    className="block w-full text-sm text-gray-600
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={handleFileChange}
+                  disabled={isUploading}
+                  className="block w-full text-sm text-gray-600
         file:mr-4 file:rounded-md file:border-0
         file:bg-blue-600 file:px-4 file:py-2
         file:text-white file:text-sm
         hover:file:bg-blue-700
         disabled:cursor-not-allowed disabled:opacity-60"
-                  />
+                />
 
-                  {file && (
-                    <p className="text-xs text-gray-500 truncate">
-                      Selected file: <span className="font-medium">{file.name}</span>
-                    </p>
-                  )}
-                </div>
-              )
-            }
+                {file && (
+                  <p className="text-xs text-gray-500 truncate">
+                    Selected file:{" "}
+                    <span className="font-medium">{file.name}</span>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
 

@@ -73,6 +73,8 @@ import CreatePostJob from "../sales/CreatePostJob";
 import CreateCompany from "../sales/CreateCompany";
 import Feeds from "../sales/Feeds";
 import ReferredTalent from "../sales/ReferredTalent";
+import DynamicFeedbackForm from "../feedback/DynamicFeedbackForm";
+import HrDashboard from "../hr/HrDashboard";
 // import ShortlistedCandidateAllHR from "../hr/ShortlistedCandidateAllHR";
 
 // Route Wrappers
@@ -152,6 +154,7 @@ const AppRouter = ({ isAuth }) => {
           element={<TechnicalFeedbackForm />}
         />
         <Route path="/feedback" element={<FeedbackForm />} />
+        <Route path="/dynamic-feedback-form" element={<DynamicFeedbackForm />} />
       </Route>
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
@@ -201,7 +204,7 @@ const AppRouter = ({ isAuth }) => {
         {/* HR Routes */}
         <Route element={<HrRoute user={user} />}>
           <Route element={<HrLayout />}>
-            <Route path="/dashboard/hr" element={<TaDashboard />} />
+            <Route path="/dashboard/hr" element={<HrDashboard />} />
 
             <Route path="/profile/hr" element={<Profile />} />
             <Route

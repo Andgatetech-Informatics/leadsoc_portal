@@ -3,21 +3,28 @@ import TooltipCard from "./Tooltip";
 import { useLocation } from "react-router-dom";
 
 const statusMap = {
-  pending: { label: "Pending", color: "bg-gray-500" }, // Neutral
-  assigned: { label: "Assigned", color: "bg-blue-600" }, // Action
-  onhold: { label: "On Hold", color: "bg-yellow-500" }, // Warning
-  shortlisted: { label: "Shortlisted", color: "bg-purple-600" }, // Highlight
-  approved: { label: "Approved", color: "bg-emerald-600" }, // Success
-  rejected: { label: "Rejected", color: "bg-red-600" }, // Danger
-  hired: { label: "Hired", color: "bg-green-700" }, // Final success
+  pending: { label: "Pending", color: "bg-gray-500" },          // Neutral
+  assigned: { label: "Assigned", color: "bg-blue-500" },        // Action
+  onhold: { label: "On Hold", color: "bg-yellow-500" },         // Warning
+  shortlisted: { label: "Shortlisted", color: "bg-blue-600" },  // Active highlight
+  pipeline: { label: "Pipeline", color: "bg-indigo-500" },      // In pipeline
+  review: { label: "Under Review", color: "bg-orange-500" },    // Being evaluated
+  bench: { label: "Bench", color: "bg-slate-500" },             // Waiting Pool
+  approved: { label: "Approved", color: "bg-green-500" },       // Success
+  rejected: { label: "Rejected", color: "bg-red-500" },         // Danger
+  hired: { label: "Hired", color: "bg-emerald-600" },           // Final success
 };
+
+
 
 const steps = [
   "pending",
   "assigned",
   "onhold",
   "shortlisted",
-  "approved",
+  "pipeline",
+  "review",
+  "bench",
   "hired",
 ];
 

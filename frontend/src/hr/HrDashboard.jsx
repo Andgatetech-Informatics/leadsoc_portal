@@ -4,7 +4,7 @@ import RecentActivity from "../charts/RecentActivity";
 import StatusOverview from "../charts/StatusOverview";
 import TeamsOverview from "../charts/TeamsOverview";
 import DomainDoughnutChart from "../charts/DomainDoughnutChart";
-import JobDashboard from "../jobPost/JobDashboard";
+// import JobDashboard from "../jobPost/JobDashboard";
 import DateFilter from "../components/DateFilter";
 import { getDateRange } from "../utils/getDateRange";
 
@@ -90,9 +90,9 @@ const HrDashboard = () => {
           </Card>
         </div>
       </div>
-      <div className="w-full">
+      {/* <div className="w-full">
         <JobDashboard />
-      </div>
+      </div> */}
     </div>
   );
 };
