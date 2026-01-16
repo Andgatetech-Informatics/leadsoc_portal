@@ -793,10 +793,10 @@ exports.fresherRegistration = async (req, res) => {
       .replace(/{{year}}/g, new Date().getFullYear());
 
     const mailOptions = {
-      from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+      from: `Team ${process.env.CompanyName} <${process.env.SMTP_USER}>`,
       to: candidate.email,
       subject: "Thanks for applying to Andgate",
-      text: `Dear ${candidate.name},\n\nYour application has been accepted. We will contact you soon with next steps.\n\n- Andgate HR Team`,
+      text: `Dear ${candidate.name},\n\nYour application has been accepted. We will contact you soon with next steps.\n\n- Team ${process.env.CompanyName}`,
       html: personalizedHtml,
     };
 
@@ -981,10 +981,10 @@ exports.experiencedRegistration = async (req, res) => {
       .replace(/{{year}}/g, new Date().getFullYear());
 
     const mailOptions = {
-      from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+      from: `Team ${process.env.CompanyName} <${process.env.SMTP_USER}>`,
       to: candidate.email,
       subject: "Thanks for applying to Andgate",
-      text: `Dear ${candidate.name},\n\nYour application has been accepted. We will contact you soon with next steps.\n\n- Andgate HR Team`,
+      text: `Dear ${candidate.name},\n\nYour application has been accepted. We will contact you soon with next steps.\n\n- Team ${process.env.CompanyName}`,
       html: personalizedHtml,
     };
 
@@ -1098,7 +1098,7 @@ exports.statusChange = async (req, res) => {
 
     if (status === "rejected") {
       const rejectionEmail = {
-        from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+        from: `Team ${process.env.CompanyName} <${process.env.SMTP_USER}>`,
         to: candidate.email,
         subject: `Thank You for Applying – ${process.env.CompanyName}`,
         text: `Dear ${candidate.name}, we appreciate your interest.`,

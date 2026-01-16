@@ -147,7 +147,7 @@ exports.sendOfferLetter = async (req, res) => {
     const candidateFirstName = candidate.name.split(" ")[0];
 
     const emailContent = {
-      from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+      from: `Team ${process.env.CompanyName} <${process.env.SMTP_USER}>`,
       to: candidate.email,
       subject: `Employment offer_form ${companyFirstName}_${candidateFirstName}_${candidate.designation}`,
       // subject: `Welcome to ${process.env.CompanyName}! Offer for ${candidate.designation}`,
@@ -220,7 +220,7 @@ exports.reinitializeOnboardingForm = async (req, res) => {
     const candidateFirstName = candidate.name.split(" ")[0];
 
     const emailContent = {
-      from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+      from: `Team ${process.env.CompanyName} <${process.env.SMTP_USER}>`,
       to: candidate.email,
       subject: `Employment offer_form ${companyFirstName}_${candidateFirstName}_${candidate.designation}`,
       text: `Dear ${candidate.name}, we are excited to offer you the position of ${candidate.designation} at ${process.env.CompanyName}.`,

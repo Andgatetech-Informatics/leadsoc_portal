@@ -85,7 +85,7 @@ const htmlTemplate = `
 
                 <p>We appreciate your interest in joining our team!</p>
 
-                <p>Best regards,<br /><strong>Andgate HR Team</strong></p>
+                <p>Best regards,<br /><strong>TA Team</strong></p>
             </div>
 
             <div class="footer">
@@ -158,13 +158,13 @@ const candidateHtml = `
               </p>
               <p style="margin-top: 40px;">
                 Best regards,<br/>
-                <strong>Andgate HR Team</strong>
+                <strong>TA Team</strong>
               </p>
             </td>
           </tr>
           <tr>
             <td class="footer">
-              &copy; {{currentYear}} Andgate Informatics Pvt. Ltd. All rights reserved.
+              &copy; {{currentYear}} {{organization.name}} All rights reserved.
             </td>
           </tr>
         </table>
@@ -355,13 +355,13 @@ const interviewerHtml = `
               
               <p style="margin-top: 40px;">
                 Best regards,<br/>
-                <strong>Andgate HR Team</strong>
+                <strong>TA Team</strong>
               </p>
             </td>
           </tr>
           <tr>
             <td class="footer">
-              &copy; {{currentYear}} Andgate Informatics Pvt. Ltd. All rights reserved.
+              &copy; {{currentYear}} {{organization.name}} All rights reserved.
             </td>
           </tr>
         </table>
@@ -482,13 +482,13 @@ const interviewerHtmlWithoutLink = `
 
               <p style="margin-top: 40px;">
                 Best regards,<br />
-                <strong>Andgate HR Team</strong>
+                <strong>TA Team</strong>
               </p>
             </td>
           </tr>
           <tr>
             <td class="footer">
-              &copy; {{currentYear}} Andgate Informatics Pvt. Ltd. All rights reserved.
+              &copy; {{currentYear}} {{organization.name}} All rights reserved.
             </td>
           </tr>
         </table>

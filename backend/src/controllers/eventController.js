@@ -80,24 +80,27 @@ exports.createEvent = async (req, res) => {
         hour: "2-digit",
         minute: "2-digit",
       });
-      
+
     const resumeURL = `${process.env.BACKEND_URL}/${candidate.resume}`;
     const year = new Date().getFullYear();
 
-    const buildEmailCandidate = (to, html, subject, cc) => ({
-      from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+    const buildEmailCandidate = (to, html, subject, cc, organization) => ({
+      from: `Team ${organization?.name || process.env.COMPANY_NAME || "Company"} <${process.env.SMTP_USER || "no-reply@example.com"
+        }>`,
       to,
+      cc: cc || undefined,
       subject,
-      text: "Dear - Andgate HR Team",
+      text: `Dear - ${organization?.name || process.env.COMPANY_NAME || "Company"}`,
       html,
     });
 
-    const buildEmailEnterviewer = (to, html, subject, cc) => ({
-      from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+    const buildEmailEnterviewer = (to, html, subject, cc, organization) => ({
+      from: `Team ${organization?.name || process.env.COMPANY_NAME || "Company"} <${process.env.SMTP_USER || "no-reply@example.com"
+        }>`,
       to,
-      cc,
+      cc: cc || undefined,
       subject,
-      text: "Dear - Andgate HR Team",
+      text: `Dear - ${organization?.name || process.env.COMPANY_NAME || "Company"}`,
       html,
     });
 
@@ -236,10 +239,10 @@ exports.updateFeedbackStatus = async (req, res) => {
 
     if (status === 'rejected') {
       const rejectionEmail = {
-        from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+        from: `Team ${event.organization.name || process.env.COMPANY_NAME || "Company"} <${process.env.SMTP_USER}>`,
         to: event.candidate.email,
         subject: `Interview Update for ${event.candidate.name} - ${event.eventName} Round`,
-        text: `Dear- Andgate HR Team`,
+        text: `Dear - ${event.organization.name || process.env.COMPANY_NAME || "Company"}`,
         html: eventRejectionHtml
           .replace(/{{candidateName}}/g, event.candidate.name)
           .replace(/{{organization}}/g, event.organization.name)
@@ -254,10 +257,10 @@ exports.updateFeedbackStatus = async (req, res) => {
 
     if (status === 'approved') {
       const approvalEmail = {
-        from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+        from: `Team ${event.organization.name || process.env.COMPANY_NAME || "Company"} <${process.env.SMTP_USER}>`,
         to: event.candidate.email,
         subject: `Interview Update for ${event.candidate.name} - ${event.eventName} Round`,
-        text: `Dear- Andgate HR Team`,
+        text: `Dear - ${event.organization.name || process.env.COMPANY_NAME || "Company"}`,
         html: eventApprovalHtml
           .replace(/{{candidateName}}/g, event.candidate.name)
           .replace(/{{organization}}/g, event.organization.name)

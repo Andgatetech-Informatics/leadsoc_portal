@@ -67,10 +67,10 @@ const registerUser = async (req, res) => {
         .replace(/{{year}}/g, "2025");
 
       const mailOptions = {
-        from: `"Andgate HR Team" <${process.env.SMTP_USER}>`,
+        from: `${company.organization} <${process.env.SMTP_USER}>`,
         to: personalEmail,
         subject: `Account Successfully Created for ${company.organization}`,
-        text: `Dear ${firstName},\n\nYour account has been created successfully.\n\n- Andgate HR Team`,
+        text: `Dear ${firstName},\n\nYour account has been created successfully.\n\n- Team ${company.organization}`,
         html: personalizedHtml,
       };
 
@@ -276,9 +276,9 @@ const getEveryUser = async (req, res) => {
     // Apply role-based filters
     if (userType === "ta") {
       filter.role = "ta";
-    }else if (userType === "hr") {
+    } else if (userType === "hr") {
       filter.role = "hr";
-    }else if (userType === "admin") {
+    } else if (userType === "admin") {
       filter.role = { $in: ["admin", "superadmin"] };
     } else if (userType === "bu") {
       filter.role = "bu";
@@ -288,7 +288,7 @@ const getEveryUser = async (req, res) => {
       filter.role = "vendor";
     } else {
       filter.role = {
-        $nin: ["admin","hr", "ta", "superadmin", "bu", "sales", "vendor"],
+        $nin: ["admin", "hr", "ta", "superadmin", "bu", "sales", "vendor"],
       };
     }
 
@@ -416,10 +416,10 @@ const sendOtp = async (req, res) => {
       .replace(/{{year}}/g, "2025");
 
     const mailOptions = {
-      from: `"Andgate Support Team" <${process.env.SMTP_USER}>`,
+      from: `${organization.organization} <${process.env.SMTP_USER}>`,
       to: user.email,
       subject: `Your OTP to Complete Verification to Reset Your Password`,
-      text: `Dear ${user.firstName},\n\nYour OTP for Password Reset is: ${user.otp}.\n\n- Andgate HR Team`,
+      text: `Dear ${user.firstName},\n\nYour OTP for Password Reset is: ${user.otp}.\n\n- Team ${organization.organization}`,
       html: forgetPassHtml,
     };
 
