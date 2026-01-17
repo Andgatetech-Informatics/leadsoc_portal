@@ -45,6 +45,7 @@ const SearchResult = ({ searchTerm, navigateUrl, setSearchTerm }) => {
 
   // 🔹 Handle navigation on click
   const handleClick = (item) => {
+    console.log("Navigating to:", `/${navigateUrl}/${item._id}`);
     setSearchTerm("");
     setHoveredIndex(null);
     navigate(`/${navigateUrl}/${item._id}`);

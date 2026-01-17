@@ -123,7 +123,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
           onChange={(e) => setSearchTerm(e.target.value.trim())}
           className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
-        {searchTerm && <SearchResult searchTerm={searchTerm} navigateUrl="application-tracker_hr" setSearchTerm={setSearchTerm} />}
+        {searchTerm && <SearchResult searchTerm={searchTerm} navigateUrl="application-tracker_ta" setSearchTerm={setSearchTerm} />}
       </div>
 
       {/* Right: User Options */}

@@ -96,7 +96,6 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      console.log("res", res.data);
       toast.success("Candidates submitted successfully!");
       setSelectedCandidates([]);
       onClose();

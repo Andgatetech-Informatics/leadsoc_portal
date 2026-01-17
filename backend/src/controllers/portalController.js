@@ -296,7 +296,9 @@ exports.getShortlistedCanditatesToParticularHr = async (req, res) => {
 
   const query = {
     assignedTo: user._id,
-    status: "pipeline",
+    status: {
+      $in: ["pipeline", "bench"],
+    },
     $or: [
       { name: { $regex: search, $options: "i" } },
       { email: { $regex: search, $options: "i" } },
@@ -616,7 +618,7 @@ exports.uploadConsentForm = async (req, res) => {
     /* ------------------ IF CONSENT NOT REQUIRED ------------------ */
     if (!isConsentRequired) {
       const updatePayload = {
-        status: "shortlisted",
+        status: "pipeline",
         ...(isVendorType ? {} : { onboardingInitiated: true }),
       };
 
@@ -650,7 +652,7 @@ exports.uploadConsentForm = async (req, res) => {
 
     /* ------------------ UPDATE CANDIDATE WITH CONSENT ------------------ */
     const updatePayload = {
-      status: "shortlisted",
+      status: "pipeline",
       consentForm: base64Pdf,
       isConsentUploaded: true,
       ...(isVendorType ? {} : { onboardingInitiated: true }),
@@ -665,7 +667,7 @@ exports.uploadConsentForm = async (req, res) => {
     /* ------------------ NOTIFICATION (ONLY IF USER IS VENDOR) ------------------ */
     if (user?.role === "vendor" && updatedCandidate?._id) {
       await NotificationModel.create({
-        title: `New candidate shortlisted by ${user.firstName} ${user.lastName}`,
+        title: `New candidate shortlisted by ${user.firstName} ${user.lastName} for Pipeline.`,
         senderId: user._id,
         priority: "high",
         entityType: "bu_notification",
