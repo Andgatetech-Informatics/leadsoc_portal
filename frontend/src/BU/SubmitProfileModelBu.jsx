@@ -51,7 +51,6 @@ const [modalCandidate, setModalCandidate] = useState(null);
       if (![200, 201].includes(status)) {
         throw new Error("Fetch failed");
       }
-      console.log("first", data.data);
       setCandidates(data.data || []);
       setTotalPages(data.pagination.totalPages || 1);
     } catch (err) {
