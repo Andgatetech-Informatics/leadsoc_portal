@@ -144,14 +144,16 @@ exports.createEvent = async (req, res) => {
     const candidateEmail = buildEmailCandidate(
       candidate.email,
       personalizedCandidateHtml,
-      `${eventName} Round - for ${candidate.name}`
+      `${eventName} Round - for ${candidate.name}`,
+      organization
     );
 
     const interviewerEmail = buildEmailEnterviewer(
       interviewer.email,
       personalizedInterviewerHtml,
       `${eventName} round has been assigned to you for ${candidate.name}`,
-      user.email
+      user.email,
+      organization
     );
 
     /* ------------------------------------
