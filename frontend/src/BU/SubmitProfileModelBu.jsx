@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import Pagination from "../components/Pagination";
 import axios from "axios";
 import { baseUrl } from "../api";
@@ -17,12 +17,12 @@ const LIMIT = 3;
 const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] = useState("internal");
+  const [activeTab, setActiveTab] = useState("bench");
   const [searchTerm, setSearchTerm] = useState("");
   const [candidates, setCandidates] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(false);
-
+const [modalCandidate, setModalCandidate] = useState(null);
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -51,7 +51,7 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
       if (![200, 201].includes(status)) {
         throw new Error("Fetch failed");
       }
-
+      console.log("first", data.data);
       setCandidates(data.data || []);
       setTotalPages(data.pagination.totalPages || 1);
     } catch (err) {
@@ -123,7 +123,6 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
       <div className="relative flex h-[80vh] max-h-[700px] min-h-[600px] w-full max-w-3xl flex-col rounded-2xl bg-white shadow-2xl">
-
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -145,10 +144,11 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
               <button
                 key={key}
                 onClick={() => handleTabChange(key)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === key
-                  ? "bg-blue-600 text-white shadow"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                  }`}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                  activeTab === key
+                    ? "bg-blue-600 text-white shadow"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
               >
                 {label}
               </button>
@@ -201,43 +201,68 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
               {candidates.map((c) => (
                 <div
                   key={c._id}
-                  className="grid grid-cols-[auto_1.5fr_1.5fr_1fr_1fr] items-center gap-4 rounded-xl border p-4 transition hover:bg-gray-50 hover:shadow-sm"
+                  className="grid grid-cols-[auto_2fr_2fr_1.5fr_1.5fr_1fr] items-center gap-4 rounded-xl border p-4 transition hover:bg-gray-50 hover:shadow-sm"
                 >
                   {/* Checkbox */}
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.includes(c._id)}
-                    onChange={() => toggleCandidate(c._id)}
-                    onClick={(e) => e.stopPropagation()}
-                    className="accent-blue-600"
-                  />
+                  <div className="flex justify-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(c._id)}
+                      onChange={() => toggleCandidate(c._id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="accent-blue-600"
+                    />
+                  </div>
 
                   {/* Name */}
                   <div
                     onClick={() => navigate(`/application-tracker_bu/${c._id}`)}
-                    className="cursor-pointer"
+                    className="cursor-pointer flex flex-col"
                   >
-                    <p className="font-medium text-gray-800">{c.name}</p>
+                    <p className="font-medium text-gray-800 truncate">
+                      {c.name}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {c.experience || "Fresher"}
                     </p>
                   </div>
 
                   {/* Contact */}
-                  <div className="text-sm text-gray-600">
-                    <p className="truncate">{c.email}</p>
+                  <div className="flex flex-col text-sm text-gray-600 truncate">
+                    <p className="truncate" title={c.email}>{c.email}</p>
                     <p>{c.mobile}</p>
                   </div>
 
                   {/* Job */}
-                  <div className="text-sm text-gray-700">
+                  <div className="text-sm text-gray-700 truncate">
                     {c.jobPosition}
                   </div>
 
-                  {/* TA */}
-                  <div className="text-sm text-gray-500">
-                    {c.taName || "Unassigned"}
+                  {/* TA or POC / Vendor */}
+                  <div className="text-sm text-gray-500 truncate">
+                    {c.vendorReferred ? c.vendorName : c.poc || "Unassigned"}
                   </div>
+
+                  {/* Resume */}
+                  {/* <div className="text-sm text-blue-600 underline cursor-pointer text-center">
+                    <a
+                      href={c.resume}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Resume
+                    </a>
+                  </div> */}
+                  
+            {/* View Button */}
+            <div className="flex justify-center">
+              <button
+                onClick={() => setModalCandidate(c)}
+                className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+              >
+                View
+              </button>
+            </div>
                 </div>
               ))}
             </div>
@@ -260,10 +285,106 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
             </button>
           </div>
         </div>
+  {/* Modal */}
+{modalCandidate && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 relative overflow-y-auto max-h-[90vh]">
+      {/* Close Button */}
+      <button
+        onClick={() => setModalCandidate(null)}
+         aria-label="Close"
+          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        
+      >
+        <X size={14}/>
+      </button>
+
+     
+
+      {/* Candidate Info Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+
+        <div>
+          <p className="font-medium">Designation:</p>
+          <p>{modalCandidate.designation || "N/A"}</p>
+        </div>
+
+        <div>
+          <p className="font-medium">Domain:</p>
+          <p>{modalCandidate.domain?.join(", ") || "N/A"}</p>
+        </div>
+
+        <div>
+          <p className="font-medium">Email:</p>
+          <p>{modalCandidate.email}</p>
+        </div>
+
+        <div>
+          <p className="font-medium">Mobile:</p>
+          <p>{modalCandidate.mobile}</p>
+        </div>
+
+        <div>
+          <p className="font-medium">Skills:</p>
+          <p>{modalCandidate.skills || "N/A"}</p>
+        </div>
+
+        <div>
+          <p className="font-medium">Graduation Year:</p>
+          <p>{modalCandidate.graduationYear || "N/A"}</p>
+        </div>
+
+        <div>
+          <p className="font-medium">Preferred Location:</p>
+          <p>{modalCandidate.preferredLocation || "N/A"}</p>
+        </div>
+
+      
+
+        <div>
+          <p className="font-medium">Joining Date:</p>
+          <p>{modalCandidate.joiningDate ? new Date(modalCandidate.joiningDate).toLocaleDateString() : "N/A"}</p>
+        </div>
+
+        <div>
+          <p className="font-medium">Onboarding Initiated:</p>
+          <p>{modalCandidate.onboardingInitiated ? "Yes" : "No"}</p>
+        </div>
+
+         <div className="col-span-2">
+          <p className="font-medium">Resume:</p>
+          {modalCandidate?.resume ? (
+            <a
+              href={
+                modalCandidate.resume.endsWith(".doc") ||
+                modalCandidate.resume.endsWith(".docx")
+                  ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
+                      `${baseUrl}/${modalCandidate.resume}`
+                    )}`
+                  : `${baseUrl}/${modalCandidate.resume}`
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline hover:text-blue-800 mt-1 inline-block"
+            >
+              📄 View Resume
+            </a>
+          ) : (
+            <span>No Resume</span>
+          )}
+        </div>
+
+    
+
+      </div>
+
+  
+    </div>
+  </div>
+)}
 
       </div>
     </div>
-
   );
 };
 

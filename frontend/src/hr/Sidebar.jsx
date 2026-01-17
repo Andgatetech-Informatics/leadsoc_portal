@@ -26,7 +26,7 @@ const navItems = [
   // },
   // { to: "/active-jobs", label: "Active Jobs", icon: CheckCircle },
   { to: "/onboarding-candidates", label: "Onboardings", icon: ClipboardCheck },
-  { to: "/hired-candidates-hr", label: "Hired", icon: ShieldCheck },
+  { to: "/bench-candidates-hr", label: "Bench", icon: ShieldCheck },
   { to: "/user", label: "Teams", icon: User },
 ];
 

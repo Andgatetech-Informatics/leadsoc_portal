@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Pagination from "../components/Pagination";
-import { Search } from "lucide-react";
+import { Info, Search } from "lucide-react";
 import axios from "axios";
 import { baseUrl } from "../api";
+import {
+  X,
+  Briefcase,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Layers,
+  BadgeInfo,
+} from "lucide-react";
+
 import JobPostingForm from "./JobPostingForm";
 
 const OpeningJobCard = () => {
@@ -19,6 +29,7 @@ const OpeningJobCard = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -135,7 +146,7 @@ const OpeningJobCard = () => {
       </div>
 
       {/* ================= Job List ================= */}
-      <div className="mt-4 space-y-4">
+      <div className="space-y-4">
         {loading ? (
           [...Array(4)].map((_, i) => (
             <div
@@ -160,7 +171,13 @@ const OpeningJobCard = () => {
                   {/* Title & Job ID */}
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition">
-                      {job.title}
+                      {job.title}{" "}
+                      <button
+                        onClick={() => setSelectedJob(job)}
+                        className="p-1 hover:bg-indigo-100 rounded-full transition"
+                      >
+                        <Info size={18} className="text-indigo-600" />
+                      </button>
                     </h3>
                     <p className="text-xs text-gray-500 mt-0.5">
                       Job ID: <span className="font-medium">{job.jobId}</span>
@@ -227,6 +244,155 @@ const OpeningJobCard = () => {
             </button>
 
             <JobPostingForm organization={organization} fetchJobs={fetchJobs} />
+          </div>
+        </div>
+      )}
+      {/* JD model */}
+      {selectedJob && (
+        <div className="fixed inset-0 z-[999] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-[0_8px_32px_rgb(0,0,0,0.15)] animate-scaleUp relative">
+            {/* Close */}
+            <button
+              onClick={() => setSelectedJob(null)}
+              className="absolute top-4 right-4 p-2 rounded-full
+             text-white-600 hover:text-white
+             transition-colors duration-300
+             before:content-['']
+             before:absolute before:inset-0 before:rounded-full
+             before:bg-red-500 before:scale-0 before:transition-transform before:duration-300
+             hover:before:scale-100 flex items-center justify-center"
+>
+            
+              <X size={18} className="relative z-10" />
+            </button>
+
+            {/* Header */}
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white rounded-t-2xl px-6 py-5 space-y-1">
+              <h2 className="text-xl font-semibold tracking-wide flex items-center gap-2">
+                <Briefcase size={18} />
+                {selectedJob.title}
+              </h2>
+              <p className="text-xs opacity-90">Job ID • {selectedJob.jobId}</p>
+              <p className="text-xs opacity-90 flex items-center gap-1">
+                <Calendar size={14} /> Posted{" "}
+                {new Date(selectedJob.postDate).toLocaleDateString()}
+              </p>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-6 space-y-6 text-sm text-gray-700">
+              {/* Basic */}
+              <section>
+                <h3 className="font-semibold text-indigo-600 mb-2 flex items-center gap-1">
+                  <BadgeInfo size={16} /> Basic Information
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-1">
+                  <p>
+                    <b>Client:</b> {selectedJob.clientName || "--"}
+                  </p>
+                  <p>
+                    <b>Location:</b> {selectedJob.location}
+                  </p>
+                  <p>
+                    <b>Status:</b> {selectedJob.status}
+                  </p>
+                  <p>
+                    <b>Priority:</b> {selectedJob.priority}
+                  </p>
+                  <p>
+                    <b>Work Type:</b> {selectedJob.workType}
+                  </p>
+                  <p>
+                    <b>Job Type:</b> {selectedJob.jobType}
+                  </p>
+                </div>
+              </section>
+
+              {/* Requirements */}
+              <section>
+                <h3 className="font-semibold text-indigo-600 mb-2 flex items-center gap-1">
+                  <Layers size={16} /> Requirements
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-y-1">
+                  <p>
+                    <b>Experience:</b> {selectedJob.experienceMin}-
+                    {selectedJob.experienceMax} yrs
+                  </p>
+                  <p>
+                    <b>Budget:</b>{" "}
+                    {selectedJob.budgetMin
+                      ? `${selectedJob.budgetMin}-${selectedJob.budgetMax} LPA`
+                      : "--"}
+                  </p>
+                  <p>
+                    <b>Revised:</b>{" "}
+                    {selectedJob.modifiedBudgetMin
+                      ? `${selectedJob.modifiedBudgetMin}-${selectedJob.modifiedBudgetMax} LPA`
+                      : "--"}
+                  </p>
+                  <p>
+                    <b>Positions:</b> {selectedJob.noOfPositions}
+                  </p>
+                  <p>
+                    <b>Start:</b>{" "}
+                    {new Date(selectedJob.postDate).toLocaleDateString()}
+                  </p>
+                  <p>
+                    <b>End Date:</b>{" "}
+                    {new Date(selectedJob.endDate).toLocaleDateString()}
+                  </p>
+                </div>
+              </section>
+
+              {/* Domain */}
+              {Array.isArray(selectedJob.domain) &&
+                selectedJob.domain.length > 0 && (
+                  <section>
+                    <h3 className="font-semibold text-indigo-600 mb-2 flex items-center gap-1">
+                      <Layers size={16} /> Domain
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedJob.domain.map((d, i) => (
+                        <span
+                          key={i}
+                          className="px-2 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md text-xs"
+                        >
+                          {typeof d === "string" ? d : d.label || d.value}
+                        </span>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+              {/* Skills */}
+              {selectedJob.skills?.length > 0 && (
+                <section>
+                  <h3 className="font-semibold text-indigo-600 mb-2 flex items-center gap-1">
+                    <DollarSign size={16} /> Skills
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedJob.skills.map((skill, i) => (
+                      <span
+                        key={i}
+                        className="px-2 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 rounded-md text-xs"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Description */}
+              <section>
+                <h3 className="font-semibold text-indigo-600 mb-2 flex items-center gap-1">
+                  <Briefcase size={16} /> Description
+                </h3>
+                <p className="leading-relaxed whitespace-pre-line text-gray-800">
+                  {selectedJob.description || "--"}
+                </p>
+              </section>
+            </div>
           </div>
         </div>
       )}

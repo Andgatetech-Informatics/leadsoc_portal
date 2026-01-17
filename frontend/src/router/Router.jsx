@@ -75,6 +75,7 @@ import Feeds from "../sales/Feeds";
 import ReferredTalent from "../sales/ReferredTalent";
 import DynamicFeedbackForm from "../feedback/DynamicFeedbackForm";
 import HrDashboard from "../hr/HrDashboard";
+import BenchCandidates from "../ta/BenchCandidates";
 // import ShortlistedCandidateAllHR from "../hr/ShortlistedCandidateAllHR";
 
 // Route Wrappers
@@ -154,7 +155,10 @@ const AppRouter = ({ isAuth }) => {
           element={<TechnicalFeedbackForm />}
         />
         <Route path="/feedback" element={<FeedbackForm />} />
-        <Route path="/dynamic-feedback-form" element={<DynamicFeedbackForm />} />
+        <Route
+          path="/dynamic-feedback-form"
+          element={<DynamicFeedbackForm />}
+        />
       </Route>
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
@@ -191,7 +195,7 @@ const AppRouter = ({ isAuth }) => {
               path="/onboarding-candidates"
               element={<OnboardingCandidates />}
             />*/}
-            <Route path="/hired-candidates-ta" element={<HiredCandidates />} />
+            <Route path="/bench-candidates-ta" element={<BenchCandidates />} />
             <Route path="/candidates-status-ta" element={<CandidateStatus />} />
             {/* <Route path="/user" element={<UserPage />} /> */}
             {/* <Route path="/vendor-candidates" element={<VendorCandidates />} />
@@ -221,7 +225,7 @@ const AppRouter = ({ isAuth }) => {
               path="/onboarding-candidates"
               element={<OnboardingCandidates />}
             />
-            <Route path="/hired-candidates-hr" element={<HiredCandidates />} />
+            <Route path="/bench-candidates-hr" element={<HiredCandidates />} />
             <Route path="/candidates-status-hr" element={<CandidateStatus />} />
             <Route path="/user" element={<UserPage />} />
           </Route>
@@ -242,18 +246,7 @@ const AppRouter = ({ isAuth }) => {
               path="/referred-candidates_bu/:jobId"
               element={<ReferredCandidates />}
             />
-            {/* <Route path="/post-new-job" element={<CreatePostJob />} />
-            <Route path="/create-company" element={<CreateCompany />} />
-            <Route path="/all-job-feeds" element={<Feeds />} />
-            <Route path="/job-detail" element={<JobDetailPage />} />
-            <Route
-              path="/all-job-feeds/company/openings"
-              element={<OpeningJobCard />}
-            />
-            <Route
-              path="//approve-candidates/:jobId"
-              element={<ViewCandidates />}
-            /> */}
+
             <Route path="/candidates-status-bu" element={<CandidateStatus />} />
             <Route path="/profile/bu" element={<Profile />} />
           </Route>

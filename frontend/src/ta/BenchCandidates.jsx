@@ -8,7 +8,7 @@ import axios from "axios";
 import { baseUrl } from "../api";
 import { useNavigate } from "react-router-dom";
 
-const HiredCandidates = () => {
+const BenchCandidates = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [candidateData, setCandidateData] = useState([]);
@@ -128,7 +128,7 @@ const HiredCandidates = () => {
                   colSpan="5"
                   className="py-10 text-center text-gray-600 text-base"
                 >
-                  No bench candidates found.
+                  No Bench candidates found.
                 </td>
               </tr>
             </tbody>
@@ -152,7 +152,7 @@ const HiredCandidates = () => {
                   <tr key={index} className="hover:bg-gray-50 transition">
                     {/* Name */}
                     <td   onClick={() =>
-                          navigate(`/application-tracker_hr/${c._id}`)
+                          navigate(`/application-tracker_ta/${c._id}`)
                         }
                         className="px-4 py-4 cursor-pointer align-top"
                       >
@@ -225,7 +225,10 @@ const HiredCandidates = () => {
               {candidateData.map((c, index) => (
                 <div
                   key={index}
-                  className="border border-gray-200 rounded-lg shadow-sm p-4 bg-white"
+                  onClick={() =>
+                          navigate(`/application-tracker_ta/${c._id}`)
+                        }
+                  className="border border-gray-200 rounded-lg cursor-pointer shadow-sm p-4 bg-white"
                 >
                   {/* Header */}
                   <div className="flex justify-between items-start">
@@ -292,4 +295,4 @@ const HiredCandidates = () => {
   );
 };
 
-export default HiredCandidates;
+export default BenchCandidates;
