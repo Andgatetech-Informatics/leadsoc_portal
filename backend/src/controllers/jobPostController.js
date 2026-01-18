@@ -418,18 +418,16 @@ exports.getJobsVm = async (req, res) => {
 };
 
 exports.addCandidatesToJob = async (req, res) => {
+  const user = req.user;
   try {
     const { jobId } = req.params; // jobId from URL
-    const { candidates, hrId } = req.body; // from POST body
+    const { candidates } = req.body; // from POST body
 
     // Validate input
     if (!candidates || !Array.isArray(candidates) || candidates.length === 0) {
       return res
         .status(400)
         .json({ message: "candidates must be a non-empty array" });
-    }
-    if (!hrId) {
-      return res.status(400).json({ message: "hrId is required" });
     }
 
     const job = await Job.findById(jobId);
@@ -449,7 +447,7 @@ exports.addCandidatesToJob = async (req, res) => {
         // Add to job
         job.candidates.push({
           candidate: candidateId,
-          addedBy: hrId,
+          addedBy: user._id,
         });
         added.push(candidateId);
       }
@@ -481,18 +479,16 @@ exports.addCandidatesToJob = async (req, res) => {
 };
 
 exports.addCandidatesToJobForBu = async (req, res) => {
+  const user = req.user;
   try {
     const { jobId } = req.params; // jobId from URL
-    const { candidates, hrId } = req.body; // from POST body
+    const { candidates } = req.body; // from POST body
 
     // Validate input
     if (!candidates || !Array.isArray(candidates) || candidates.length === 0) {
       return res
         .status(400)
         .json({ message: "candidates must be a non-empty array" });
-    }
-    if (!hrId) {
-      return res.status(400).json({ message: "hrId is required" });
     }
 
     const job = await Job.findById(jobId);
@@ -512,10 +508,10 @@ exports.addCandidatesToJobForBu = async (req, res) => {
         // Add to job
         job.candidates.push({
           candidate: candidateId,
-          addedBy: hrId,
+          addedBy: user._id,
           approvedByBU: true,
           BuApprovalDate: new Date(),
-          BuApprovedBy: req.user._id,
+          BuApprovedBy: user._id,
         });
         added.push(candidateId);
       }
@@ -534,12 +530,12 @@ exports.addCandidatesToJobForBu = async (req, res) => {
     await job.save();
 
     await NotificationModel.create({
-      title: `New users shortlisted for Job ${job.title}`,
+      title: `New users added for Job ${job.title}`,
       senderId: req.user._id,
       priority: "high",
       receiverId: job.createdBy,
-      entityType: "bu_notification",
-      message: `You have shortlisted new candidates for the job "${job.title}".`,
+      entityType: "sales_notification",
+      message: `You have new candidates added for the job "${job.title}".`,
       metadata: { jobId: job._id, candidatesAdded: added.length },
     });
 
@@ -574,80 +570,6 @@ exports.getshortlistedProfilesToMe = async (req, res) => {
         { phone: { $regex: search, $options: "i" } },
       ],
     };
-
-    const total = await Candidate.countDocuments(query);
-
-    const allShortlisted = await Candidate.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    const referedCandidates = await Job.findById(jobId).select("candidates");
-
-    const referedCandidateIds = referedCandidates
-      ? referedCandidates.candidates.map((c) => c.candidate.toString())
-      : [];
-
-    const filteredShortlisted = allShortlisted.filter(
-      (candidate) => !referedCandidateIds?.includes(candidate?._id?.toString())
-    );
-
-    return res.status(200).json({
-      status: true,
-      data: filteredShortlisted,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching assigned candidates:", error);
-    return res.status(500).json({
-      status: false,
-      message: "Failed to fetch assigned candidates.",
-      error: error.message,
-    });
-  }
-};
-
-exports.getshortlistedProfilesForBu = async (req, res) => {
-  const candidateType = req.query.candidateType || "bench";
-  const user = req.user;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 6;
-  const search = req.query.search || "";
-  const skip = (page - 1) * limit;
-  const jobId = req.query.jobId;
-
-  try {
-    let query = {};
-    if (candidateType === "vendor") {
-      query = {
-        // assignedTo: user._id,
-        status: {
-          $nin: ["bench", "pipeline"]
-        },
-        candidateType: candidateType,
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-          { phone: { $regex: search, $options: "i" } },
-        ],
-      };
-    } else {
-      query = {
-        // assignedTo: user._id,
-        status: candidateType,
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-          { phone: { $regex: search, $options: "i" } },
-        ],
-      };
-    }
 
     const total = await Candidate.countDocuments(query);
 
@@ -897,7 +819,6 @@ exports.getReferredCandidatesForBujobId = async (req, res) => {
   }
 };
 
-
 exports.approveSelectedCandidatesByBu = async (req, res) => {
   const { jobId } = req.params;
   const { candidateIds } = req.body;
@@ -917,33 +838,27 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
       });
     }
 
-    const candidateObjectIds = candidateIds
-      .filter(id => mongoose.Types.ObjectId.isValid(id))
-      .map(id => new mongoose.Types.ObjectId(id));
+    // ✅ sanitize + unique
+    const cleanedCandidateIds = [
+      ...new Set(
+        candidateIds
+          .map((id) => id?.toString?.())
+          .filter((id) => mongoose.Types.ObjectId.isValid(id))
+      ),
+    ];
 
-    if (candidateObjectIds.length === 0) {
+    if (cleanedCandidateIds.length === 0) {
       return res.status(400).json({
         status: false,
         message: "No valid candidateIds provided.",
       });
     }
 
-    const job = await Job.findOneAndUpdate(
-      { _id: jobId },
-      {
-        $set: {
-          "candidates.$[c].approvedByBU": true,
-          "candidates.$[c].BuApprovalDate": new Date(),
-          "candidates.$[c].BuApprovedBy": req.user._id,
-        },
-      },
-      {
-        arrayFilters: [
-          { "c.candidate": { $in: candidateObjectIds } },
-        ],
-        new: true,
-      }
-    );
+    const now = new Date();
+    const userId = req.user._id;
+
+    // ✅ Fetch job info for notification
+    const job = await Job.findById(jobId).select("title createdBy jobId");
 
     if (!job) {
       return res.status(404).json({
@@ -952,25 +867,79 @@ exports.approveSelectedCandidatesByBu = async (req, res) => {
       });
     }
 
+    /* ✅ Step 1: Approve candidates already existing in job.candidates */
+    const updatedExisting = await Job.updateOne(
+      { _id: jobId },
+      {
+        $set: {
+          "candidates.$[elem].approvedByBU": true,
+          "candidates.$[elem].BuApprovalDate": now,
+          "candidates.$[elem].BuApprovedBy": userId,
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "elem.candidate": {
+              $in: cleanedCandidateIds.map(
+                (id) => new mongoose.Types.ObjectId(id)
+              ),
+            },
+          },
+        ],
+      }
+    );
+
+    /* ✅ Step 2: Add missing candidates (no duplicates) */
+    const addResult = await Job.updateOne(
+      { _id: jobId },
+      {
+        $addToSet: {
+          candidates: {
+            $each: cleanedCandidateIds.map((id) => ({
+              candidate: new mongoose.Types.ObjectId(id),
+              addedBy: userId,
+              approvedByBU: true,
+              BuApprovalDate: now,
+              BuApprovedBy: userId,
+            })),
+          },
+        },
+      }
+    );
+
+    /* ✅ Step 3: Update Candidate.jobsReferred */
+    await Candidate.updateMany(
+      { _id: { $in: cleanedCandidateIds } },
+      { $addToSet: { jobsReferred: jobId } }
+    );
+
+    /* ✅ Step 4: Notification */
+    const totalApproved = cleanedCandidateIds.length;
+
     await NotificationModel.create({
-      title: `Candidates approved for Job ${job.title}`,
-      senderId: req.user._id,
+      title: `BU Approved (${totalApproved}) ${totalApproved === 1 ? "Candidate" : "Candidates"} for - ${job?.title || ""}`,
+      receiverId: job.createdBy, // ✅ send to job creator (Sales/HR)
       priority: "high",
-      receiverId: job.createdBy,
       entityType: "sales_notification",
-      message: `BU has approved selected candidates for the job "${job.title}".`,
+      message: `${req.user.firstName || ""} ${req.user.lastName || ""} approved ${totalApproved} candidate(s) for Job: ${job?.jobId || jobId
+        } - ${job?.title || ""}`,
       metadata: {
         jobId: job._id,
-        approvedCandidates: candidateObjectIds.length,
+        jobCode: job?.jobId,
+        approvedCandidateIds: cleanedCandidateIds,
+        approvedCount: totalApproved,
+        approvedBy: userId,
       },
     });
 
     return res.status(200).json({
       status: true,
-      message: "Candidates approved successfully.",
-      approvedCount: candidateObjectIds.length,
+      message: "Selected candidates approved by BU successfully.",
+      jobUpdated: updatedExisting?.modifiedCount || 0,
+      newlyAddedCandidates: addResult?.modifiedCount ? "maybe added" : "no change",
+      approvedCandidateIds: cleanedCandidateIds,
     });
-
   } catch (error) {
     console.error("Error approving candidates:", error);
     return res.status(500).json({
@@ -1095,5 +1064,201 @@ exports.getReferredCandidatesByCandidateId = async (req, res) => {
     });
   }
 };
+
+exports.getBenchCandidatesByJobId = async (req, res) => {
+  const { jobId, candidateType } = req.params;
+  const { page = 1, limit = 10, search = "" } = req.query;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid jobId",
+      });
+    }
+
+    const pageNumber = Math.max(parseInt(page, 10), 1);
+    const limitNumber = Math.max(parseInt(limit, 10), 1);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    const jobObjectId = new mongoose.Types.ObjectId(jobId);
+    const searchText = search.trim();
+
+    /* ------------------------- BASE FILTER ------------------------- */
+    const matchQuery = {};
+
+    /* ------------------------- CANDIDATE TYPE FILTER ------------------------- */
+
+    if (candidateType) {
+      if (candidateType === "vendor") {
+        matchQuery.candidateType = "vendor";
+        matchQuery.status = { $in: ["bench", "pipeline"] };
+      } else {
+        matchQuery.status = candidateType;
+        matchQuery.candidateType = "internal";
+      }
+    }
+
+    /* ------------------------- SEARCH FILTER ------------------------- */
+    if (searchText) {
+      matchQuery.$or = [
+        { name: { $regex: searchText, $options: "i" } },
+        { email: { $regex: searchText, $options: "i" } },
+        { mobile: { $regex: searchText, $options: "i" } },
+        { skills: { $regex: searchText, $options: "i" } },
+      ];
+    }
+
+    const pipeline = [
+      { $match: matchQuery },
+
+      /* ------------------ Join job to check approvedByBU ------------------ */
+      {
+        $lookup: {
+          from: "jobs",
+          let: { jobId: jobObjectId },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$_id", "$$jobId"] } } },
+            { $project: { candidates: 1 } },
+          ],
+          as: "jobData",
+        },
+      },
+      {
+        $addFields: {
+          jobCandidates: {
+            $ifNull: [{ $arrayElemAt: ["$jobData.candidates", 0] }, []],
+          },
+        },
+      },
+
+      /* ------------------ Flags ------------------ */
+      {
+        $addFields: {
+          referredForThisJob: {
+            $in: [jobObjectId, { $ifNull: ["$jobsReferred", []] }],
+          },
+
+          hasPendingBUApproval: {
+            $gt: [
+              {
+                $size: {
+                  $filter: {
+                    input: "$jobCandidates",
+                    as: "jc",
+                    cond: {
+                      $and: [
+                        { $eq: ["$$jc.candidate", "$_id"] },
+                        { $eq: ["$$jc.approvedByBU", false] },
+                      ],
+                    },
+                  },
+                },
+              },
+              0,
+            ],
+          },
+        },
+      },
+
+      /* ✅ Final Condition */
+      {
+        $match: {
+          $or: [
+            /* ✅ Bucket A: Referred for this job + approvedByBU false */
+            {
+              $and: [
+                { referredForThisJob: true },
+                { hasPendingBUApproval: true },
+              ],
+            },
+
+            /* ✅ Bucket B: Not referred for this job + bench/pipeline */
+            {
+              $and: [
+                { referredForThisJob: false },
+                { status: { $in: ["bench", "pipeline"] } },
+              ],
+            },
+          ],
+        },
+      },
+
+      /* ✅ Sorting: referred first, then non-referred */
+      {
+        $sort: {
+          referredForThisJob: -1, // true first
+          updatedAt: -1,
+        },
+      },
+
+      /* ------------------------- PAGINATION ------------------------- */
+      {
+        $facet: {
+          data: [
+            { $skip: skip },
+            { $limit: limitNumber },
+            {
+              $project: {
+                _id: 1,
+                status: 1,
+                name: 1,
+                email: 1,
+                mobile: 1,
+                experienceYears: 1,
+                skills: 1,
+                domain: 1,
+                resume: 1,
+                updatedAt: 1,
+                jobsReferred: 1,
+                candidateType: 1,
+                joiningDate: 1,
+                designation: 1,
+                preferredLocation: 1,
+                graduationYear: 1,
+                poc: 1,
+                vendorReferred: 1,
+                vendorManagerName: 1,
+                expectedCTC: 1,
+                currentCTC: 1,
+                noticePeriod: 1,
+
+                /* ✅ helpful UI flags */
+                referredForThisJob: 1,
+                hasPendingBUApproval: 1,
+              },
+            },
+          ],
+          totalCount: [{ $count: "count" }],
+        },
+      },
+    ];
+
+    const [result] = await Candidate.aggregate(pipeline);
+
+    const data = result?.data || [];
+    const totalRecords = result?.totalCount?.[0]?.count || 0;
+
+    return res.status(200).json({
+      status: true,
+      message: "BU pending candidates fetched successfully",
+      data,
+      pagination: {
+        totalRecords,
+        totalPages: Math.ceil(totalRecords / limitNumber),
+        currentPage: pageNumber,
+        limit: limitNumber,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching candidates:", error);
+    return res.status(500).json({
+      status: false,
+      message: "Failed to fetch candidates.",
+      error: error.message,
+    });
+  }
+};
+
 
 

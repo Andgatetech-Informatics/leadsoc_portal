@@ -1076,7 +1076,7 @@ exports.statusChange = async (req, res) => {
       });
     }
 
-    if (status === "shortlisted") {
+    if (status === "pipeline") {
       await NotificationModel.create({
         title: `${user.firstName} Shortlisted ${candidate.name}`,
         senderId: user._id,

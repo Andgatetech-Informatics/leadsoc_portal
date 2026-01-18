@@ -112,4 +112,8 @@ const candidateSchema = new mongoose.Schema(
   }
 );
 
+candidateSchema.index({ status: 1, candidateType: 1, updatedAt: -1 });
+candidateSchema.index({ jobsReferred: 1 });
+candidateSchema.index({ name: "text", email: "text", skills: "text" });
+
 module.exports = mongoose.model("candidate", candidateSchema);

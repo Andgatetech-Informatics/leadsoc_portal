@@ -336,7 +336,6 @@ const OnboardingCandidates = () => {
               className="w-full sm:w-auto border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
             >
               <option value="All">All Status</option>
-              <option value="shortlisted">Shortlisted</option>
               <option value="pipeline">Pipeline</option>
               {/* <option value="bench">Bench</option> */}
               <option value="review">Review</option>
@@ -563,9 +562,9 @@ const OnboardingCandidates = () => {
                             openModal();
                             getReferredJobDetials(c._id);
                           }}
-                          disabled={c.status === "pipeline"}
+                          disabled={c.onboardingInitiateDate && c.onboardingInitiateDate !== ""}
                           className={`w-full flex items-center justify-center gap-2 text-white text-xs md:text-sm px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-green-500 transition ${
-                            c.status === "pipeline"
+                            c.onboardingInitiateDate && c.onboardingInitiateDate !== ""
                               ? "bg-gray-400 cursor-not-allowed"
                               : "bg-green-600 hover:bg-green-700"
                           }`}

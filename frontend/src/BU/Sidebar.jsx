@@ -15,12 +15,6 @@ import {
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-
-  {
-    to: "/approve-candidates",
-    label: "Approve Candidates",
-    icon: UsersRoundIcon,
-  },
   { to: "/active-jobs-bu", label: "Active Jobs", icon: CheckCircle },
   // { to: "/all-job-feeds", label: "Companies", icon: CheckCircle },
   // { to: "/create-company", label: "Create Company", icon: BuildingIcon },

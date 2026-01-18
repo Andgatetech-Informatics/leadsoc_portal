@@ -72,8 +72,6 @@ const ShareModal = ({ isOpen, onClose, jobId }) => {
         }
       );
 
-      console.log("Response:", response.data);
-
       toast.success("Emails sent successfully!");
 
       setEmails([]);

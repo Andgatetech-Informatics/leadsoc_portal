@@ -5,6 +5,7 @@ import { Search, X } from "lucide-react";
 import Pagination from "../components/Pagination";
 import axios from "axios";
 import { baseUrl } from "../api";
+import moment from "moment";
 
 const TABS = [
   { key: "bench", label: "Bench Candidates" },
@@ -22,7 +23,8 @@ const SubmitProfileModal = ({ isOpen, onClose, jobId }) => {
   const [candidates, setCandidates] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [loading, setLoading] = useState(false);
-const [modalCandidate, setModalCandidate] = useState(null);
+  const [btnLoading, setBtnLoading] = useState(false)
+  const [modalCandidate, setModalCandidate] = useState(null);
   // Pagination
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -33,14 +35,12 @@ const [modalCandidate, setModalCandidate] = useState(null);
       setLoading(true);
 
       const { data, status } = await axios.get(
-        `${baseUrl}/api/getshortlistedProfilesForBu`,
+        `${baseUrl}/api/getBenchCandidatesByJobId/${jobId}/${activeTab}`,
         {
           params: {
-            candidateType: activeTab,
             page,
             limit: LIMIT,
             search: searchTerm,
-            jobId,
           },
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -53,6 +53,7 @@ const [modalCandidate, setModalCandidate] = useState(null);
       }
       setCandidates(data.data || []);
       setTotalPages(data.pagination.totalPages || 1);
+      setPage(data.pagination.currentPage || 1)
     } catch (err) {
       console.error("Fetch Candidates Error:", err);
       toast.error("Failed to fetch candidates");
@@ -95,10 +96,20 @@ const [modalCandidate, setModalCandidate] = useState(null);
     }
 
     try {
-      setLoading(true);
+      setBtnLoading(true);
 
-      // 🔹 API call can be placed here
-      await new Promise((res) => setTimeout(res, 1000));
+      // approve_candidates
+
+      const res = await axios.put(
+        `${baseUrl}/api/approve_candidates/${jobId}`,
+        { candidateIds: selectedIds },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
 
       toast.success("Candidates submitted successfully");
       setSelectedIds([]);
@@ -106,7 +117,7 @@ const [modalCandidate, setModalCandidate] = useState(null);
     } catch (err) {
       toast.error("Submission failed");
     } finally {
-      setLoading(false);
+      setBtnLoading(false);
     }
   };
 
@@ -118,6 +129,10 @@ const [modalCandidate, setModalCandidate] = useState(null);
   };
 
   if (!isOpen) return null;
+
+  const remainingDays = modalCandidate?.joiningDate
+    ? moment(modalCandidate.joiningDate).diff(moment(), "days")
+    : null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
@@ -143,11 +158,10 @@ const [modalCandidate, setModalCandidate] = useState(null);
               <button
                 key={key}
                 onClick={() => handleTabChange(key)}
-                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                  activeTab === key
-                    ? "bg-blue-600 text-white shadow"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                }`}
+                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${activeTab === key
+                  ? "bg-blue-600 text-white shadow"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
               >
                 {label}
               </button>
@@ -239,7 +253,7 @@ const [modalCandidate, setModalCandidate] = useState(null);
 
                   {/* TA or POC / Vendor */}
                   <div className="text-sm text-gray-500 truncate">
-                    {c.vendorReferred ? c.vendorName : c.poc || "Unassigned"}
+                    {c.vendorManagerName ? c.vendorManagerName : c.poc || "Unassigned"}
                   </div>
 
                   {/* Resume */}
@@ -252,16 +266,16 @@ const [modalCandidate, setModalCandidate] = useState(null);
                       Resume
                     </a>
                   </div> */}
-                  
-            {/* View Button */}
-            <div className="flex justify-center">
-              <button
-                onClick={() => setModalCandidate(c)}
-                className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
-              >
-                View
-              </button>
-            </div>
+
+                  {/* View Button */}
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => setModalCandidate(c)}
+                      className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    >
+                      View
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -277,114 +291,232 @@ const [modalCandidate, setModalCandidate] = useState(null);
           <div className="flex justify-end">
             <button
               onClick={handleSubmit}
-              disabled={loading}
+              disabled={selectedIds.length <= 0}
               className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {loading ? "Approving..." : "Approve"}
+              {btnLoading ? "Approving..." : "Approve"}
             </button>
           </div>
         </div>
-  {/* Modal */}
-{modalCandidate && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="bg-white rounded-xl shadow-lg max-w-2xl w-full p-6 relative overflow-y-auto max-h-[90vh]">
-      {/* Close Button */}
-      <button
-        onClick={() => setModalCandidate(null)}
-         aria-label="Close"
-          className="absolute right-4 top-4 z-20 flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        
-      >
-        <X size={14}/>
-      </button>
+        {/* Modal */}
+        {modalCandidate && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+            <div className="relative w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl border border-gray-100">
 
-     
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 px-6 py-5 border-b border-gray-100 bg-gray-50">
+                <div>
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Candidate Details
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    View candidate profile, onboarding status, and documents
+                  </p>
+                </div>
 
-      {/* Candidate Info Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 text-sm">
+                <button
+                  onClick={() => setModalCandidate(null)}
+                  aria-label="Close"
+                  className="flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-white hover:text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <X size={16} />
+                </button>
+              </div>
 
-        <div>
-          <p className="font-medium">Designation:</p>
-          <p>{modalCandidate.designation || "N/A"}</p>
-        </div>
+              {/* Body */}
+              <div className="px-6 py-5 max-h-[75vh] overflow-y-auto">
 
-        <div>
-          <p className="font-medium">Domain:</p>
-          <p>{modalCandidate.domain?.join(", ") || "N/A"}</p>
-        </div>
+                {/* Quick Highlights */}
+                <div className="flex flex-wrap items-center gap-2 mb-5">
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 border border-blue-100">
+                    Joining In:{" "}
+                    {remainingDays === null
+                      ? "N/A"
+                      : remainingDays <= 0
+                        ? "Joined ✅"
+                        : `${remainingDays} days`}
+                  </span>
 
-        <div>
-          <p className="font-medium">Email:</p>
-          <p>{modalCandidate.email}</p>
-        </div>
+                  <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 border border-gray-200">
+                    {modalCandidate?.designation || "Designation: N/A"}
+                  </span>
 
-        <div>
-          <p className="font-medium">Mobile:</p>
-          <p>{modalCandidate.mobile}</p>
-        </div>
+                  {
+                    modalCandidate.status !== "bench" &&
+                    (
+                      <span
+                        className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium border ${modalCandidate?.onboardingInitiated
+                          ? "bg-green-50 text-green-700 border-green-100"
+                          : "bg-yellow-50 text-yellow-700 border-yellow-100"
+                          }`}
+                      >
+                        {modalCandidate?.onboardingInitiated
+                          ? "Onboarding Initiated"
+                          : "Onboarding Pending"}
+                      </span>
 
-        <div>
-          <p className="font-medium">Skills:</p>
-          <p>{modalCandidate.skills || "N/A"}</p>
-        </div>
+                    )
+                  }
 
-        <div>
-          <p className="font-medium">Graduation Year:</p>
-          <p>{modalCandidate.graduationYear || "N/A"}</p>
-        </div>
+                </div>
 
-        <div>
-          <p className="font-medium">Preferred Location:</p>
-          <p>{modalCandidate.preferredLocation || "N/A"}</p>
-        </div>
+                {/* Basic Info */}
+                <SectionCard title="Basic Info">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InfoRow label="Email" value={modalCandidate?.email || "N/A"} />
+                    <InfoRow label="Mobile" value={modalCandidate?.mobile || "N/A"} />
+                    <InfoRow
+                      label="Domain"
+                      value={modalCandidate?.domain?.join(", ") || "N/A"}
+                    />
+                    <InfoRow
+                      label="Preferred Location"
+                      value={modalCandidate?.preferredLocation || "N/A"}
+                    />
+                    <InfoRow label="Skills" value={modalCandidate?.skills || "N/A"} />
+                    <InfoRow
+                      label="Graduation Year"
+                      value={modalCandidate?.graduationYear || "N/A"}
+                    />
+                    <InfoRow
+                      label="Joining Date"
+                      value={
+                        modalCandidate?.joiningDate
+                          ? moment(modalCandidate.joiningDate).format("DD MMM YYYY")
+                          : "N/A"
+                      }
+                    />
+                  </div>
+                </SectionCard>
 
-      
+                {/* Assignment / Vendor Info */}
+                <div className="mt-5">
+                  <SectionCard title="Assignment Details">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {
+                        modalCandidate.vendorManagerName && (
+                          <InfoRow
+                            label="Vendor Manager"
+                            value={modalCandidate?.vendorManagerName || "N/A"}
+                          />
+                        )
+                      }
+                      {
+                        modalCandidate.poc && (
+                          <InfoRow
+                            label="Assigned To"
+                            value={modalCandidate?.poc || "N/A"}
+                          />
+                        )
+                      }
+                      {
+                        modalCandidate.expectedCTC && (
+                          <InfoRow
+                            label="Expected CTC"
+                            value={
+                              modalCandidate?.expectedCTC
+                                ? `₹ ${Number(modalCandidate.expectedCTC).toLocaleString("en-IN")}`
+                                : "N/A"
+                            }
+                          />
+                        )
+                      }
+                    </div>
+                  </SectionCard>
+                </div>
 
-        <div>
-          <p className="font-medium">Joining Date:</p>
-          <p>{modalCandidate.joiningDate ? new Date(modalCandidate.joiningDate).toLocaleDateString() : "N/A"}</p>
-        </div>
+                {/* Onboarding */}
+                <div className="mt-5">
+                  <SectionCard title="Onboarding Status">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <InfoRow
+                        label="Onboarding Initiated"
+                        value={modalCandidate?.onboardingInitiated ? "Yes ✅" : "No ❌"}
+                      />
+                      <InfoRow
+                        label="Onboarding Initiate Date"
+                        value={
+                          modalCandidate?.onboardingInitiateDate
+                            ? moment(modalCandidate.onboardingInitiateDate).format(
+                              "DD MMM YYYY"
+                            )
+                            : "N/A"
+                        }
+                      />
+                    </div>
+                  </SectionCard>
+                </div>
 
-        <div>
-          <p className="font-medium">Onboarding Initiated:</p>
-          <p>{modalCandidate.onboardingInitiated ? "Yes" : "No"}</p>
-        </div>
+                {/* Resume */}
+                <div className="mt-5">
+                  <SectionCard
+                    title="Documents"
+                    rightText={modalCandidate?.resume ? "Resume Available ✅" : null}
+                  >
+                    {modalCandidate?.resume ? (
+                      <a
+                        href={
+                          modalCandidate.resume.endsWith(".doc") ||
+                            modalCandidate.resume.endsWith(".docx")
+                            ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
+                              `${baseUrl}/${modalCandidate.resume}`
+                            )}`
+                            : `${baseUrl}/${modalCandidate.resume}`
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 transition hover:bg-blue-100"
+                      >
+                        📄 View Resume
+                      </a>
+                    ) : (
+                      <p className="text-sm text-gray-500">No Resume Uploaded</p>
+                    )}
+                  </SectionCard>
+                </div>
+              </div>
 
-         <div className="col-span-2">
-          <p className="font-medium">Resume:</p>
-          {modalCandidate?.resume ? (
-            <a
-              href={
-                modalCandidate.resume.endsWith(".doc") ||
-                modalCandidate.resume.endsWith(".docx")
-                  ? `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(
-                      `${baseUrl}/${modalCandidate.resume}`
-                    )}`
-                  : `${baseUrl}/${modalCandidate.resume}`
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-800 mt-1 inline-block"
-            >
-              📄 View Resume
-            </a>
-          ) : (
-            <span>No Resume</span>
-          )}
-        </div>
-
-    
-
-      </div>
-
-  
-    </div>
-  </div>
-)}
-
+              {/* Footer */}
+              <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
+                <button
+                  onClick={() => setModalCandidate(null)}
+                  className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
+const SectionCard = ({ title, rightText, children }) => {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white shadow-sm">
+      <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
+        {rightText ? (
+          <span className="text-xs text-gray-500">{rightText}</span>
+        ) : null}
+      </div>
+      <div className="p-5">{children}</div>
+    </div>
+  );
+};
+
+const InfoRow = ({ label, value }) => {
+  return (
+    <div className="rounded-xl bg-gray-50 border border-gray-100 p-3">
+      <p className="text-xs font-medium text-gray-500">{label}</p>
+      <p className="mt-1 text-sm font-semibold text-gray-900 break-words">
+        {value}
+      </p>
+    </div>
+  );
+};
+
 
 export default SubmitProfileModal;

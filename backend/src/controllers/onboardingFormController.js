@@ -30,6 +30,15 @@ exports.createOnboarding = async (req, res) => {
       metadata: { candidateId: updatedCandidateStatus._id },
     });
 
+    await NotificationModel.create({
+      title: `Candidate ${updatedCandidateStatus.name} Onboarded Successfully For Bench`,
+      receiverId: updatedCandidateStatus.assignedTo,
+      priority: "high",
+      entityType: "ta_notification",
+      message: `Candidate ${updatedCandidateStatus.name} has been onboarded successfully for bench.`,
+      metadata: { candidateId: updatedCandidateStatus._id },
+    });
+
     res.status(201).json({
       success: true,
       message: "Onboarding form submitted successfully",

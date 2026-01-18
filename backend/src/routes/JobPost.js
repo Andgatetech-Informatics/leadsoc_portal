@@ -8,13 +8,13 @@ const {
   getShortlistedCandidatesForjobId,
   getReferredCandidatesForBujobId,
   approveSelectedCandidatesByBu,
-  getshortlistedProfilesForBu,
   addCandidatesToJobForBu,
   updateJobPost,
   getJobsTa,
   getJobsVm,
   sendJobEmailToVendor,
-  getReferredCandidatesByCandidateId
+  getReferredCandidatesByCandidateId,
+  getBenchCandidatesByJobId
 } = require("../controllers/jobPostController");
 const { authMiddleware } = require("../middlewares/authMiddleware");
 
@@ -25,10 +25,10 @@ router.get("/getjobTa", getJobsTa);
 router.get("/getjobVm", getJobsVm);
 router.get("/shortlisted_candidates_activeJobs/:jobId", getShortlistedCandidatesForjobId);
 router.get("/shortlisted_candidates_activeJobs_bu/:jobId", getReferredCandidatesForBujobId);
-router.post("/addcandidatestojob/:jobId", addCandidatesToJob);
+router.post("/addcandidatestojob/:jobId", authMiddleware, addCandidatesToJob);
 router.post("/addcandidatestojobforBu/:jobId", authMiddleware, addCandidatesToJobForBu);
 router.get("/getshortlistedProfilesToMe", authMiddleware, getshortlistedProfilesToMe)
-router.get("/getshortlistedProfilesForBu", authMiddleware, getshortlistedProfilesForBu)
+router.get("/getBenchCandidatesByJobId/:jobId/:candidateType", authMiddleware, getBenchCandidatesByJobId);
 router.put("/approve_candidates/:jobId", authMiddleware, approveSelectedCandidatesByBu);
 router.post("/send_job_email_to_vendor", authMiddleware, sendJobEmailToVendor);
 router.get("/get_referred_candidates/:candidateId", authMiddleware, getReferredCandidatesByCandidateId);

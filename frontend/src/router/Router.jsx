@@ -241,7 +241,7 @@ const AppRouter = ({ isAuth }) => {
               element={<ApplicationTracker />}
             />
             <Route path="/active-jobs-bu" element={<ActiveJobsBu />} />
-            <Route path="/approve-candidates" element={<ApproveCandidates />} />
+            {/* <Route path="/approve-candidates" element={<ApproveCandidates />} /> */}
             <Route
               path="/referred-candidates_bu/:jobId"
               element={<ReferredCandidates />}
