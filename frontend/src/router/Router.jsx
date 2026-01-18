@@ -256,10 +256,10 @@ const AppRouter = ({ isAuth }) => {
         <Route element={<SalesRoute user={user} />}>
           <Route element={<SalesLayout />}>
             <Route path="/dashboard/sales" element={<SalesDashboard />} />
-            <Route
+            {/* <Route
               path="/referred-all-candidates"
               element={<ReferredTalent />}
-            />
+            /> */}
             <Route
               path="/application-tracker_sales/:candidateId"
               element={<ApplicationTracker />}

@@ -7,12 +7,18 @@ import { useSelector } from "react-redux";
 import SearchResult from "../components/SearchResult";
 import AndGatePopup from "../andgateExtension/AndGatePopup";
 import { companyLogoText } from "../api";
+import Notifications from "../components/Notifications";
+import axios from "axios";
+import { baseUrl } from "../api"
 
 const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.user);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
 
   const location = useLocation();
   const path = location.pathname;
@@ -35,6 +41,32 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     window.location.reload();
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const { data } = await axios.get(
+        `${baseUrl}/api/notification/notifications_by_entityType`,
+        {
+          params: {
+            notificationType: "sales_notification",
+          },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      setNotifications(data.data || []);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (
@@ -52,7 +84,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
     <header className="w-full flex items-center justify-between bg-white px-4 sm:px-6 py-3 shadow-sm border-b">
       {/* Left: Logo + Toggle (for mobile) */}
       <div className="flex items-center gap-4">
-         
+
         <button
           onClick={onToggleSidebar}
           className="text-gray-500 hover:text-blue-600 transition"
@@ -63,16 +95,16 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
             <PanelRightOpen size={25} />
           )}
         </button>
- <Link to="/dashboard" className="flex items-center gap-2">
-        <div>
-          <h1 className="text-xl font-bold text-blue-600 leading-tight">
-            {companyLogoText}
-          </h1>
-          <p className="text-xs font-semibold text-gray-500  -mt-1">
-            Sales Management Panel
-          </p>
-        </div>
-         </Link>
+        <Link to="/dashboard" className="flex items-center gap-2">
+          <div>
+            <h1 className="text-xl font-bold text-blue-600 leading-tight">
+              {companyLogoText}
+            </h1>
+            <p className="text-xs font-semibold text-gray-500  -mt-1">
+              Sales Management Panel
+            </p>
+          </div>
+        </Link>
       </div>
 
       {/* Center: Search Bar */}
@@ -94,10 +126,27 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
       {user && (
         <div className="flex items-center gap-4 relative">
           {/* Notification Bell */}
-          <button className="relative text-black hover:text-blue-600 transition">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setIsNotificationOpen((prev) => !prev)}
+              className="relative text-black hover:text-blue-600 transition mt-1"
+            >
+              <Bell className="w-5 h-5" />
+              {notifications && notifications.length > 0 && (
+                <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              )}
+            </button>
+
+            {isNotificationOpen && (
+              <Notifications
+                onClose={() => setIsNotificationOpen(false)}
+                loading={loading}
+                fetchNotifications={fetchNotifications}
+                notifications={notifications}
+                setNotifications={setNotifications}
+              />
+            )}
+          </div>
 
           {/* User Button */}
           <button

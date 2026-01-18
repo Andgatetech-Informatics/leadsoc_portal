@@ -43,11 +43,13 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
   const fetchNotifications = async () => {
     try {
       const { data } = await axios.get(
-        `${baseUrl}/api/notification/bu_notifications`,
+        `${baseUrl}/api/notification/notifications_by_entityType`,
         {
+          params: {
+            notificationType: "bu_notification",
+          },
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
-            contentType: "application/json",
           },
         }
       );
@@ -143,6 +145,7 @@ const Navbar = ({ onToggleSidebar, isSidebarOpen }) => {
               <Notifications
                 onClose={() => setIsNotificationOpen(false)}
                 loading={loading}
+                fetchNotifications={fetchNotifications}
                 notifications={notifications}
                 setNotifications={setNotifications}
               />

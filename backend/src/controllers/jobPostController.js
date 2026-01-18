@@ -613,69 +613,83 @@ exports.getShortlistedCandidatesForjobId = async (req, res) => {
   const { jobId } = req.params;
 
   try {
+    if (!mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid jobId",
+      });
+    }
+
     const shortlistedCandidates = await Job.aggregate([
       {
-        $match: { _id: new ObjectId(jobId) }
+        $match: {
+          _id: new mongoose.Types.ObjectId(jobId),
+        },
       },
       {
-        $unwind: "$candidates"
+        $unwind: "$candidates",
       },
       {
-        $match: { "candidates.approvedByBU": { $eq: true } }
+        $match: {
+          "candidates.approvedByBU": true,
+        },
       },
       {
         $lookup: {
           from: "candidates",
-          let: { userId: "$candidates.candidate" },
-          pipeline: [
-            {
-              $match: {
-                $expr: { $eq: ["$_id", "$$userId"] }
-              }
-            },
-            {
-              $match: { status: "shortlisted" }
-            }
-          ],
-          as: "candidateDetails"
-        }
+          localField: "candidates.candidate",
+          foreignField: "_id",
+          as: "candidateDetails",
+        },
       },
       {
-        $unwind: "$candidateDetails"
+        $unwind: "$candidateDetails",
       },
       {
         $project: {
           _id: "$candidateDetails._id",
           status: "$candidateDetails.status",
+
           firstName: {
-            $arrayElemAt: [
-              { $split: ["$candidateDetails.name", " "] },
-              0
-            ]
+            $arrayElemAt: [{ $split: ["$candidateDetails.name", " "] }, 0],
           },
           lastName: {
-            $arrayElemAt: [
-              { $split: ["$candidateDetails.name", " "] },
-              1
-            ]
+            $arrayElemAt: [{ $split: ["$candidateDetails.name", " "] }, 1],
           },
+
           email: "$candidateDetails.email",
           mobile: "$candidateDetails.mobile",
           experience: "$candidateDetails.experienceYears",
           skills: "$candidateDetails.skills",
-          hrName: "$candidateDetails.poc",
+
+          // ✅ show both separately (if exist)
+          taName: {
+            $cond: {
+              if: { $ifNull: ["$candidateDetails.assignedTo", false] },
+              then: "$candidateDetails.poc",
+              else: null,
+            },
+          },
+          vendorManagerName: {
+            $cond: {
+              if: { $ifNull: ["$candidateDetails.vendorManagerId", false] },
+              then: "$candidateDetails.vendorManagerName",
+              else: null,
+            },
+          },
+
           resumeUrl: "$candidateDetails.resume",
-          addedAt: "$candidateDetails.updatedAt"
-        }
-      }
+          addedAt: "$candidateDetails.updatedAt",
+          expectedCTC: "$candidateDetails.expectedCTC",
+        },
+      },
     ]);
 
     return res.status(200).json({
       status: true,
       message: "Shortlisted candidates fetched successfully",
-      data: shortlistedCandidates
+      data: shortlistedCandidates,
     });
-
   } catch (error) {
     console.error("Error fetching shortlisted candidates:", error);
     return res.status(500).json({
@@ -685,6 +699,7 @@ exports.getShortlistedCandidatesForjobId = async (req, res) => {
     });
   }
 };
+
 
 
 exports.getReferredCandidatesForBujobId = async (req, res) => {
